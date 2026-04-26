@@ -1071,6 +1071,45 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         </div>
       </div>
 
+      <!-- Consumo detalhado -->
+      <div class="section-label">Consumo do mês</div>
+      <div class="card" style="margin-bottom:18px;" id="prof-consumo-card">
+        <!-- Barra principal minutos -->
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:13px;font-weight:700;">🎙️ Minutos traduzidos</span>
+            <span style="font-size:13px;font-weight:800;font-family:var(--mono);color:var(--accent);" id="prof-min-txt">— / — min</span>
+          </div>
+          <div class="ubg" style="height:10px;border-radius:5px;">
+            <div class="ubf" id="prof-min-bar" style="width:0%;height:100%;border-radius:5px;transition:width .5s ease;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="prof-min-rest">— min restantes</span>
+            <span style="font-size:10px;font-family:var(--mono);" id="prof-min-pct" style="color:var(--muted);">0%</span>
+          </div>
+        </div>
+        <!-- Stats grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;" id="prof-stats-grid">
+          <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:var(--accent);" id="prof-stat-sess">—</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Sessões</div>
+          </div>
+          <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:var(--green);" id="prof-stat-trad">—</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Traduções</div>
+          </div>
+          <div style="background:var(--surface);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:#c084fc;" id="prof-stat-lat">—</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Lat. média</div>
+          </div>
+        </div>
+        <!-- Últimas ações -->
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">Últimas atividades</div>
+        <div id="prof-recent-logs" style="display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:11px;color:var(--muted);text-align:center;padding:10px;">Carregando...</div>
+        </div>
+      </div>
+
       <!-- Upgrade options -->
       <div class="section-label" id="prof-upgrade-label">Fazer upgrade</div>
       <div id="prof-plans-grid" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
@@ -1142,6 +1181,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div class="atabs">
           <div class="atab active" onclick="adTab('visao',this)">📊 Visão Geral</div>
           <div class="atab" onclick="adTab('usuarios',this)">👥 Usuários</div>
+          <div class="atab" onclick="adTab('uso',this)">📈 Uso</div>
           <div class="atab" onclick="adTab('api',this)">⚙️ APIs</div>
           <div class="atab" onclick="adTab('chats',this)">💬 Chats <span id="chat-badge" style="display:none;background:var(--accent);color:#000;font-size:9px;font-weight:800;padding:1px 5px;border-radius:6px;margin-left:3px;"></span></div>
           <div class="atab" onclick="adTab('sistema',this)">🔧 Sistema</div>
@@ -1291,6 +1331,36 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div id="admin-chat-list"></div>
         </div>
         <!-- SISTEMA -->
+        <!-- USO POR USUÁRIO -->
+        <div class="atpanel" id="tab-uso">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div class="section-label" style="margin-bottom:0;">Consumo por usuário</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadUsoData()">🔄 Atualizar</button>
+          </div>
+          <!-- Filtro de mês -->
+          <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">MÊS:</span>
+            <select id="uso-month-sel" onchange="loadUsoData()" style="background:var(--card);border:1px solid var(--border);border-radius:9px;padding:6px 10px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;cursor:pointer;"></select>
+          </div>
+          <!-- Totais do mês -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;" id="uso-totals">
+            <div class="kc b"><div class="ki">🎙️</div><div class="kv" id="uso-total-trans">—</div><div class="kl">Transcrições</div></div>
+            <div class="kc g"><div class="ki">🌐</div><div class="kv" id="uso-total-trad">—</div><div class="kl">Traduções</div></div>
+            <div class="kc p"><div class="ki">🔊</div><div class="kv" id="uso-total-speak">—</div><div class="kl">Falas (TTS)</div></div>
+            <div class="kc o"><div class="ki">⚡</div><div class="kv" id="uso-total-lat">—</div><div class="kl">Latência média</div></div>
+          </div>
+          <!-- Tabela por usuário -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;">
+            <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px 90px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;">
+              <span>Usuário</span><span style="text-align:center;">Transcrições</span><span style="text-align:center;">Traduções</span><span style="text-align:center;">Falas</span><span style="text-align:center;">Min usados</span><span style="text-align:center;">Lat. média</span>
+            </div>
+            <div id="uso-user-list"><div style="padding:24px;text-align:center;font-size:12px;color:var(--muted);">Carregando...</div></div>
+          </div>
+          <!-- Log recente -->
+          <div class="section-label">Últimas 30 ações</div>
+          <div id="uso-log-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
         <div class="atpanel" id="tab-sistema">
           <div class="section-label">Controles gerais</div>
           <div class="trow"><div><div class="tnm">Modo manutenção</div><div class="tds">Bloqueia novos acessos</div></div><div class="tog" onclick="this.classList.toggle('on')"><div class="tth"></div></div></div>
@@ -1633,6 +1703,8 @@ function renderProfilePage(){
   const pub=document.getElementById('prof-usage-bar');if(pub){pub.style.width=pct+'%';pub.className='ubf'+(pct>=100?' over':pct>=80?' warn':'');}
   // Upgrade plans grid
   const grid=document.getElementById('prof-plans-grid');
+  // Load real usage from Firestore
+  loadProfileUsage(u);
   const lbl=document.getElementById('prof-upgrade-label');
   if(!grid)return;
   grid.innerHTML='';
@@ -1651,6 +1723,76 @@ function renderProfilePage(){
     card.addEventListener('click',()=>openPayment(p));
     grid.appendChild(card);
   });
+}
+
+async function loadProfileUsage(u){
+  if(!u)return;
+  const uid=u.uid;
+  const used=u.minutesUsed||0;
+  const limit=u.minutesLimit||5;
+  const pct=Math.min(100,Math.round((used/limit)*100));
+  const rest=Math.max(0,limit-used);
+
+  // Atualiza barra principal
+  const minTxt=document.getElementById('prof-min-txt');
+  const minBar=document.getElementById('prof-min-bar');
+  const minRest=document.getElementById('prof-min-rest');
+  const minPct=document.getElementById('prof-min-pct');
+  if(minTxt)minTxt.textContent=used.toFixed(1)+' / '+limit+' min';
+  if(minBar){minBar.style.width=pct+'%';minBar.className='ubf'+(pct>=100?' over':pct>=80?' warn':'');}
+  if(minRest)minRest.textContent=rest.toFixed(1)+' min restantes';
+  if(minPct){minPct.textContent=pct+'%';minPct.style.color=pct>=100?'var(--red)':pct>=80?'var(--orange)':'var(--muted)';}
+
+  // Se Firebase disponível, busca dados reais
+  if(!window.FB||!db){
+    document.getElementById('prof-stat-sess').textContent='—';
+    document.getElementById('prof-stat-trad').textContent='—';
+    document.getElementById('prof-stat-lat').textContent='—';
+    document.getElementById('prof-recent-logs').innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px;">Firebase não conectado</div>';
+    return;
+  }
+  try{
+    const month=new Date().toISOString().slice(0,7);
+    const snap=await db.collection('logs').where('uid','==',uid).where('month','==',month).orderBy('createdAt','desc').limit(50).get();
+    const logs=snap.docs.map(d=>d.data());
+
+    let sess=0,trad=0,latSum=0,latCount=0;
+    logs.forEach(l=>{
+      if(l.type==='session_end')sess++;
+      if(l.type==='translate'||l.type==='listen')trad++;
+      if(l.latency){latSum+=l.latency;latCount++;}
+    });
+
+    document.getElementById('prof-stat-sess').textContent=sess||'0';
+    document.getElementById('prof-stat-trad').textContent=trad||'0';
+    document.getElementById('prof-stat-lat').textContent=latCount>0?Math.round(latSum/latCount)+'ms':'—';
+
+    // Log recente
+    const typeIcon={transcribe:'🎙️',translate:'🌐',listen:'🎧',speak:'🔊',session_end:'✅'};
+    const typeLabel={transcribe:'Transcrição',translate:'Tradução',listen:'Escuta ao vivo',speak:'Voz gerada',session_end:'Sessão encerrada'};
+    const logsEl=document.getElementById('prof-recent-logs');
+    if(logsEl){
+      if(!logs.length){
+        logsEl.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px;">Nenhuma atividade este mês</div>';
+      } else {
+        logsEl.innerHTML=logs.slice(0,8).map(l=>{
+          const icon=typeIcon[l.type]||'📋';
+          const label=typeLabel[l.type]||l.type;
+          const time=l.createdAt?.toDate?.()?.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})||'—';
+          const detail=l.latency?`<span style="color:var(--accent);font-family:var(--mono);font-size:10px;">${l.latency}ms</span>`:'';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border-radius:9px;">
+            <span style="font-size:15px;">${icon}</span>
+            <span style="font-size:12px;font-weight:600;flex:1;">${label}</span>
+            ${detail}
+            <span style="font-size:10px;color:var(--muted);">${time}</span>
+          </div>`;
+        }).join('');
+      }
+    }
+  }catch(e){
+    console.warn('loadProfileUsage:',e);
+    document.getElementById('prof-recent-logs').innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px;">Erro ao carregar dados</div>';
+  }
 }
 
 function checkProfPwStrength(val){
@@ -2564,7 +2706,102 @@ function adTab(id,btn){
   if(id==='sistema')renderAdminLog();
   if(id==='chats')renderAdminChats();
   if(id==='visao')loadKPIs();
+  if(id==='uso')loadUsoData();
   if(id==='api'){startApiMonitor();}else{stopApiMonitor();}
+}
+
+// ====== ADMIN — Uso por Usuário ======
+function initUsoMonthSel(){
+  const sel=document.getElementById('uso-month-sel');
+  if(!sel||sel.options.length>0)return;
+  const now=new Date();
+  for(let i=0;i<6;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const val=d.toISOString().slice(0,7);
+    const lbl=d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    const opt=document.createElement('option');
+    opt.value=val;opt.textContent=lbl;
+    if(i===0)opt.selected=true;
+    sel.appendChild(opt);
+  }
+}
+async function loadUsoData(){
+  if(!window.FB||!db)return;
+  initUsoMonthSel();
+  const month=document.getElementById('uso-month-sel')?.value||new Date().toISOString().slice(0,7);
+  const listEl=document.getElementById('uso-user-list');
+  const logEl=document.getElementById('uso-log-list');
+  if(listEl)listEl.innerHTML='<div style="padding:24px;text-align:center;font-size:12px;color:var(--muted);">Carregando...</div>';
+  try{
+    // Busca logs do mês
+    const snap=await db.collection('logs').where('month','==',month).orderBy('createdAt','desc').limit(200).get();
+    const logs=snap.docs.map(d=>({id:d.id,...d.data()}));
+
+    // Agrega por usuário
+    const byUser={};
+    let totalTrans=0,totalTrad=0,totalSpeak=0,latSum=0,latCount=0;
+    logs.forEach(l=>{
+      const uid=l.uid||'anon';
+      if(!byUser[uid])byUser[uid]={uid,transcricoes:0,traducoes:0,falas:0,minutos:0,latSum:0,latCount:0};
+      if(l.type==='transcribe'){byUser[uid].transcricoes++;byUser[uid].minutos+=(l.durationMin||0);totalTrans++;}
+      if(l.type==='translate'||l.type==='listen'){byUser[uid].traducoes++;totalTrad++;}
+      if(l.type==='speak'){byUser[uid].falas++;totalSpeak++;}
+      if(l.latency){byUser[uid].latSum+=l.latency;byUser[uid].latCount++;latSum+=l.latency;latCount++;}
+    });
+
+    // Totais
+    document.getElementById('uso-total-trans').textContent=totalTrans;
+    document.getElementById('uso-total-trad').textContent=totalTrad;
+    document.getElementById('uso-total-speak').textContent=totalSpeak;
+    document.getElementById('uso-total-lat').textContent=latCount>0?Math.round(latSum/latCount)+'ms':'—';
+
+    // Busca nomes dos usuários
+    const uids=Object.keys(byUser).filter(u=>u!=='anon');
+    const userNames={};
+    await Promise.all(uids.map(async uid=>{
+      try{const d=await db.collection('users').doc(uid).get();userNames[uid]=d.data()?.name||uid.slice(0,8)+'...';}
+      catch(e){userNames[uid]=uid.slice(0,8)+'...';}
+    }));
+
+    // Renderiza tabela
+    const rows=Object.values(byUser).sort((a,b)=>b.transcricoes-a.transcricoes);
+    if(!rows.length){
+      listEl.innerHTML='<div style="padding:24px;text-align:center;font-size:12px;color:var(--muted);">Nenhum uso registrado neste mês</div>';
+    } else {
+      listEl.innerHTML=rows.map(u=>`
+        <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px 90px;padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;align-items:center;" class="list-row" style="border-radius:0;margin:0;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">${(userNames[u.uid]||'?')[0].toUpperCase()}</div>
+            <div><div style="font-weight:700;font-size:12px;">${userNames[u.uid]||'Anônimo'}</div><div style="font-size:9px;color:var(--muted);font-family:var(--mono);">${u.uid.slice(0,10)}...</div></div>
+          </div>
+          <div style="text-align:center;font-weight:700;color:var(--accent);">${u.transcricoes}</div>
+          <div style="text-align:center;font-weight:700;color:var(--green);">${u.traducoes}</div>
+          <div style="text-align:center;font-weight:700;color:#c084fc;">${u.falas}</div>
+          <div style="text-align:center;font-weight:700;color:var(--orange);">${u.minutos>0?u.minutos.toFixed(1)+'min':'—'}</div>
+          <div style="text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);">${u.latCount>0?Math.round(u.latSum/u.latCount)+'ms':'—'}</div>
+        </div>`).join('');
+    }
+
+    // Renderiza log recente
+    if(logEl){
+      const typeIcon={transcribe:'🎙️',translate:'🌐',listen:'🎧',speak:'🔊',session_end:'✅'};
+      logEl.innerHTML=logs.slice(0,30).map(l=>{
+        const name=userNames[l.uid]||l.uid?.slice(0,8)||'?';
+        const icon=typeIcon[l.type]||'📋';
+        const time=l.createdAt?.toDate?.()?.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})||'—';
+        const detail=l.type==='transcribe'?`${(l.durationMin||0).toFixed(2)}min`:l.type==='translate'||l.type==='listen'?`${l.latency||0}ms`:l.chars?`${l.chars} chars`:'';
+        return `<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;">
+          <span style="font-size:16px;">${icon}</span>
+          <div style="flex:1;"><span style="font-size:12px;font-weight:700;">${name}</span> <span style="font-size:11px;color:var(--muted);">${l.type}</span></div>
+          <span style="font-size:10px;color:var(--accent);font-family:var(--mono);">${detail}</span>
+          <span style="font-size:10px;color:var(--muted);font-family:var(--mono);">${time}</span>
+        </div>`;
+      }).join('')||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Nenhum log</div>';
+    }
+  }catch(e){
+    if(listEl)listEl.innerHTML=`<div style="padding:24px;text-align:center;font-size:12px;color:var(--red);">Erro: ${e.message}</div>`;
+    console.error('loadUsoData:',e);
+  }
 }
 
 // Load real KPIs from Firestore

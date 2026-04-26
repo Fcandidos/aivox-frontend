@@ -1404,6 +1404,7 @@ let loginAttempts=0,loginLocked=false,lockTimer=null;
 const MAX_ATTEMPTS=5;
 let trialSec=5*60,trialT=null,sessT=null,sessSec=0;
 let isRec=false,wis=[],wc=0,di=0;
+let _escutaActive=false;
 let payFromPage='home',idiomaFrom='home',pendingPayPlan=null,currentAdminChat=null;
 const planDetails={trial:{name:'Trial',desc:'5 min grátis',price:'Grátis',mins:'5 min totais'},basic:{name:'Basic',desc:'60 min/mês',price:'R$149',mins:'60 min/mês'},pro:{name:'Pro',desc:'200 min/mês · Voz clonada',price:'R$429',mins:'200 min/mês'},business:{name:'Business',desc:'600 min/mês · 5 usuários',price:'R$1.190',mins:'600 min/mês'},enterprise:{name:'Enterprise',desc:'2.000 min/mês',price:'R$3.490',mins:'2.000 min/mês'}};
 
@@ -1888,10 +1889,11 @@ async function testBackendPing(){
       if(txt){txt.textContent='Online · '+ms+'ms';txt.style.color='var(--green)';}
       if(fb){fb.textContent='✅ Backend respondeu em '+ms+'ms';fb.style.color='var(--green)';setTimeout(()=>{if(fb)fb.style.display='none';},3000);}
       showToast('✅ Backend conectado: '+ms+'ms');
-      // Update monitor panel too
-      setStatus?.('dot-railway','badge-railway','lat-railway','ping-railway','ok',url.replace('https://','')+'  ·  '+ms+'ms',ms);
+      // Update monitor panel too (only if setStatus exists in admin panel)
+      try{if(typeof setStatus==='function')setStatus('dot-railway','badge-railway','lat-railway','ping-railway','ok',url.replace('https://','')+'  ·  '+ms+'ms',ms);}catch(_){}
     }else{throw new Error('HTTP '+r.status);}
   }catch(e){
+    if(e.message==='setStatus is not defined')return;
     if(dot)dot.style.background='var(--red)';
     if(txt){txt.textContent='Offline';txt.style.color='var(--red)';}
     if(fb){fb.textContent='❌ Sem resposta: '+e.message;fb.style.color='var(--red)';}

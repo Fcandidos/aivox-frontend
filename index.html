@@ -3636,6 +3636,15 @@ async function _processSessAudio(){
     fd.append('audio',blob,'sess.webm');
     fd.append('from',fromShort);
     fd.append('to',toShort);
+    // Prompt de contexto por idioma — força Whisper a transcrever corretamente
+    const _promptMap={
+      'pt':'Transcrição em português brasileiro. Preserve nomes: João, Maria, Fabio, Diogo, Silva.',
+      'en':'Transcription in English. Conversation between professionals.',
+      'es':'Transcripción en español. Conversación natural entre personas.',
+      'fr':'Transcription en français. Conversation naturelle.',
+      'de':'Transkription auf Deutsch. Natürliche Unterhaltung.',
+    };
+    if(_promptMap[fromShort]) fd.append('prompt',_promptMap[fromShort]);
     const t0=Date.now();
 
     // Usa /api/listen — confiável e compatível com Render
@@ -6224,6 +6233,8 @@ async function _salaVADProcessAudio(){
     const fd=new FormData();
     fd.append('audio',blob,'sala-vad.webm');
     fd.append('from',from); fd.append('to',to);
+    const _vPromptMap={'pt':'Transcrição em português brasileiro.','en':'Transcription in English.','es':'Transcripción en español.','fr':'Transcription en français.'};
+    if(_vPromptMap[from]) fd.append('prompt',_vPromptMap[from]);
     const t0=Date.now();
     const r=await fetch(getBackendUrl()+'/api/listen',{method:'POST',headers,body:fd});
     const d=await r.json();

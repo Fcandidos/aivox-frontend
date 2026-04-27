@@ -3309,10 +3309,42 @@ function _updateLiveEscutaLine(el,original,translation){
   if(box)box.scrollTop=box.scrollHeight;
 }
 
+// ── AudioContext singleton + fila de áudio ──────────────────────
+let _ttsAudioCtx = null;
+let _ttsQueue    = [];
+let _ttsPlaying  = false;
+
+function _getTTSCtx(){
+  if(!_ttsAudioCtx || _ttsAudioCtx.state === 'closed'){
+    _ttsAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  // Resume se suspenso (política autoplay do browser)
+  if(_ttsAudioCtx.state === 'suspended') _ttsAudioCtx.resume().catch(()=>{});
+  return _ttsAudioCtx;
+}
+
+async function _ttsPlayNext(){
+  if(_ttsPlaying || _ttsQueue.length === 0) return;
+  _ttsPlaying = true;
+  const arrayBuf = _ttsQueue.shift();
+  try{
+    const ctx = _getTTSCtx();
+    const decoded = await ctx.decodeAudioData(arrayBuf);
+    const src = ctx.createBufferSource();
+    src.buffer = decoded;
+    src.connect(ctx.destination);
+    src.onended = ()=>{ _ttsPlaying=false; _ttsPlayNext(); };
+    src.start(0);
+  }catch(e){
+    console.warn('tts play error:',e);
+    _ttsPlaying = false;
+    _ttsPlayNext();
+  }
+}
+
 async function _speakTranslation(text){
   const backendUrl=getBackendUrl();
   if(!backendUrl)return;
-  // Não bloqueia — roda em background
   (async()=>{
     try{
       const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
@@ -3322,26 +3354,21 @@ async function _speakTranslation(text){
         body:JSON.stringify({
           text,
           voiceId: window._fbUser?.voice_id || 'pNInz6obpgDQGcFmaJgB',
-          // ── Parâmetros de qualidade ElevenLabs ──────────────────
-          model_id: 'eleven_multilingual_v2',   // modelo mais natural e multilíngue
+          model_id: 'eleven_multilingual_v2',
           voice_settings: {
-            stability:         0.35,  // menos robótico, mais expressivo
-            similarity_boost:  0.88,  // fiel ao clone de voz
-            style:             0.35,  // entonação natural (0=neutro, 1=dramático)
-            use_speaker_boost: true   // melhora clareza e presença
+            stability:         0.35,
+            similarity_boost:  0.88,
+            style:             0.35,
+            use_speaker_boost: true
           }
         })
       });
       if(!r.ok)return;
-      // Streaming de áudio — começa a tocar assim que o primeiro chunk chega
-      const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
       const arrayBuf=await r.arrayBuffer();
       if(!arrayBuf.byteLength)return;
-      const decoded=await audioCtx.decodeAudioData(arrayBuf);
-      const src=audioCtx.createBufferSource();
-      src.buffer=decoded;
-      src.connect(audioCtx.destination);
-      src.start(0);
+      // Enfileira — nunca sobrepõe
+      _ttsQueue.push(arrayBuf);
+      _ttsPlayNext();
     }catch(e){console.warn('speak:',e);}
   })();
 }
@@ -5416,7 +5443,7 @@ async function previewClonedVoice(){
   const btn=document.getElementById('vc-preview-btn');
   if(btn){btn.textContent='⏳ Gerando...';btn.style.pointerEvents='none';}
   try{
-    await _speakTranslation('Hello! This is a preview of your cloned voice. How does it sound?');
+    await _speakTranslation('Olá! Esta é uma prévia da sua voz clonada. Como está soando?');
     showToast('🔊 Reproduzindo sua voz clonada','success');
   }catch(e){
     _vcShowFeedback('❌ Erro ao reproduzir: '+e.message,'error');

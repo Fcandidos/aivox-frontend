@@ -3070,11 +3070,11 @@ let _escutaVADTimer=null;
 let _escutaSilenceTimer=null;
 let _escutaChunks=[];
 let _escutaSpeaking=false;
-let _escutaMinChunkMs=1500;   // mínimo 1.5s antes de enviar
-let _escutaMaxChunkMs=5000;   // máximo 5s (corta mesmo sem silêncio)
+let _escutaMinChunkMs=600;    // mínimo 0.6s antes de enviar
+let _escutaMaxChunkMs=3500;   // máximo 3.5s (corta mesmo sem silêncio)
 let _escutaChunkStart=0;
 let _escutaCurrentLineEl=null; // elemento DOM da linha atual (para streaming)
-let _escutaProcessing=false;
+let _escutaProcessing=false; // mantido para compatibilidade
 
 function setEscutaMode(mode){
   _escutaMode=mode;
@@ -3137,8 +3137,8 @@ function _startVAD(){
     src.connect(_escutaAnalyser);
     const data=new Uint8Array(_escutaAnalyser.frequencyBinCount);
     let silenceMs=0;
-    const SILENCE_THRESHOLD=8;    // volume abaixo disso = silêncio
-    const SILENCE_CUTOFF=600;     // 600ms de silêncio = frase terminou
+    const SILENCE_THRESHOLD=12;   // volume abaixo disso = silêncio
+    const SILENCE_CUTOFF=400;     // 400ms de silêncio = frase terminou
     _escutaVADTimer=setInterval(()=>{
       if(!_escutaActive)return;
       _escutaAnalyser.getByteFrequencyData(data);
@@ -3181,10 +3181,9 @@ function _startRecording(){
   _escutaRecorder.onstop=async()=>{
     if(!_escutaActive)return;
     const blob=new Blob(_escutaChunks,{type:mimeType});
-    if(blob.size>2000&&!_escutaProcessing){
-      _escutaProcessing=true;
-      await _processEscutaChunk(blob);
-      _escutaProcessing=false;
+    if(blob.size>1500){
+      // Processa em paralelo — não bloqueia o próximo chunk
+      _processEscutaChunk(blob).catch(e=>console.warn('chunk err:',e));
     }
     if(_escutaActive)_startRecording();
   };

@@ -274,17 +274,18 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .tstrip-title{font-size:14px;font-weight:700;margin-bottom:2px;}
 .tstrip-sub{font-size:12px;color:var(--muted);}
 .tstrip-cta{background:var(--green);color:#000;border:none;font-family:var(--font);font-size:12px;font-weight:800;padding:9px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-.price-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:20px;}
-.pcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;overflow:hidden;}
+.price-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:20px;align-items:stretch;}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;overflow:visible;margin-top:13px;display:flex;flex-direction:column;}
 .pcard.feat{border-color:rgba(0,229,255,.38);background:linear-gradient(160deg,rgba(0,229,255,.04),var(--card));}
-.pcard.feat::after{content:'POPULAR';position:absolute;top:14px;right:14px;font-size:8px;font-weight:800;font-family:var(--mono);letter-spacing:1.5px;color:var(--accent);background:var(--adim);border:1px solid rgba(0,229,255,.28);padding:3px 8px;border-radius:7px;}
-.ptop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+/* badge POPULAR centralizado na borda superior do card */
+.pcard-popular-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;font-family:var(--mono);letter-spacing:2px;color:var(--accent);background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:4px 14px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 16px rgba(0,229,255,.15);}
+.ptop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:8px;}
 .pname{font-size:16px;font-weight:800;}
 .pdesc{font-size:10px;color:var(--muted);margin-top:2px;}
-.pprice{font-size:24px;font-weight:900;font-family:var(--mono);text-align:right;}
+.pprice{font-size:clamp(14px,1.8vw,24px);font-weight:900;font-family:var(--mono);text-align:right;white-space:nowrap;}
 .pcard.feat .pprice{color:var(--accent);}
-.pprice-sub{font-size:9px;color:var(--muted);text-align:right;margin-top:2px;}
-.pfeats{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.pprice-sub{font-size:9px;color:var(--muted);text-align:right;margin-top:2px;white-space:nowrap;}
+.pfeats{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;flex:1;}
 .pf{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--muted);}
 .pf.on{color:var(--text);}
 .pf .tick{color:var(--green);font-size:11px;flex-shrink:0;margin-top:1px;}
@@ -807,17 +808,18 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <button class="btn btn-ghost btn-full" onclick="regThenPay('basic')">Assinar Basic</button>
       </div>
       <div class="pcard feat">
-        <div class="ptop" style="padding-top:28px;"><div><div style="font-size:20px;margin-bottom:3px;">👑</div><div class="pname">Pro</div><div class="pdesc">Profissional</div></div><div><div class="pprice">R$429</div><div class="pprice-sub">200 min/mês</div></div></div>
+        <span class="pcard-popular-badge">⭐ POPULAR</span>
+        <div class="ptop"><div><div style="font-size:20px;margin-bottom:3px;">👑</div><div class="pname">Pro</div><div class="pdesc">Profissional</div></div><div><div class="pprice">R$429</div><div class="pprice-sub">200 min/mês</div></div></div>
         <div class="pfeats"><div class="pf on"><span class="tick">✓</span> 200 min inclusos</div><div class="pf on"><span class="tick">✓</span> 🎙️ Voz clonada</div><div class="pf on"><span class="tick">✓</span> 50+ idiomas</div><div class="pf on"><span class="tick">✓</span> Modo offline</div></div>
         <button class="btn btn-primary btn-full" onclick="regThenPay('pro')">Assinar Pro →</button>
       </div>
       <div class="pcard">
-        <div class="ptop"><div><div style="font-size:20px;margin-bottom:3px;">🏢</div><div class="pname">Business</div><div class="pdesc">Times e empresas</div></div><div><div class="pprice" style="color:var(--yellow);">R$1.190</div><div class="pprice-sub">600 min/mês</div></div></div>
+        <div class="ptop"><div style="min-width:0;flex:1;"><div style="font-size:20px;margin-bottom:3px;">🏢</div><div class="pname">Business</div><div class="pdesc">Times e empresas</div></div><div style="flex-shrink:0;"><div class="pprice" style="color:var(--yellow);">R$1.190</div><div class="pprice-sub">600 min/mês</div></div></div>
         <div class="pfeats"><div class="pf on"><span class="tick">✓</span> 600 min inclusos</div><div class="pf on"><span class="tick">✓</span> Até 5 usuários</div><div class="pf on"><span class="tick">✓</span> Dashboard admin</div><div class="pf on"><span class="tick">✓</span> Suporte prioritário</div></div>
         <button class="btn btn-ghost btn-full" onclick="regThenPay('business')">Falar com vendas</button>
       </div>
       <div class="pcard">
-        <div class="ptop"><div><div style="font-size:20px;margin-bottom:3px;">🏭</div><div class="pname">Enterprise</div><div class="pdesc">Corporativo</div></div><div><div class="pprice" style="color:var(--orange);">R$3.490</div><div class="pprice-sub">2.000 min/mês</div></div></div>
+        <div class="ptop"><div style="min-width:0;flex:1;"><div style="font-size:20px;margin-bottom:3px;">🏭</div><div class="pname">Enterprise</div><div class="pdesc">Corporativo</div></div><div style="flex-shrink:0;"><div class="pprice" style="color:var(--orange);">R$3.490</div><div class="pprice-sub">2.000 min/mês</div></div></div>
         <div class="pfeats"><div class="pf on"><span class="tick">✓</span> 2.000 min inclusos</div><div class="pf on"><span class="tick">✓</span> Usuários ilimitados</div><div class="pf on"><span class="tick">✓</span> API access</div><div class="pf on"><span class="tick">✓</span> SLA garantido</div></div>
         <button class="btn btn-ghost btn-full" onclick="openWhatsApp('Olá! Interesse no Enterprise do AIVOX (R$3.490/mês).')">📞 Solicitar demo</button>
       </div>

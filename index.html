@@ -6155,70 +6155,31 @@ async function _rtStartRealtime(){
     const wsUrl   = backendUrl.replace('https://','wss://').replace('http://','ws://')
                   + `/api/realtime?from=${from}&to=${to}&voiceId=${encodeURIComponent(voiceId)}&token=${encodeURIComponent(token||'')}`;
 
-    console.log('⚡ Conectando Realtime:', wsUrl.split('?')[0]);
     _rtWS = new WebSocket(wsUrl);
 
-    // Timeout de conexão — se não abrir em 12s, desiste
-    const _rtConnTimeout = setTimeout(()=>{
-      if(_rtWS && _rtWS.readyState !== WebSocket.OPEN){
-        console.warn('⚡ Realtime: timeout de conexão');
-        try{_rtWS.close();}catch(_){}
-        _rtConnecting=false;
-        if(toggle) toggle.querySelector('span').textContent='⚡ Modo Intérprete';
-        showToast('⏱ Timeout — backend pode estar acordando, tente novamente','error');
-      }
-    }, 12000);
-
     _rtWS.onopen = ()=>{
-      clearTimeout(_rtConnTimeout);
       console.log('⚡ Realtime WS aberto');
       _rtMode=true; _rtConnecting=false;
       _rtStartMicCapture();
       if(toggle){toggle.classList.add('rt-on');toggle.querySelector('span').textContent='⚡ Intérprete ON';}
       const lbl=document.getElementById('sala-micl');
       if(lbl) lbl.textContent='⚡ Modo Intérprete ativo...';
-      const pttWrap=document.getElementById('sala-ptt-wrap');
-      const vadBar=document.getElementById('sala-vad-bar');
-      if(pttWrap) pttWrap.style.display='none';
-      if(vadBar)  vadBar.style.opacity='1';
+      document.getElementById('sala-ptt-wrap').style.display='none';
+      document.getElementById('sala-vad-bar').style.opacity='1';
       showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
     };
 
-    _rtWS.onmessage = (ev)=>{
-      try{ _rtHandleEvent(JSON.parse(ev.data)); }catch(e){console.warn('rt msg:',e);}
+    _rtWS.onmessage = async (ev)=>{
+      try{
+        // OpenAI envia alguns eventos como Blob binário — precisa converter para texto
+        const text = (ev.data instanceof Blob) ? await ev.data.text() : ev.data;
+        if(!text || text[0]!=='{') return; // ignora binários não-JSON
+        _rtHandleEvent(JSON.parse(text));
+      }catch(e){ console.warn('rt msg:',e.message); }
     };
 
-    _rtWS.onerror = (e)=>{
-      clearTimeout(_rtConnTimeout);
-      console.warn('⚡ Realtime WS error:', e);
-      if(!_rtMode){
-        // Falhou antes de abrir — limpa sem toast de desativado
-        _rtConnecting=false;
-        try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}
-        if(toggle) toggle.querySelector('span').textContent='⚡ Modo Intérprete';
-        showToast('❌ Erro ao conectar — verifique o backend','error');
-      } else {
-        _rtStopRealtime();
-      }
-    };
-
-    _rtWS.onclose = (ev)=>{
-      clearTimeout(_rtConnTimeout);
-      console.log('⚡ Realtime WS fechado, code:', ev.code, 'was open:', _rtMode);
-      if(_rtMode){
-        _rtStopRealtime();
-      } else if(_rtConnecting){
-        // Fechou antes de abrir (backend rejeitou)
-        _rtConnecting=false;
-        try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}
-        if(toggle) toggle.querySelector('span').textContent='⚡ Modo Intérprete';
-        const msg = ev.code===1008 ? 'Autenticação falhou' :
-                    ev.code===1011 ? 'Erro no servidor' :
-                    ev.code===4000 ? 'OpenAI indisponível' :
-                    `Conexão recusada (${ev.code})`;
-        showToast('❌ '+msg+' — tente novamente','error');
-      }
-    };
+    _rtWS.onerror = ()=>{ _rtStopRealtime(); showToast('❌ Erro no Modo Intérprete','error'); };
+    _rtWS.onclose = ()=>{ if(_rtMode) _rtStopRealtime(); };
 
   }catch(e){
     showToast('❌ Falha: '+e.message,'error');

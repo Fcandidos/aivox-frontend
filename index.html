@@ -392,6 +392,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.on{border-color:rgba(0,255,136,.35);background:var(--gdim);color:var(--green);}
 .ct-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all .2s;flex-shrink:0;}
 .continuous-toggle.on .ct-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:ctPulse 1.2s ease infinite;}
+.continuous-toggle.rt-on{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);color:#a78bfa;}
+.continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
 @keyframes ctPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .vad-bar{width:100%;max-width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
 .vad-bar-fill{height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .08s linear;}
@@ -2036,6 +2038,11 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div class="continuous-toggle" id="sala-continuous-toggle" onclick="salaToggleContinuous()">
           <div class="ct-dot"></div>
           <span id="sala-ct-label">Modo Contínuo</span>
+        </div>
+        <!-- Toggle Modo Intérprete (OpenAI Realtime) -->
+        <div class="continuous-toggle" id="sala-realtime-toggle" onclick="salaToggleRealtime()" style="border-color:rgba(124,58,237,.3);margin-top:6px;">
+          <div class="ct-dot"></div>
+          <span id="sala-rt-label">⚡ Modo Intérprete</span>
         </div>
         <!-- Barra VAD -->
         <div class="vad-bar" id="sala-vad-bar" style="opacity:0;margin:6px 0;">
@@ -5849,6 +5856,7 @@ function _salaDesconectar(){
   _salaCode=null;_salaConnected=false;
   _salaStopRec();
   if(_salaContinuousMode)_salaStopContinuous();
+  if(typeof _rtMode!=="undefined"&&_rtMode)_rtStopRealtime();
   // Reseta UI de botões de vídeo
   const vbtn=document.getElementById('sala-iniciar-video-btn');
   if(vbtn)vbtn.style.display='none';
@@ -6100,6 +6108,169 @@ function _salaResetMic(){
   if(btn)btn.className='micb idle';
   if(ico)ico.textContent='🎙️';
   if(lbl)lbl.textContent=_salaContinuousMode?'🔴 Ouvindo sempre...':'Toque para falar';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MODO INTÉRPRETE — OpenAI Realtime API via WebSocket
+//  Latência: ~300-500ms | VAD do lado da OpenAI | Sem chunks
+// ══════════════════════════════════════════════════════════════════
+let _rtMode       = false;
+let _rtWS         = null;
+let _rtStream     = null;
+let _rtProcessor  = null;
+let _rtAudioCtx   = null;
+let _rtConnecting = false;
+
+async function salaToggleRealtime(){
+  if(_rtMode) _rtStopRealtime();
+  else        await _rtStartRealtime();
+}
+
+async function _rtStartRealtime(){
+  if(_rtConnecting) return;
+  if(_salaContinuousMode) _salaStopContinuous();
+  if(_salaRecording)      await _salaStopRec();
+
+  const backendUrl = getBackendUrl();
+  if(!backendUrl){ showToast('❌ Backend não configurado','error'); return; }
+
+  _rtConnecting = true;
+  const toggle = document.getElementById('sala-realtime-toggle');
+  if(toggle) toggle.querySelector('span').textContent = '⚡ Conectando...';
+
+  try{
+    _rtStream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, sampleRate:16000 }
+    });
+  }catch(e){
+    showToast('❌ Permissão de microfone negada','error');
+    _rtConnecting=false; return;
+  }
+
+  try{
+    const token   = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const from    = LO[lfi]?.code?.split('-')[0].toLowerCase()||'pt';
+    const to      = LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
+    const voiceId = window._fbUser?.voice_id||'';
+    const wsUrl   = backendUrl.replace('https://','wss://').replace('http://','ws://')
+                  + `/api/realtime?from=${from}&to=${to}&voiceId=${encodeURIComponent(voiceId)}&token=${encodeURIComponent(token||'')}`;
+
+    _rtWS = new WebSocket(wsUrl);
+
+    _rtWS.onopen = ()=>{
+      console.log('⚡ Realtime WS aberto');
+      _rtMode=true; _rtConnecting=false;
+      _rtStartMicCapture();
+      if(toggle){toggle.classList.add('rt-on');toggle.querySelector('span').textContent='⚡ Intérprete ON';}
+      const lbl=document.getElementById('sala-micl');
+      if(lbl) lbl.textContent='⚡ Modo Intérprete ativo...';
+      document.getElementById('sala-ptt-wrap').style.display='none';
+      document.getElementById('sala-vad-bar').style.opacity='1';
+      showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
+    };
+
+    _rtWS.onmessage = (ev)=>{
+      try{ _rtHandleEvent(JSON.parse(ev.data)); }catch(e){}
+    };
+
+    _rtWS.onerror = ()=>{ _rtStopRealtime(); showToast('❌ Erro no Modo Intérprete','error'); };
+    _rtWS.onclose = ()=>{ if(_rtMode) _rtStopRealtime(); };
+
+  }catch(e){
+    showToast('❌ Falha: '+e.message,'error');
+    _rtConnecting=false;
+    try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}
+  }
+}
+
+function _rtStartMicCapture(){
+  _rtAudioCtx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000});
+  const source = _rtAudioCtx.createMediaStreamSource(_rtStream);
+  _rtProcessor = _rtAudioCtx.createScriptProcessor(4096,1,1);
+  _rtProcessor.onaudioprocess = (e)=>{
+    if(!_rtWS||_rtWS.readyState!==WebSocket.OPEN) return;
+    const f32 = e.inputBuffer.getChannelData(0);
+    const pcm = new Int16Array(f32.length);
+    for(let i=0;i<f32.length;i++) pcm[i]=Math.max(-32768,Math.min(32767,f32[i]*32768));
+    const bytes=new Uint8Array(pcm.buffer);
+    let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
+    _rtWS.send(JSON.stringify({type:'input_audio_buffer.append',audio:btoa(bin)}));
+    // Barra VAD visual
+    let sum=0; f32.forEach(v=>sum+=v*v);
+    const fill=document.getElementById('sala-vad-fill');
+    if(fill) fill.style.width=Math.min(100,Math.sqrt(sum/f32.length)*800)+'%';
+  };
+  source.connect(_rtProcessor);
+  _rtProcessor.connect(_rtAudioCtx.destination);
+}
+
+function _rtHandleEvent(msg){
+  switch(msg.type){
+    case 'conversation.item.input_audio_transcription.completed':{
+      const t=msg.transcript?.trim();
+      if(t){ const el=document.getElementById('sala-tr-eu'); if(el) el.textContent=t; }
+      break;
+    }
+    case 'response.audio_transcript.delta':{
+      const el=document.getElementById('sala-tr-outro');
+      if(el) el.textContent=(el.textContent||'')+( msg.delta||'');
+      break;
+    }
+    case 'response.audio_transcript.done':{
+      const translation=msg.transcript?.trim();
+      if(!translation) break;
+      const original=document.getElementById('sala-tr-eu')?.textContent||'';
+      _salaAddBubble(original,translation,'mine',LO[lfi]?.code||'PT-BR',LO[lti]?.code||'EN-US','~RT');
+      _salaUpdateLastTranslation('Você → '+(_salaTheirName||'Participante'),translation);
+      if(_salaSocket&&_salaCode){
+        _salaSocket.emit('translation',{code:_salaCode,original,translation,
+          fromLang:LO[lfi]?.code||'PT-BR',toLang:LO[lti]?.code||'EN-US',
+          speakerName:window._fbUser?.name||'Você',speakerUid:window._fbUser?.uid});
+        _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:false});
+      }
+      const el=document.getElementById('sala-tr-eu'); if(el) el.textContent='';
+      break;
+    }
+    case 'response.audio.delta':{
+      if(!msg.delta) break;
+      try{
+        const bin=atob(msg.delta);
+        const bytes=new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+        const pcm=new Int16Array(bytes.buffer);
+        const f32=new Float32Array(pcm.length);
+        for(let i=0;i<pcm.length;i++) f32[i]=pcm[i]/32768;
+        const ctx=_getTTSCtx();
+        const buf=ctx.createBuffer(1,f32.length,24000);
+        buf.copyToChannel(f32,0);
+        const src=ctx.createBufferSource();
+        src.buffer=buf; src.connect(ctx.destination); src.start(0);
+      }catch(e){console.warn('rt audio:',e);}
+      break;
+    }
+    case 'error': console.warn('Realtime error:',msg.error); break;
+  }
+}
+
+function _rtStopRealtime(){
+  _rtMode=false; _rtConnecting=false;
+  try{_rtProcessor?.disconnect();}catch(_){}
+  try{_rtAudioCtx?.close();}catch(_){}
+  try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}
+  _rtProcessor=null; _rtAudioCtx=null; _rtStream=null;
+  try{if(_rtWS?.readyState===WebSocket.OPEN)_rtWS.close();}catch(_){}
+  _rtWS=null;
+  const toggle=document.getElementById('sala-realtime-toggle');
+  const pttWrap=document.getElementById('sala-ptt-wrap');
+  const vadBar=document.getElementById('sala-vad-bar');
+  const fill=document.getElementById('sala-vad-fill');
+  const lbl=document.getElementById('sala-micl');
+  if(toggle){toggle.classList.remove('rt-on');toggle.querySelector('span').textContent='⚡ Modo Intérprete';}
+  if(pttWrap) pttWrap.style.display='';
+  if(vadBar)  vadBar.style.opacity='0';
+  if(fill)    fill.style.width='0%';
+  if(lbl)     lbl.textContent='Toque para falar';
+  showToast('⏹ Modo Intérprete desativado','info');
 }
 
 // ══════════════════════════════════════════════════════════════════

@@ -2966,6 +2966,11 @@ function renderSiList(){const list=document.getElementById('si-lang-list');if(!l
 function selectIdiomaLang(lang){
   if(siChoosingFrom){
     LO[lfi]=lang;
+    // Garante que os dois lados nunca ficam com o mesmo idioma
+    if(LO[lfi].code === LO[lti].code){
+      const fallback = allLangs.find(l => l.code !== lang.code) || allLangs[1];
+      LO[lti] = fallback; 
+    }
     siChoosingFrom=false;
     siChoose('to');
   }else{
@@ -2998,15 +3003,15 @@ async function saveUserLanguages(){
 // Função para carregar idiomas salvos do Firebase
 function loadUserLanguages(userData){
   if(!userData) return;
-  
-  // Carregar idiomas salvos
+
+  // Busca em allLangs (50+ idiomas) e actualiza LO dinamicamente
   if(userData.langFrom){
-    const fromIndex = LO.findIndex(l => l.code === userData.langFrom);
-    if(fromIndex >= 0) lfi = fromIndex;
+    const lang = allLangs.find(l => l.code === userData.langFrom);
+    if(lang){ LO[0] = lang; lfi = 0; }
   }
   if(userData.langTo){
-    const toIndex = LO.findIndex(l => l.code === userData.langTo);
-    if(toIndex >= 0) lti = toIndex;
+    const lang = allLangs.find(l => l.code === userData.langTo);
+    if(lang){ LO[1] = lang; lti = 1; }
   }
   
   // Atualizar UI
@@ -3227,12 +3232,20 @@ async function _processEscutaChunk(blob){
     // ── ETAPA 1: Transcrição (Whisper) ──────────────────────────
     const fd=new FormData();
     fd.append('audio',blob,'chunk.webm');
-    fd.append('from',from);fd.append('to',to);
+    // from/to: garante código curto ISO 639-1 (whisper aceita 'en', 'pt', 'es')
+    fd.append('from', from.split('-')[0].toLowerCase());
+    fd.append('to',   to.split('-')[0].toLowerCase());
     const t0=Date.now();
     const r=await fetch(backendUrl+'/api/listen-stream',{method:'POST',headers,body:fd});
     if(!r.ok||!r.body){
-      // Fallback para rota normal
-      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd});
+      // Fallback: cria novo FormData (o original já foi consumido pelo stream)
+      const fd2=new FormData();
+      fd2.append('audio',blob,'chunk.webm');
+      fd2.append('from',from); fd2.append('to',to);
+      const _vp2={'pt':'Transcrição em português brasileiro.','en':'Transcription in English.','es':'Transcripción en español.'};
+      const _pk2=from.split('-')[0].toLowerCase();
+      if(_vp2[_pk2]) fd2.append('prompt',_vp2[_pk2]);
+      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd2});
       const d=await rd.json();
       if(d.original&&d.original.trim().length>1){
         _updateLiveEscutaLine(lineEl,d.original,d.translation);
@@ -3310,8 +3323,9 @@ function _updateLiveEscutaLine(el,original,translation){
   if(!el)return;
   const origEl=el.querySelector('[data-orig]');
   const transEl=el.querySelector('[data-trans]');
-  if(origEl)origEl.textContent=original;
-  if(transEl)transEl.textContent=translation;
+  if(origEl)origEl.textContent=original||'';
+  // Mostra tradução, ou original se tradução vier vazia
+  if(transEl)transEl.textContent=translation||original||'';
   _escutaLines.push({original,translation,ts:Date.now()});
   const box=document.getElementById('escuta-transcript-box');
   if(box)box.scrollTop=box.scrollHeight;
@@ -3675,8 +3689,15 @@ async function _processSessAudio(){
       'es':'Transcripción en español. Conversación natural entre personas.',
       'fr':'Transcription en français. Conversation naturelle.',
       'de':'Transkription auf Deutsch. Natürliche Unterhaltung.',
+      'it':'Trascrizione in italiano. Conversazione naturale.',
+      'ja':'日本語の文字起こし。自然な会話。',
+      'zh':'中文转录。自然对话。',
+      'ru':'Транскрипция на русском языке.',
+      'ar':'النسخ باللغة العربية.',
     };
-    if(_promptMap[fromShort]) fd.append('prompt',_promptMap[fromShort]);
+    // Normaliza: 'es-mx' → 'es', 'pt-br' → 'pt'
+    const promptKey = fromShort.split('-')[0];
+    if(_promptMap[promptKey]) fd.append('prompt',_promptMap[promptKey]);
     const t0=Date.now();
 
     // Usa /api/listen — confiável e compatível com Render
@@ -6166,14 +6187,9 @@ async function _rtStartRealtime(){
       .replace('http://','ws://')
       + `/api/realtime?from=${from}&to=${to}&voiceId=${encodeURIComponent(voiceId)}`;
 
-    _rtWS = new WebSocket(wsUrl, [], {
-      headers: token ? { Authorization: 'Bearer '+token } : {}
-    });
-
-    // Fallback: WebSocket padrão do browser (sem headers customizados)
-    if(!_rtWS || _rtWS.readyState === WebSocket.CLOSED){
-      _rtWS = new WebSocket(wsUrl + '&token=' + encodeURIComponent(token||''));
-    }
+    // Browser não suporta headers em WebSocket — token via query string
+    const wsUrlWithToken = wsUrl + '&token=' + encodeURIComponent(token||'');
+    _rtWS = new WebSocket(wsUrlWithToken);
 
     _rtWS.onopen = () => {
       console.log('⚡ Realtime WS aberto');

@@ -125,19 +125,26 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .auth-box::before{content:'';position:absolute;top:0;left:32px;right:32px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.5),transparent);border-radius:1px;}
 .landing-page{min-height:100vh;background:var(--bg);display:none;flex-direction:column;width:100%;position:relative;z-index:1;}
 /* ── LANDING NAVBAR ── */
-.landing-nav{position:fixed;top:0;left:0;right:0;z-index:600;height:56px;background:rgba(6,8,15,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 24px;gap:16px;}
-.landing-nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;}
-.landing-nav-icon{width:32px;height:32px;border-radius:9px;overflow:hidden;flex-shrink:0;}
+.landing-nav{position:fixed;top:0;left:0;right:0;z-index:600;
+  height:calc(52px + env(safe-area-inset-top,0px));
+  padding-top:env(safe-area-inset-top,0px);
+  background:rgba(6,8,15,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;padding-left:16px;padding-right:16px;gap:10px;}
+.landing-nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+.landing-nav-icon{width:28px;height:28px;border-radius:8px;overflow:hidden;flex-shrink:0;}
 .landing-nav-icon img{width:100%;height:100%;object-fit:cover;}
-.landing-nav-brand{font-size:17px;font-weight:900;letter-spacing:-.3px;color:var(--text);}
+.landing-nav-brand{font-size:16px;font-weight:900;letter-spacing:-.3px;color:var(--text);}
 .landing-nav-brand span{color:var(--accent);}
 .landing-nav-spacer{flex:1;}
-.landing-nav-btns{display:flex;align-items:center;gap:8px;}
-.lnav-btn{height:34px;padding:0 16px;border-radius:9px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;border:none;white-space:nowrap;}
+.landing-nav-btns{display:flex;align-items:center;gap:6px;}
+.lnav-btn{height:32px;padding:0 13px;border-radius:9px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .18s;border:none;white-space:nowrap;}
 .lnav-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--muted);}
 .lnav-btn.ghost:hover{border-color:rgba(0,229,255,.3);color:var(--text);}
 .lnav-btn.primary{background:linear-gradient(135deg,var(--accent),#0080ff);color:#000;}
 .lnav-btn.primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,229,255,.3);}
+/* Mobile: botão "Entrar" some, só fica "Criar conta" */
+@media(max-width:400px){.lnav-btn.ghost{display:none;}.lnav-btn.primary{font-size:11px;padding:0 10px;}}
 .landing-page.active{display:flex;width:100%;}
 
 /* ====== TOAST ====== */
@@ -246,7 +253,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .topup-pack-price{font-size:16px;font-weight:900;font-family:var(--mono);color:var(--accent);}
 
 /* ====== LANDING ====== */
-.landing-hero{max-width:680px;margin:0 auto;padding:calc(80px + env(safe-area-inset-top,0px)) 24px 40px;text-align:center;}
+.landing-hero{max-width:680px;margin:0 auto;padding:calc(68px + env(safe-area-inset-top,0px)) 20px 32px;text-align:center;}
 .hicon{width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 18px;box-shadow:0 0 36px rgba(0,229,255,.22);position:relative;}
 .hbadge{position:absolute;top:-6px;right:-6px;background:var(--green);color:#000;font-size:8px;font-weight:800;padding:2px 6px;border-radius:7px;font-family:var(--mono);}
 .htitle{font-size:36px;font-weight:900;letter-spacing:-.8px;line-height:1.1;margin-bottom:10px;}

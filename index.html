@@ -392,8 +392,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.on{border-color:rgba(0,255,136,.35);background:var(--gdim);color:var(--green);}
 .ct-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all .2s;flex-shrink:0;}
 .continuous-toggle.on .ct-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:ctPulse 1.2s ease infinite;}
-.continuous-toggle.rt-on{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);color:#a78bfa;}
-.continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
 @keyframes ctPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .vad-bar{width:100%;max-width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
 .vad-bar-fill{height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .08s linear;}
@@ -1629,7 +1627,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
               <div class="aps" id="api-status-list">
                 <div class="apr"><div class="aps-dot" id="dot-openai" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">OpenAI Whisper (STT)</div><div class="apl" id="lat-openai">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-openai">—</div><div class="apbadge" id="badge-openai" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-gpt" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">GPT-4o Mini (tradução)</div><div class="apl" id="lat-gpt">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-gpt">—</div><div class="apbadge" id="badge-gpt" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
-                <div class="apr"><div class="aps-dot" id="dot-realtime" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">OpenAI Realtime (intérprete)</div><div class="apl" id="lat-realtime">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-realtime">—</div><div class="apbadge" id="badge-realtime" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-eleven" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">ElevenLabs (TTS/clone)</div><div class="apl" id="lat-eleven">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-eleven">—</div><div class="apbadge" id="badge-eleven" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot ok" id="dot-firebase"></div><div style="flex:1;"><div class="apn">Firebase Auth</div><div class="apl" id="lat-firebase">Conectado ao projeto aivox-4bcbe</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--green);" id="ping-firebase">—</div><div class="apbadge ok" id="badge-firebase">Online</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-railway" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Railway (backend)</div><div class="apl" id="lat-railway">Não configurado</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-railway">—</div><div class="apbadge" id="badge-railway" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
@@ -2039,11 +2036,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div class="continuous-toggle" id="sala-continuous-toggle" onclick="salaToggleContinuous()">
           <div class="ct-dot"></div>
           <span id="sala-ct-label">Modo Contínuo</span>
-        </div>
-        <!-- Toggle Modo Intérprete (Realtime API) -->
-        <div class="continuous-toggle" id="sala-realtime-toggle" onclick="salaToggleRealtime()" style="border-color:rgba(124,58,237,.3);margin-top:6px;">
-          <div class="ct-dot" style="background:var(--muted);"></div>
-          <span id="sala-rt-label">⚡ Modo Intérprete</span>
         </div>
         <!-- Barra VAD -->
         <div class="vad-bar" id="sala-vad-bar" style="opacity:0;margin:6px 0;">
@@ -2966,11 +2958,6 @@ function renderSiList(){const list=document.getElementById('si-lang-list');if(!l
 function selectIdiomaLang(lang){
   if(siChoosingFrom){
     LO[lfi]=lang;
-    // Garante que os dois lados nunca ficam com o mesmo idioma
-    if(LO[lfi].code === LO[lti].code){
-      const fallback = allLangs.find(l => l.code !== lang.code) || allLangs[1];
-      LO[lti] = fallback; 
-    }
     siChoosingFrom=false;
     siChoose('to');
   }else{
@@ -3003,15 +2990,15 @@ async function saveUserLanguages(){
 // Função para carregar idiomas salvos do Firebase
 function loadUserLanguages(userData){
   if(!userData) return;
-
-  // Busca em allLangs (50+ idiomas) e actualiza LO dinamicamente
+  
+  // Carregar idiomas salvos
   if(userData.langFrom){
-    const lang = allLangs.find(l => l.code === userData.langFrom);
-    if(lang){ LO[0] = lang; lfi = 0; }
+    const fromIndex = LO.findIndex(l => l.code === userData.langFrom);
+    if(fromIndex >= 0) lfi = fromIndex;
   }
   if(userData.langTo){
-    const lang = allLangs.find(l => l.code === userData.langTo);
-    if(lang){ LO[1] = lang; lti = 1; }
+    const toIndex = LO.findIndex(l => l.code === userData.langTo);
+    if(toIndex >= 0) lti = toIndex;
   }
   
   // Atualizar UI
@@ -3083,7 +3070,7 @@ let _escutaVADTimer=null;
 let _escutaSilenceTimer=null;
 let _escutaChunks=[];
 let _escutaSpeaking=false;
-let _escutaMinChunkMs=1200;   // mínimo 1.2s — evita capturar sons curtos
+let _escutaMinChunkMs=600;    // mínimo 0.6s antes de enviar
 let _escutaMaxChunkMs=3500;   // máximo 3.5s (corta mesmo sem silêncio)
 let _escutaChunkStart=0;
 let _escutaCurrentLineEl=null; // elemento DOM da linha atual (para streaming)
@@ -3150,8 +3137,8 @@ function _startVAD(){
     src.connect(_escutaAnalyser);
     const data=new Uint8Array(_escutaAnalyser.frequencyBinCount);
     let silenceMs=0;
-    const SILENCE_THRESHOLD=22;   // volume abaixo disso = silêncio (mais alto = menos ruído)
-    const SILENCE_CUTOFF=600;     // 600ms de silêncio = frase terminou
+    const SILENCE_THRESHOLD=12;   // volume abaixo disso = silêncio
+    const SILENCE_CUTOFF=400;     // 400ms de silêncio = frase terminou
     _escutaVADTimer=setInterval(()=>{
       if(!_escutaActive)return;
       _escutaAnalyser.getByteFrequencyData(data);
@@ -3194,8 +3181,8 @@ function _startRecording(){
   _escutaRecorder.onstop=async()=>{
     if(!_escutaActive)return;
     const blob=new Blob(_escutaChunks,{type:mimeType});
-    if(blob.size>4000){
-      // Processa em paralelo — rejeita blobs pequenos (ruído)
+    if(blob.size>1500){
+      // Processa em paralelo — não bloqueia o próximo chunk
       _processEscutaChunk(blob).catch(e=>console.warn('chunk err:',e));
     }
     if(_escutaActive)_startRecording();
@@ -3232,20 +3219,12 @@ async function _processEscutaChunk(blob){
     // ── ETAPA 1: Transcrição (Whisper) ──────────────────────────
     const fd=new FormData();
     fd.append('audio',blob,'chunk.webm');
-    // from/to: garante código curto ISO 639-1 (whisper aceita 'en', 'pt', 'es')
-    fd.append('from', from.split('-')[0].toLowerCase());
-    fd.append('to',   to.split('-')[0].toLowerCase());
+    fd.append('from',from);fd.append('to',to);
     const t0=Date.now();
     const r=await fetch(backendUrl+'/api/listen-stream',{method:'POST',headers,body:fd});
     if(!r.ok||!r.body){
-      // Fallback: cria novo FormData (o original já foi consumido pelo stream)
-      const fd2=new FormData();
-      fd2.append('audio',blob,'chunk.webm');
-      fd2.append('from',from); fd2.append('to',to);
-      const _vp2={'pt':'Transcrição em português brasileiro.','en':'Transcription in English.','es':'Transcripción en español.'};
-      const _pk2=from.split('-')[0].toLowerCase();
-      if(_vp2[_pk2]) fd2.append('prompt',_vp2[_pk2]);
-      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd2});
+      // Fallback para rota normal
+      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd});
       const d=await rd.json();
       if(d.original&&d.original.trim().length>1){
         _updateLiveEscutaLine(lineEl,d.original,d.translation);
@@ -3271,7 +3250,7 @@ async function _processEscutaChunk(blob){
       for(const line of lines){
         if(!line.startsWith('data:'))continue;
         try{
-          const ev=JSON.parse(line.slice(5).trim());
+          const ev=JSON.parse(line.slice(5));
           if(ev.type==='transcript'){
             original=ev.text;
             // Atualiza texto original na linha em tempo real
@@ -3290,15 +3269,11 @@ async function _processEscutaChunk(blob){
           if(ev.type==='done'){
             if(curr)curr.textContent='...';
             if(!original||original.trim().length<2){lineEl?.remove();return;}
-            if(!translation||!translation.trim()){
-              const transEl=lineEl?.querySelector('[data-trans]');
-              if(transEl&&original) transEl.textContent='[sem traducao] '+original;
-            }
-            _escutaLines.push({original,translation:translation||original,ts:Date.now()});
+            _escutaLines.push({original,translation,ts:Date.now()});
             if(_escutaMode==='audio'&&translation)_speakTranslation(translation);
           }
           if(ev.type==='silence'){lineEl?.remove();if(curr)curr.textContent='...';}
-        }catch(e){if(e.message&&!e.message.includes('JSON'))console.warn('SSE:',e.message,line.slice(0,60));}
+        }catch(e){}
       }
     }
   }catch(e){
@@ -3327,9 +3302,8 @@ function _updateLiveEscutaLine(el,original,translation){
   if(!el)return;
   const origEl=el.querySelector('[data-orig]');
   const transEl=el.querySelector('[data-trans]');
-  if(origEl)origEl.textContent=original||'';
-  // Mostra tradução, ou original se tradução vier vazia
-  if(transEl)transEl.textContent=translation||original||'';
+  if(origEl)origEl.textContent=original;
+  if(transEl)transEl.textContent=translation;
   _escutaLines.push({original,translation,ts:Date.now()});
   const box=document.getElementById('escuta-transcript-box');
   if(box)box.scrollTop=box.scrollHeight;
@@ -3693,15 +3667,8 @@ async function _processSessAudio(){
       'es':'Transcripción en español. Conversación natural entre personas.',
       'fr':'Transcription en français. Conversation naturelle.',
       'de':'Transkription auf Deutsch. Natürliche Unterhaltung.',
-      'it':'Trascrizione in italiano. Conversazione naturale.',
-      'ja':'日本語の文字起こし。自然な会話。',
-      'zh':'中文转录。自然对话。',
-      'ru':'Транскрипция на русском языке.',
-      'ar':'النسخ باللغة العربية.',
     };
-    // Normaliza: 'es-mx' → 'es', 'pt-br' → 'pt'
-    const promptKey = fromShort.split('-')[0];
-    if(_promptMap[promptKey]) fd.append('prompt',_promptMap[promptKey]);
+    if(_promptMap[fromShort]) fd.append('prompt',_promptMap[fromShort]);
     const t0=Date.now();
 
     // Usa /api/listen — confiável e compatível com Render
@@ -4528,8 +4495,6 @@ async function checkApiStatus(showToasts=true){
       const keysMs=Math.round(performance.now()-t1);
       if(keys.openai_api_key){
         setStatus('dot-openai','badge-openai','lat-openai','ping-openai','ok','Chave configurada ✓',keysMs);
-        // Realtime — mesma chave OpenAI, verifica se backend responde
-        setStatus('dot-realtime','badge-realtime','lat-realtime','ping-realtime',keys.openai?'ok':'err',keys.openai?'Pronto (usa chave OpenAI)':'Sem chave OpenAI',keysMs);
         setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','ok','Chave configurada ✓',keysMs);
         updateNeonChart('openai', keysMs);
         updateNeonChart('gpt', keysMs);
@@ -5884,7 +5849,6 @@ function _salaDesconectar(){
   _salaCode=null;_salaConnected=false;
   _salaStopRec();
   if(_salaContinuousMode)_salaStopContinuous();
-  if(_rtMode)_rtStopRealtime();
   // Reseta UI de botões de vídeo
   const vbtn=document.getElementById('sala-iniciar-video-btn');
   if(vbtn)vbtn.style.display='none';
@@ -6076,8 +6040,8 @@ async function _salaProcessAudio(){
       });
     }
 
-    // TTS para a própria tradução (não-bloqueante)
-    if(d.translation)_speakTranslation(d.translation);
+    // NÃO toca TTS quando você mesmo fala — só o outro lado ouve sua tradução
+    // TTS é tocado em _salaReceberTraducao quando chega tradução do outro
 
   }catch(e){
     showToast('Erro: '+e.message,'error');
@@ -6138,259 +6102,6 @@ function _salaResetMic(){
   if(lbl)lbl.textContent=_salaContinuousMode?'🔴 Ouvindo sempre...':'Toque para falar';
 }
 
-// ════════════════════════════════════════════════════════════════
-//  MODO INTÉRPRETE — OpenAI Realtime API via WebSocket
-//  Latência: ~300-500ms | Sem chunks | VAD do lado da OpenAI
-// ════════════════════════════════════════════════════════════════
-let _rtMode       = false;   // modo intérprete ativo
-let _rtWS         = null;    // WebSocket para o backend
-let _rtStream     = null;    // MediaStream do microfone
-let _rtProcessor  = null;    // ScriptProcessor para enviar PCM
-let _rtAudioCtx   = null;    // AudioContext para captura
-let _rtConnecting = false;
-
-async function salaToggleRealtime(){
-  if(_rtMode) _rtStopRealtime();
-  else        await _rtStartRealtime();
-}
-
-async function _rtStartRealtime(){
-  if(_rtConnecting) return;
-  // Para o modo contínuo se estiver ativo
-  if(_salaContinuousMode) _salaStopContinuous();
-  if(_salaRecording)      await _salaStopRec();
-
-  const backendUrl = getBackendUrl();
-  if(!backendUrl){ showToast('❌ Backend não configurado','error'); return; }
-
-  _rtConnecting = true;
-  const toggle = document.getElementById('sala-realtime-toggle');
-  const lbl    = document.getElementById('sala-micl');
-  if(toggle) toggle.querySelector('span').textContent = '⚡ Conectando...';
-
-  try{
-    // Pede microfone
-    _rtStream = await navigator.mediaDevices.getUserMedia({
-      audio:{ echoCancellation:true, noiseSuppression:true, sampleRate:16000 }
-    });
-  }catch(e){
-    showToast('❌ Permissão de microfone negada','error');
-    _rtConnecting=false;
-    return;
-  }
-
-  try{
-    const token  = await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const from   = LO[lfi]?.code?.split('-')[0].toLowerCase() || 'pt';
-    const to     = LO[lti]?.code?.split('-')[0].toLowerCase() || 'en';
-    const voiceId= window._fbUser?.voice_id || '';
-
-    // Monta URL WebSocket
-    const wsUrl = backendUrl
-      .replace('https://','wss://')
-      .replace('http://','ws://')
-      + `/api/realtime?from=${from}&to=${to}&voiceId=${encodeURIComponent(voiceId)}`;
-
-    // Browser não suporta headers em WebSocket — token via query string
-    const wsUrlWithToken = wsUrl + '&token=' + encodeURIComponent(token||'');
-    _rtWS = new WebSocket(wsUrlWithToken);
-
-    _rtWS.onopen = () => {
-      console.log('⚡ Realtime WS aberto');
-      _rtMode = true;
-      _rtConnecting = false;
-      _rtStartMicCapture();
-
-      // UI
-      if(toggle){ toggle.classList.add('rt-on'); toggle.querySelector('span').textContent='⚡ Intérprete ON'; }
-      if(lbl) lbl.textContent='⚡ Modo Intérprete ativo...';
-      const pttWrap=document.getElementById('sala-ptt-wrap');
-      if(pttWrap) pttWrap.style.display='none';
-      document.getElementById('sala-vad-bar').style.opacity='1';
-
-      // Atualiza monitor de API
-      try{ setStatus('dot-realtime','badge-realtime','lat-realtime','ping-realtime','ok','WebSocket ativo · OpenAI Realtime',null); }catch(_){}
-      showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
-    };
-
-    _rtWS.onmessage = (ev) => {
-      try{
-        const msg = JSON.parse(ev.data);
-        _rtHandleEvent(msg);
-      }catch(e){ console.warn('rt msg parse error:',e); }
-    };
-
-    _rtWS.onerror = (e) => {
-      console.warn('Realtime WS error:', e);
-      _rtStopRealtime();
-      showToast('❌ Erro no Modo Intérprete','error');
-    };
-
-    _rtWS.onclose = () => {
-      if(_rtMode) _rtStopRealtime();
-    };
-
-  }catch(e){
-    console.warn('_rtStartRealtime error:', e);
-    showToast('❌ Falha ao conectar: '+e.message,'error');
-    _rtConnecting=false;
-    try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}
-  }
-}
-
-function _rtStartMicCapture(){
-  _rtAudioCtx = new (window.AudioContext||window.webkitAudioContext)({ sampleRate:24000 });
-  const source = _rtAudioCtx.createMediaStreamSource(_rtStream);
-
-  // ScriptProcessor para capturar PCM16 e enviar ao WS
-  _rtProcessor = _rtAudioCtx.createScriptProcessor(4096, 1, 1);
-  _rtProcessor.onaudioprocess = (e) => {
-    if(!_rtWS || _rtWS.readyState !== WebSocket.OPEN) return;
-    const float32 = e.inputBuffer.getChannelData(0);
-    // Converte Float32 → PCM16
-    const pcm16 = new Int16Array(float32.length);
-    for(let i=0; i<float32.length; i++){
-      pcm16[i] = Math.max(-32768, Math.min(32767, float32[i] * 32768));
-    }
-    // Base64 encode
-    const bytes  = new Uint8Array(pcm16.buffer);
-    let binary   = '';
-    bytes.forEach(b => binary += String.fromCharCode(b));
-    const b64    = btoa(binary);
-    // Envia para OpenAI Realtime
-    _rtWS.send(JSON.stringify({
-      type: 'input_audio_buffer.append',
-      audio: b64,
-    }));
-
-    // Atualiza barra VAD visual
-    let sum=0; float32.forEach(v=>sum+=v*v);
-    const rms = Math.sqrt(sum/float32.length)*100;
-    const fill=document.getElementById('sala-vad-fill');
-    if(fill) fill.style.width=Math.min(100,rms*8)+'%';
-  };
-
-  source.connect(_rtProcessor);
-  _rtProcessor.connect(_rtAudioCtx.destination);
-}
-
-function _rtHandleEvent(msg){
-  switch(msg.type){
-
-    // Transcrição do que você falou (input)
-    case 'conversation.item.input_audio_transcription.completed': {
-      const text = msg.transcript?.trim();
-      if(!text) break;
-      const euTr = document.getElementById('sala-tr-eu');
-      if(euTr) euTr.textContent = text;
-      if(_salaSocket && _salaCode){
-        _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:true});
-      }
-      break;
-    }
-
-    // Tradução chegando (streaming palavra por palavra)
-    case 'response.audio_transcript.delta': {
-      const delta = msg.delta || '';
-      const tr = document.getElementById('sala-tr-outro');
-      if(tr) tr.textContent = (tr.textContent || '') + delta;
-      break;
-    }
-
-    // Tradução completa
-    case 'response.audio_transcript.done': {
-      const translation = msg.transcript?.trim();
-      if(!translation) break;
-      const original = document.getElementById('sala-tr-eu')?.textContent || '';
-      _salaAddBubble(original, translation, 'mine',
-        LO[lfi]?.code||'PT-BR', LO[lti]?.code||'EN-US', '~RT');
-      _salaUpdateLastTranslation('Você → '+(_salaTheirName||'Participante'), translation);
-      if(_salaSocket && _salaCode){
-        _salaSocket.emit('translation',{
-          code:_salaCode, original, translation,
-          fromLang:LO[lfi]?.code||'PT-BR', toLang:LO[lti]?.code||'EN-US',
-          speakerName:window._fbUser?.name||'Você',
-          speakerUid:window._fbUser?.uid,
-        });
-        _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:false});
-      }
-      // Reseta preview
-      const euTr=document.getElementById('sala-tr-eu');
-      if(euTr) euTr.textContent='';
-      break;
-    }
-
-    // Áudio da tradução chegando (PCM16 base64) — toca via TTS fila
-    case 'response.audio.delta': {
-      if(!msg.delta) break;
-      try{
-        const binary  = atob(msg.delta);
-        const bytes   = new Uint8Array(binary.length);
-        for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-        const pcm16   = new Int16Array(bytes.buffer);
-        // Converte PCM16 24kHz → Float32 e toca
-        const float32 = new Float32Array(pcm16.length);
-        for(let i=0;i<pcm16.length;i++) float32[i]=pcm16[i]/32768;
-        const ctx     = _getTTSCtx();
-        const buffer  = ctx.createBuffer(1, float32.length, 24000);
-        buffer.copyToChannel(float32, 0);
-        const src2    = ctx.createBufferSource();
-        src2.buffer   = buffer;
-        src2.connect(ctx.destination);
-        src2.start(0);
-      }catch(e){ console.warn('rt audio play error:',e); }
-      break;
-    }
-
-    // Latência da resposta
-    case 'response.done': {
-      const usage = msg.response?.usage;
-      if(usage){
-        const ms = msg.response?.metadata?.duration_ms || '~RT';
-        try{ setStatus('dot-realtime','badge-realtime','lat-realtime','ping-realtime','ok',
-          `Realtime · ${ms}ms · ${usage.total_tokens||0} tokens`, null); }catch(_){}
-      }
-      break;
-    }
-
-    case 'error': {
-      console.warn('OpenAI Realtime error:', msg.error);
-      showToast('⚠️ Realtime: '+( msg.error?.message||'erro desconhecido'),'error');
-      break;
-    }
-  }
-}
-
-function _rtStopRealtime(){
-  _rtMode = false;
-  _rtConnecting = false;
-
-  // Para captura de áudio
-  try{ _rtProcessor?.disconnect(); }catch(_){}
-  try{ _rtAudioCtx?.close(); }catch(_){}
-  try{ _rtStream?.getTracks().forEach(t=>t.stop()); }catch(_){}
-  _rtProcessor=null; _rtAudioCtx=null; _rtStream=null;
-
-  // Fecha WS
-  try{ if(_rtWS?.readyState===WebSocket.OPEN) _rtWS.close(); }catch(_){}
-  _rtWS=null;
-
-  // UI
-  const toggle=document.getElementById('sala-realtime-toggle');
-  const pttWrap=document.getElementById('sala-ptt-wrap');
-  const vadBar=document.getElementById('sala-vad-bar');
-  const fill=document.getElementById('sala-vad-fill');
-  const lbl=document.getElementById('sala-micl');
-  if(toggle){ toggle.classList.remove('rt-on'); toggle.querySelector('span').textContent='⚡ Modo Intérprete'; }
-  if(pttWrap) pttWrap.style.display='';
-  if(vadBar)  vadBar.style.opacity='0';
-  if(fill)    fill.style.width='0%';
-  if(lbl)     lbl.textContent='Toque para falar';
-
-  try{ setStatus('dot-realtime','badge-realtime','lat-realtime','ping-realtime','warn','Desconectado',null); }catch(_){}
-  showToast('⏹ Modo Intérprete desativado','info');
-}
-
 // ══════════════════════════════════════════════════════════════════
 //  MODO CONTÍNUO — VAD automático, sem apertar botão
 // ══════════════════════════════════════════════════════════════════
@@ -6406,8 +6117,8 @@ let _salaVADSilenceMs   = 0;
 let _salaVADSpeakMs     = 0;
 let _salaVADProcessing  = false;
 
-const SALA_VAD_THRESHOLD   = 3.5;  // RMS mínimo — calibrado para getByteTimeDomainData
-const SALA_VAD_SILENCE_END = 1200; // ms de silêncio para cortar
+const SALA_VAD_THRESHOLD   = 6.0;  // RMS mínimo — aumentado para filtrar ruído ambiente
+const SALA_VAD_SILENCE_END = 1500; // ms de silêncio para cortar (aumentado)
 const SALA_VAD_MIN_SPEAK   = 300;  // ms mínimo para enviar
 const SALA_VAD_TICK        = 50;   // intervalo de leitura ms
 
@@ -6431,7 +6142,13 @@ async function _salaStartContinuous(){
   _salaVADAnalyser = _salaVADCtx.createAnalyser();
   _salaVADAnalyser.fftSize = 512;
   const src2 = _salaVADCtx.createMediaStreamSource(_salaVADStream);
-  src2.connect(_salaVADAnalyser);
+  // Filtro passa-alta 120Hz — remove ruído de baixa frequência (AC, ventilador, eco)
+  const _hpf = _salaVADCtx.createBiquadFilter();
+  _hpf.type = 'highpass';
+  _hpf.frequency.value = 120;
+  _hpf.Q.value = 0.7;
+  src2.connect(_hpf);
+  _hpf.connect(_salaVADAnalyser);
 
   const toggle = document.getElementById('sala-continuous-toggle');
   const pttWrap= document.getElementById('sala-ptt-wrap');
@@ -6571,7 +6288,7 @@ async function _salaVADProcessAudio(){
         speakerName:window._fbUser?.name||'Você',speakerUid:window._fbUser?.uid,
       });
     }
-    if(d.translation)_speakTranslation(d.translation);
+    // Não toca TTS localmente — o outro lado recebe via socket
   }catch(e){showToast('Erro: '+e.message,'error');}
 }
 

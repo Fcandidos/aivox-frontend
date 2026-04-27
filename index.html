@@ -2934,6 +2934,14 @@ function swapActiveSession(){
   const sl2=document.getElementById('sl2');
   if(sl1)sl1.textContent='VOCÊ ('+LO[lfi].code+')';
   if(sl2)sl2.textContent='OUVINTE ('+LO[lti].code+')';
+  // Se modo viagem ativo, reinicia com novo idioma
+  if(_viagemActive){
+    stopViagemMode();
+    setTimeout(()=>startViagemMode(), 200);
+    showToast('🔄 Idioma trocado: agora falando em '+LO[lfi].code,'info');
+  }
+  // Salva a troca no Firebase
+  saveUserLanguages();
 }
 document.getElementById('lswbtn').addEventListener('click',function(e){
   // Animação
@@ -3424,6 +3432,7 @@ function startViagemMode(){
   _viagemActive=true;
   _viagemRecog=new SR();
   _viagemRecog.lang=_viagemLang;
+  console.log('🎙️ Modo Viagem — lang:', _viagemLang, '| lfi:', lfi, '| LO[lfi]:', LO[lfi]?.code);
   _viagemRecog.continuous=true;
   _viagemRecog.interimResults=true;
 

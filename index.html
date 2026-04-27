@@ -3271,7 +3271,7 @@ async function _processEscutaChunk(blob){
       for(const line of lines){
         if(!line.startsWith('data:'))continue;
         try{
-          const ev=JSON.parse(line.slice(5));
+          const ev=JSON.parse(line.slice(5).trim());
           if(ev.type==='transcript'){
             original=ev.text;
             // Atualiza texto original na linha em tempo real
@@ -3290,11 +3290,15 @@ async function _processEscutaChunk(blob){
           if(ev.type==='done'){
             if(curr)curr.textContent='...';
             if(!original||original.trim().length<2){lineEl?.remove();return;}
-            _escutaLines.push({original,translation,ts:Date.now()});
+            if(!translation||!translation.trim()){
+              const transEl=lineEl?.querySelector('[data-trans]');
+              if(transEl&&original) transEl.textContent='[sem traducao] '+original;
+            }
+            _escutaLines.push({original,translation:translation||original,ts:Date.now()});
             if(_escutaMode==='audio'&&translation)_speakTranslation(translation);
           }
           if(ev.type==='silence'){lineEl?.remove();if(curr)curr.textContent='...';}
-        }catch(e){}
+        }catch(e){if(e.message&&!e.message.includes('JSON'))console.warn('SSE:',e.message,line.slice(0,60));}
       }
     }
   }catch(e){

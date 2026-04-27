@@ -109,7 +109,20 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .page.active{display:flex;}
 .auth-page{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;}
 .auth-page.active{display:flex;}
-.auth-box{width:100%;max-width:400px;}
+/* glow orbs no fundo da auth page */
+.auth-page::before{content:'';position:fixed;top:-80px;left:-80px;width:380px;height:380px;background:radial-gradient(circle,rgba(124,58,237,.18) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.auth-page::after{content:'';position:fixed;bottom:-60px;right:-60px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,229,255,.13) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.auth-box{width:100%;max-width:400px;position:relative;z-index:1;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:24px;
+  padding:36px 32px 32px;
+  box-shadow:0 8px 48px rgba(0,0,0,.45), 0 0 0 1px rgba(0,229,255,.06) inset;
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+}
+/* linha neon no topo do card */
+.auth-box::before{content:'';position:absolute;top:0;left:32px;right:32px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.5),transparent);border-radius:1px;}
 .landing-page{min-height:100vh;background:var(--bg);display:none;flex-direction:column;width:100%;position:relative;z-index:1;}
 /* ── LANDING NAVBAR ── */
 .landing-nav{position:fixed;top:0;left:0;right:0;z-index:600;height:56px;background:rgba(6,8,15,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 24px;gap:16px;}
@@ -271,7 +284,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .lbtn.main:hover{transform:translateY(-1px);}
 
 /* ====== AUTH ====== */
-.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-logo{text-align:center;margin-bottom:22px;}
 .auth-logo-icon{width:62px;height:62px;border-radius:20px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;box-shadow:0 0 28px rgba(0,229,255,.22);}
 .auth-title{font-size:24px;font-weight:900;letter-spacing:-.3px;}
 .auth-title span{color:var(--accent);}

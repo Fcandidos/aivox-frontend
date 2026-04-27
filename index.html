@@ -413,7 +413,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .hit-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
 .hmb{font-size:10px;font-weight:800;font-family:var(--mono);padding:3px 8px;border-radius:8px;text-transform:uppercase;}
 .hmb.conversa{background:var(--adim);color:var(--accent);}
-.hmb.palestrante{background:rgba(124,58,237,.15);color:#c084fc;}
 .hmb.reuniao{background:var(--gdim);color:var(--green);}
 .hmb.viagem{background:var(--odim);color:var(--orange);}
 .htm{font-size:10px;color:var(--muted);font-family:var(--mono);}
@@ -948,7 +947,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
       <div class="section-label">Modo de uso</div>
       <div class="mgrid">
         <div class="mbtn" data-mode="conversa" onclick="selMode(this)"><span style="font-size:21px;">💬</span><div class="mnm">Conversa</div><div class="mds">Diálogo bidirecional em tempo real</div></div>
-        <div class="mbtn" data-mode="palestrante" onclick="selMode(this)"><span style="font-size:21px;">🎤</span><div class="mnm">Palestrante</div><div class="mds">Tradução para plateia ao vivo</div></div>
         <div class="mbtn" data-mode="reuniao" onclick="selMode(this);navApp('sala')"><span style="font-size:21px;">👥</span><div class="mnm">Reunião</div><div class="mds">Sala colaborativa · Pro+</div></div>
         <div class="mbtn" data-mode="viagem" onclick="selMode(this)"><span style="font-size:21px;">✈️</span><div class="mnm">Viagem</div><div class="mds">Offline · Web Speech API</div></div>
         <div class="mbtn" data-mode="escuta" onclick="selMode(this)" style="border-color:rgba(147,51,234,.35);background:rgba(147,51,234,.07);"><span style="font-size:21px;">🎧</span><div class="mnm" style="color:#a855f7;">Escuta ao vivo</div><div class="mds">Entenda qualquer conversa</div></div>
@@ -1109,10 +1107,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
               <div style="font-size:12px;color:var(--muted);">Para cada situação, um modo diferente</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:9px;">
-              <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;">
-                <div style="font-size:24px;">🎤</div>
-                <div><div style="font-size:13px;font-weight:700;">Palestrante</div><div style="font-size:11px;color:var(--muted);">Você fala → plateia ouve traduzido em tempo real</div></div>
-              </div>
+
               <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;">
                 <div style="font-size:24px;">👥</div>
                 <div><div style="font-size:13px;font-weight:700;">Reunião</div><div style="font-size:11px;color:var(--muted);">Múltiplos participantes, cada um no seu idioma</div></div>
@@ -2829,11 +2824,7 @@ function showOnboardingOverlay(){
           <div style="font-size:11px;font-weight:700;margin-top:4px;">Conversa</div>
           <div style="font-size:10px;color:var(--muted);">Tradução bidirecional</div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
-          <div style="font-size:24px;">🎤</div>
-          <div style="font-size:11px;font-weight:700;margin-top:4px;">Palestrante</div>
-          <div style="font-size:10px;color:var(--muted);">Traduz para a plateia</div>
-        </div>
+
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
           <div style="font-size:24px;">✈️</div>
           <div style="font-size:11px;font-weight:700;margin-top:4px;">Viagem</div>
@@ -3025,7 +3016,6 @@ function selMode(el){
   // Cores padrão (não selecionado) por modo
   const defaults={
     conversa:  {border:'var(--border)',    bg:'var(--card)',               nameColor:'var(--text)'},
-    palestrante:{border:'var(--border)',   bg:'var(--card)',               nameColor:'var(--text)'},
     reuniao:   {border:'var(--border)',    bg:'var(--card)',               nameColor:'var(--text)'},
     viagem:    {border:'var(--border)',    bg:'var(--card)',               nameColor:'var(--text)'},
     escuta:    {border:'rgba(147,51,234,.35)', bg:'rgba(147,51,234,.07)', nameColor:'#a855f7'},
@@ -3033,7 +3023,6 @@ function selMode(el){
   // Cores quando SELECIONADO por modo
   const selected={
     conversa:   {border:'rgba(0,229,255,.55)',  bg:'rgba(0,229,255,.08)',   nameColor:'var(--accent)'},
-    palestrante:{border:'rgba(0,229,255,.55)',  bg:'rgba(0,229,255,.08)',   nameColor:'var(--accent)'},
     reuniao:    {border:'rgba(0,229,255,.55)',  bg:'rgba(0,229,255,.08)',   nameColor:'var(--accent)'},
     viagem:     {border:'rgba(0,229,255,.55)',  bg:'rgba(0,229,255,.08)',   nameColor:'var(--accent)'},
     escuta:     {border:'rgba(0,229,255,.7)',   bg:'rgba(0,229,255,.12)',   nameColor:'var(--accent)'},
@@ -3057,8 +3046,8 @@ function selMode(el){
   const mode=el.dataset.mode;
   _selectedMode=mode;
   const t=document.getElementById('actt');
-  const btnLabels={conversa:'Iniciar Modo Conversa',palestrante:'Iniciar Modo Palestrante',reuniao:'Iniciar Modo Reunião',viagem:'Iniciar Modo Viagem',escuta:'Abrir Escuta ao vivo'};
-  const btnIcons={conversa:'🎙️',palestrante:'🎤',reuniao:'👥',viagem:'✈️',escuta:'🎧'};
+  const btnLabels={conversa:'Iniciar Modo Conversa',reuniao:'Iniciar Modo Reunião',viagem:'Iniciar Modo Viagem',escuta:'Abrir Escuta ao vivo'};
+  const btnIcons={conversa:'🎙️',reuniao:'👥',viagem:'✈️',escuta:'🎧'};
   if(t)t.textContent=btnLabels[mode];
   const sbtn=document.getElementById('sbtn');
   if(sbtn){const icon=btnIcons[mode]||'🎙️';sbtn.innerHTML=icon+' <span id="actt">'+btnLabels[mode]+'</span>';}

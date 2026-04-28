@@ -394,6 +394,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.on .ct-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:ctPulse 1.2s ease infinite;}
 .continuous-toggle.rt-on{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);color:#a78bfa;}
 .continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
+.continuous-toggle.rt-disabled{opacity:.35;cursor:not-allowed;filter:grayscale(1);}
 @keyframes ctPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .vad-bar{width:100%;max-width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
 .vad-bar-fill{height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .08s linear;}
@@ -2039,10 +2040,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div class="ct-dot"></div>
           <span id="sala-ct-label">Modo Contínuo</span>
         </div>
-        <!-- Toggle Modo Intérprete (OpenAI Realtime) -->
-        <div class="continuous-toggle" id="sala-realtime-toggle" onclick="salaToggleRealtime()" style="border-color:rgba(124,58,237,.3);margin-top:6px;">
+        <!-- Toggle Modo Intérprete (OpenAI Realtime) — em construção -->
+        <div class="continuous-toggle rt-disabled" id="sala-realtime-toggle" onclick="showToast('⚡ Modo Intérprete em breve — disponível no plano Pro+','info')" style="border-color:rgba(124,58,237,.2);margin-top:6px;">
           <div class="ct-dot"></div>
-          <span id="sala-rt-label">⚡ Modo Intérprete</span>
+          <span id="sala-rt-label">⚡ Modo Intérprete <span style="font-size:9px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:4px;padding:1px 5px;margin-left:4px;">Em breve</span></span>
         </div>
         <!-- Barra VAD -->
         <div class="vad-bar" id="sala-vad-bar" style="opacity:0;margin:6px 0;">
@@ -6119,8 +6120,7 @@ let _rtWS         = null;
 let _rtStream     = null;
 let _rtProcessor  = null;
 let _rtAudioCtx   = null;
-let _rtConnecting   = false;
-let _rtSessionReady = false;
+let _rtConnecting = false;
 
 async function salaToggleRealtime(){
   if(_rtMode) _rtStopRealtime();
@@ -6170,12 +6170,8 @@ async function _rtStartRealtime(){
       showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
     };
 
-    _rtWS.onmessage = async (ev)=>{
-      try{
-        const text = (ev.data instanceof Blob) ? await ev.data.text() : String(ev.data);
-        if(!text || text[0]!=='{') return;
-        _rtHandleEvent(JSON.parse(text));
-      }catch(e){ console.warn('rt msg:',e.message); }
+    _rtWS.onmessage = (ev)=>{
+      try{ _rtHandleEvent(JSON.parse(ev.data)); }catch(e){}
     };
 
     _rtWS.onerror = ()=>{ _rtStopRealtime(); showToast('❌ Erro no Modo Intérprete','error'); };
@@ -6199,7 +6195,6 @@ function _rtStartMicCapture(){
     for(let i=0;i<f32.length;i++) pcm[i]=Math.max(-32768,Math.min(32767,f32[i]*32768));
     const bytes=new Uint8Array(pcm.buffer);
     let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
-    if(!_rtSessionReady) return;
     _rtWS.send(JSON.stringify({type:'input_audio_buffer.append',audio:btoa(bin)}));
     // Barra VAD visual
     let sum=0; f32.forEach(v=>sum+=v*v);
@@ -6212,11 +6207,6 @@ function _rtStartMicCapture(){
 
 function _rtHandleEvent(msg){
   switch(msg.type){
-    case 'session.created':
-    case 'session.updated':
-      _rtSessionReady=true;
-      console.log('⚡ Sessão Realtime pronta — enviando áudio');
-      break;
     case 'conversation.item.input_audio_transcription.completed':{
       const t=msg.transcript?.trim();
       if(t){ const el=document.getElementById('sala-tr-eu'); if(el) el.textContent=t; }
@@ -6259,12 +6249,12 @@ function _rtHandleEvent(msg){
       }catch(e){console.warn('rt audio:',e);}
       break;
     }
-    case 'error': console.warn('Realtime error:', JSON.stringify(msg.error)); break;
+    case 'error': console.warn('Realtime error:',msg.error); break;
   }
 }
 
 function _rtStopRealtime(){
-  _rtMode=false; _rtConnecting=false; _rtSessionReady=false;
+  _rtMode=false; _rtConnecting=false;
   try{_rtProcessor?.disconnect();}catch(_){}
   try{_rtAudioCtx?.close();}catch(_){}
   try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}

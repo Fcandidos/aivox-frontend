@@ -6169,13 +6169,8 @@ async function _rtStartRealtime(){
       showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
     };
 
-    _rtWS.onmessage = async (ev)=>{
-      try{
-        // OpenAI envia alguns eventos como Blob binário — precisa converter para texto
-        const text = (ev.data instanceof Blob) ? await ev.data.text() : ev.data;
-        if(!text || text[0]!=='{') return; // ignora binários não-JSON
-        _rtHandleEvent(JSON.parse(text));
-      }catch(e){ console.warn('rt msg:',e.message); }
+    _rtWS.onmessage = (ev)=>{
+      try{ _rtHandleEvent(JSON.parse(ev.data)); }catch(e){}
     };
 
     _rtWS.onerror = ()=>{ _rtStopRealtime(); showToast('❌ Erro no Modo Intérprete','error'); };
@@ -6191,17 +6186,23 @@ async function _rtStartRealtime(){
 function _rtStartMicCapture(){
   _rtAudioCtx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000});
   const source = _rtAudioCtx.createMediaStreamSource(_rtStream);
-  _rtProcessor = _rtAudioCtx.createScriptProcessor(4096,1,1);
+  // ScriptProcessorNode deprecated — mantido por compatibilidade mas com conversão correta
+  _rtProcessor = _rtAudioCtx.createScriptProcessor(2048,1,1);
   _rtProcessor.onaudioprocess = (e)=>{
     if(!_rtWS||_rtWS.readyState!==WebSocket.OPEN) return;
     const f32 = e.inputBuffer.getChannelData(0);
-    const pcm = new Int16Array(f32.length);
-    for(let i=0;i<f32.length;i++) pcm[i]=Math.max(-32768,Math.min(32767,f32[i]*32768));
-    const bytes=new Uint8Array(pcm.buffer);
-    let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
-    _rtWS.send(JSON.stringify({type:'input_audio_buffer.append',audio:btoa(bin)}));
+    // Converte Float32 → PCM16 corretamente
+    const pcm16 = new Int16Array(f32.length);
+    for(let i=0;i<f32.length;i++){
+      const s = Math.max(-1, Math.min(1, f32[i]));
+      pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    // Base64 eficiente via Uint8Array
+    const uint8 = new Uint8Array(pcm16.buffer);
+    const b64 = btoa(String.fromCharCode.apply(null, uint8));
+    _rtWS.send(JSON.stringify({type:'input_audio_buffer.append', audio: b64}));
     // Barra VAD visual
-    let sum=0; f32.forEach(v=>sum+=v*v);
+    let sum=0; for(let i=0;i<f32.length;i++) sum+=f32[i]*f32[i];
     const fill=document.getElementById('sala-vad-fill');
     if(fill) fill.style.width=Math.min(100,Math.sqrt(sum/f32.length)*800)+'%';
   };

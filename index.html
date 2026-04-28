@@ -396,27 +396,109 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
 .continuous-toggle.rt-disabled{opacity:.35;cursor:not-allowed;filter:grayscale(1);}
 .learn-page{display:flex;flex-direction:column;height:100%;overflow:hidden;}
-.learn-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.learn-title{font-size:18px;font-weight:800;margin-bottom:2px;}
+.learn-header{padding:12px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.learn-title{font-size:17px;font-weight:800;margin-bottom:1px;}
 .learn-sub{font-size:11px;color:var(--muted);}
-.learn-lang-strip{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
-.learn-lang-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
+/* STREAK BAR */
+.learn-streak-bar{display:flex;align-items:center;gap:10px;padding:7px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.streak-fire{font-size:16px;}.streak-num{font-size:14px;font-weight:900;font-family:var(--mono);color:var(--yellow);}
+.streak-label{font-size:11px;color:var(--muted);}.streak-sep{flex:1;}
+.streak-pts{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--accent);}
+/* TABS */
+.learn-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.learn-tabs::-webkit-scrollbar{display:none;}
+.learn-tab{flex:1;min-width:56px;padding:9px 4px;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;letter-spacing:.3px;}
+.learn-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.learn-tab-panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.learn-tab-panel.active{display:flex;}
+/* LANG STRIP */
+.learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.learn-lang-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
-.learn-bubs{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
-.learn-bubble{border-radius:14px;padding:12px 16px;max-width:88%;font-size:14px;line-height:1.5;}
+/* PROFESSOR CHAT */
+.learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.learn-bubble{border-radius:14px;padding:11px 14px;max-width:90%;font-size:14px;line-height:1.55;}
 .learn-bubble.user{background:var(--adim);border:1px solid rgba(0,229,255,.15);align-self:flex-end;color:var(--text);}
 .learn-bubble.ai{background:var(--card);border:1px solid var(--border);align-self:flex-start;color:var(--text);}
 .learn-bubble.ai .lb-label{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px;font-family:var(--mono);}
-.learn-input-area{padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));}
+.lb-actions{display:flex;gap:6px;margin-top:6px;}
+.lb-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--muted);font-family:var(--font);transition:all .15s;}
+.lb-btn:hover{color:var(--accent);border-color:rgba(0,229,255,.3);}
+.learn-input-area{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
 @media(max-width:1099px){.learn-input-area{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}}
-.learn-mic-btn{width:60px;height:60px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),#0080ff);cursor:pointer;font-size:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;transition:all .2s;box-shadow:0 4px 16px rgba(0,229,255,.3);}
+.learn-mic-btn{width:54px;height:54px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),#0080ff);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;transition:all .2s;box-shadow:0 4px 14px rgba(0,229,255,.3);}
 .learn-mic-btn.listening{background:linear-gradient(135deg,var(--red),#ff6b35);animation:ctPulse 1s ease infinite;}
-.learn-status{text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);}
+.learn-status{text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:7px;}
 .learn-thinking{display:flex;gap:4px;align-items:center;padding:4px 0;}
 .learn-thinking span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:learnDot 1.2s ease infinite;}
-.learn-thinking span:nth-child(2){animation-delay:.2s;}
-.learn-thinking span:nth-child(3){animation-delay:.4s;}
+.learn-thinking span:nth-child(2){animation-delay:.2s;}.learn-thinking span:nth-child(3){animation-delay:.4s;}
 @keyframes learnDot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
+/* LIÇÕES */
+.licoes-lang-bar{display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.licoes-lang-bar::-webkit-scrollbar{display:none;}
+.licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;}
+.licao-cat{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;}
+.licao-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
+.licao-card:active{transform:scale(.98);}
+.licao-icon{font-size:26px;flex-shrink:0;}.licao-info{flex:1;}
+.licao-nome{font-size:14px;font-weight:700;margin-bottom:2px;}.licao-desc{font-size:11px;color:var(--muted);}
+.licao-badge{font-size:10px;font-family:var(--mono);font-weight:700;padding:3px 7px;border-radius:6px;flex-shrink:0;}
+.licao-badge.novo{background:var(--adim);color:var(--accent);}.licao-badge.ok{background:var(--gdim);color:var(--green);}
+.licao-modal{position:absolute;inset:0;background:var(--bg);z-index:80;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.licao-modal.sh{transform:translateY(0);}
+.licao-modal-hdr{padding:13px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.licao-modal-body{flex:1;overflow-y:auto;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));}
+@media(max-width:1099px){.licao-modal-body{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));}}
+.licao-phrase{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
+.licao-phrase-orig{font-size:20px;font-weight:800;margin-bottom:3px;}
+.licao-phrase-trans{font-size:13px;color:var(--muted);margin-bottom:4px;}
+.licao-phrase-pron{font-size:12px;color:var(--accent);font-family:var(--mono);}
+/* FLASHCARDS */
+.flash-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 14px;gap:14px;}
+.flash-stats{display:flex;gap:10px;width:100%;max-width:320px;}
+.flash-stat{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px;text-align:center;}
+.flash-stat-n{font-size:18px;font-weight:900;font-family:var(--mono);}
+.flash-stat-l{font-size:10px;color:var(--muted);margin-top:1px;}
+.flash-card-wrap{width:100%;max-width:320px;perspective:800px;}
+.flash-card{width:100%;min-height:170px;background:var(--card);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;cursor:pointer;transition:transform .45s;transform-style:preserve-3d;position:relative;}
+.flash-card.flip{transform:rotateY(180deg);}
+.flash-front,.flash-back{backface-visibility:hidden;text-align:center;width:100%;position:absolute;top:50%;transform:translateY(-50%);}
+.flash-back{transform:rotateY(180deg) translateY(-50%);}
+.flash-word{font-size:26px;font-weight:900;margin-bottom:6px;}
+.flash-pron{font-size:12px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;}
+.flash-hint{font-size:11px;color:var(--muted);}
+.flash-trans{font-size:20px;font-weight:800;color:var(--green);margin-bottom:6px;}
+.flash-example{font-size:12px;color:var(--muted);font-style:italic;line-height:1.4;}
+.flash-btns{display:flex;gap:10px;width:100%;max-width:320px;}
+.flash-btn{flex:1;padding:13px;border-radius:13px;border:none;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;}
+.flash-btn.nope{background:var(--rdim);color:var(--red);}.flash-btn.got{background:var(--gdim);color:var(--green);}
+.flash-progress{font-size:11px;color:var(--muted);font-family:var(--mono);text-align:center;}
+.flash-empty{text-align:center;padding:40px 16px;color:var(--muted);}
+.flash-empty .fe-icon{font-size:44px;margin-bottom:10px;}
+/* EXERCÍCIOS */
+.exer-score{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;}
+.exer-wrap{flex:1;overflow-y:auto;padding:14px;}
+.exer-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:11px;}
+.exer-tipo{font-size:10px;font-family:var(--mono);color:var(--accent);font-weight:700;letter-spacing:2px;margin-bottom:7px;}
+.exer-pergunta{font-size:15px;font-weight:700;margin-bottom:12px;line-height:1.4;}
+.exer-opts{display:flex;flex-direction:column;gap:7px;}
+.exer-opt{padding:10px 13px;border-radius:11px;border:1px solid var(--border);background:var(--surface);font-size:13px;cursor:pointer;transition:all .18s;text-align:left;font-family:var(--font);color:var(--text);}
+.exer-opt.certo{background:var(--gdim);border-color:var(--green);color:var(--green);}
+.exer-opt.errado{background:var(--rdim);border-color:var(--red);color:var(--red);}
+.exer-opt.correta{border-color:var(--green);}
+.exer-feedback{margin-top:9px;padding:9px 12px;border-radius:10px;font-size:13px;display:none;}
+.exer-feedback.sh{display:block;}.exer-feedback.ok{background:var(--gdim);color:var(--green);}.exer-feedback.err{background:var(--rdim);color:var(--red);}
+/* VOCABULÁRIO */
+.vocab-search{padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.vocab-scroll{flex:1;overflow-y:auto;padding:10px 14px;}
+.vocab-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+.vocab-info{flex:1;}.vocab-word{font-size:15px;font-weight:800;}
+.vocab-trans{font-size:12px;color:var(--muted);margin-top:1px;}
+.vocab-lang-tag{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:5px;background:var(--adim);color:var(--accent);flex-shrink:0;}
+.vocab-del{background:none;border:none;cursor:pointer;font-size:16px;opacity:.5;padding:4px;}
+.vocab-speak{background:none;border:none;cursor:pointer;font-size:16px;opacity:.6;padding:4px;}
+.vocab-empty{text-align:center;padding:40px 14px;color:var(--muted);}
+
 .perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
 .perm-btn{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:all .18s;user-select:none;}
 .perm-btn.on{border-color:rgba(0,255,136,.35);background:rgba(0,255,136,.06);color:var(--green);}
@@ -1293,41 +1375,142 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     <!-- ====== APRENDIZAGEM ====== -->
     <div class="page content-area" id="page-learn" style="padding:0;flex-direction:column;height:100%;overflow:hidden;">
       <div class="learn-page">
+        <!-- Header -->
         <div class="learn-header">
           <div class="learn-title">🎓 Aprendizagem</div>
-          <div class="learn-sub">Pergunte sobre qualquer idioma — fale ou escreva</div>
+          <div class="learn-sub">Professor, lições, flashcards e exercícios</div>
         </div>
-        <div class="learn-lang-strip">
-          <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">APRENDER:</span>
-          <div class="learn-lang-btn active" data-lang="inglês" onclick="setLearnLang(this)">🇺🇸 Inglês</div>
-          <div class="learn-lang-btn" data-lang="espanhol" onclick="setLearnLang(this)">🇪🇸 Espanhol</div>
-          <div class="learn-lang-btn" data-lang="francês" onclick="setLearnLang(this)">🇫🇷 Francês</div>
-          <div class="learn-lang-btn" data-lang="alemão" onclick="setLearnLang(this)">🇩🇪 Alemão</div>
-          <div class="learn-lang-btn" data-lang="italiano" onclick="setLearnLang(this)">🇮🇹 Italiano</div>
-          <div class="learn-lang-btn" data-lang="japonês" onclick="setLearnLang(this)">🇯🇵 Japonês</div>
+        <!-- Streak bar -->
+        <div class="learn-streak-bar">
+          <span class="streak-fire">🔥</span>
+          <span class="streak-num" id="streak-num">0</span>
+          <span class="streak-label">dias seguidos</span>
+          <span class="streak-sep"></span>
+          <span class="streak-pts" id="streak-pts">0 pts</span>
         </div>
-        <div class="learn-bubs" id="learn-bubs">
-          <div class="learn-bubble ai">
-            <div class="lb-label">🎓 PROFESSOR AIVOX</div>
-            Olá! Sou seu professor de idiomas. Pergunte qualquer coisa — pronuncia, significados, frases do dia a dia. Pode falar ou digitar! 😊
+        <!-- Abas -->
+        <div class="learn-tabs">
+          <div class="learn-tab active" onclick="learnTab('professor',this)">🤖 PROFESSOR</div>
+          <div class="learn-tab" onclick="learnTab('licoes',this)">📚 LIÇÕES</div>
+          <div class="learn-tab" onclick="learnTab('flash',this)">🃏 FLASHCARD</div>
+          <div class="learn-tab" onclick="learnTab('exer',this)">✏️ PRATICAR</div>
+          <div class="learn-tab" onclick="learnTab('vocab',this)">📖 VOCABULÁRIO</div>
+          <div class="learn-tab" onclick="learnTab('conversas',this)" style="color:var(--yellow);">💬 CONVERSAS</div>
+        </div>
+
+        <!-- ── ABA PROFESSOR ── -->
+        <div class="learn-tab-panel active" id="ltp-professor" style="flex-direction:column;overflow:hidden;">
+          <div class="learn-lang-strip">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
+            <div class="learn-lang-btn active" data-lang="inglês" onclick="setLearnLang(this)">🇺🇸 Inglês</div>
+            <div class="learn-lang-btn" data-lang="espanhol" onclick="setLearnLang(this)">🇪🇸 Espanhol</div>
+            <div class="learn-lang-btn" data-lang="francês" onclick="setLearnLang(this)">🇫🇷 Francês</div>
+            <div class="learn-lang-btn" data-lang="alemão" onclick="setLearnLang(this)">🇩🇪 Alemão</div>
+            <div class="learn-lang-btn" data-lang="italiano" onclick="setLearnLang(this)">🇮🇹 Italiano</div>
+            <div class="learn-lang-btn" data-lang="japonês" onclick="setLearnLang(this)">🇯🇵 Japonês</div>
           </div>
-        </div>
-        <div class="learn-input-area">
-          <div style="display:flex;justify-content:center;margin-bottom:10px;">
-            <div id="learn-voice-toggle" onclick="learnToggleVoice()" style="display:flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);transition:all .2s;user-select:none;">
-              <div id="learn-voice-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all .2s;flex-shrink:0;"></div>
-              <span id="learn-voice-label">🔇 Resposta em voz (off)</span>
+          <div class="learn-bubs" id="learn-bubs">
+            <div class="learn-bubble ai">
+              <div class="lb-label">🎓 PROFESSOR AIVOX</div>
+              Olá! Sou seu professor de idiomas. Pergunte qualquer coisa — pronuncia, significados, frases do dia a dia. Pode falar ou digitar! 😊
             </div>
           </div>
-          <button class="learn-mic-btn" id="learn-mic-btn" onclick="learnToggleMic()">🎤</button>
-          <div class="learn-status" id="learn-status">Toque para perguntar por voz</div>
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <input type="text" id="learn-text-input" class="input-field" placeholder="Ou escreva sua pergunta aqui..." style="flex:1;font-size:13px;" onkeydown="if(event.key==='Enter')learnSendText()">
-            <button onclick="learnSendText()" style="background:var(--adim);border:1px solid rgba(0,229,255,.3);color:var(--accent);border-radius:10px;padding:0 16px;cursor:pointer;font-size:18px;">→</button>
+          <div class="learn-input-area">
+            <div style="display:flex;justify-content:center;margin-bottom:8px;">
+              <div id="learn-voice-toggle" onclick="learnToggleVoice()" style="display:flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);transition:all .2s;user-select:none;">
+                <div id="learn-voice-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all .2s;flex-shrink:0;"></div>
+                <span id="learn-voice-label">🔇 Resposta em voz (off)</span>
+              </div>
+            </div>
+            <button class="learn-mic-btn" id="learn-mic-btn" onclick="learnToggleMic()">🎤</button>
+            <div class="learn-status" id="learn-status">Toque para perguntar por voz</div>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="learn-text-input" class="input-field" placeholder="Ou escreva sua pergunta aqui..." style="flex:1;font-size:13px;" onkeydown="if(event.key==='Enter')learnSendText()">
+              <button onclick="learnSendText()" style="background:var(--adim);border:1px solid rgba(0,229,255,.3);color:var(--accent);border-radius:10px;padding:0 16px;cursor:pointer;font-size:18px;">→</button>
+            </div>
           </div>
         </div>
-      </div>
+
+        <!-- ── ABA LIÇÕES ── -->
+        <div class="learn-tab-panel" id="ltp-licoes" style="flex-direction:column;overflow:hidden;position:relative;">
+          <div class="licoes-lang-bar" id="licoes-lang-bar">
+            <div class="learn-lang-btn active" data-lang="inglês" onclick="setLicaoLang(this)">🇺🇸 Inglês</div>
+            <div class="learn-lang-btn" data-lang="espanhol" onclick="setLicaoLang(this)">🇪🇸 Espanhol</div>
+            <div class="learn-lang-btn" data-lang="francês" onclick="setLicaoLang(this)">🇫🇷 Francês</div>
+            <div class="learn-lang-btn" data-lang="alemão" onclick="setLicaoLang(this)">🇩🇪 Alemão</div>
+            <div class="learn-lang-btn" data-lang="italiano" onclick="setLicaoLang(this)">🇮🇹 Italiano</div>
+            <div class="learn-lang-btn" data-lang="japonês" onclick="setLicaoLang(this)">🇯🇵 Japonês</div>
+          </div>
+          <div class="licoes-scroll" id="licoes-scroll"></div>
+          <!-- Modal da lição -->
+          <div class="licao-modal" id="licao-modal">
+            <div class="licao-modal-hdr">
+              <button class="dcl" onclick="closeLicao()">‹</button>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:700;" id="licao-modal-title">Lição</div>
+                <div style="font-size:11px;color:var(--muted);" id="licao-modal-sub"></div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="licaoAskProf()" style="font-size:12px;">💬 Perguntar ao Prof</button>
+            </div>
+            <div class="licao-modal-body" id="licao-modal-body"></div>
+          </div>
+        </div>
+
+        <!-- ── ABA FLASHCARD ── -->
+        <div class="learn-tab-panel" id="ltp-flash" style="flex-direction:column;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">IDIOMA:</span>
+            <div id="flash-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div class="flash-wrap" id="flash-wrap">
+            <div class="flash-empty"><div class="fe-icon">🃏</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Nenhuma palavra ainda</div><div style="font-size:12px;">Salve palavras no Professor ou nas Lições</div></div>
+          </div>
+        </div>
+
+        <!-- ── ABA PRATICAR ── -->
+        <div class="learn-tab-panel" id="ltp-exer" style="flex-direction:column;overflow:hidden;">
+          <div class="exer-score">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">IDIOMA:</span>
+            <div id="exer-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
+            <span style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--yellow);" id="exer-score-txt">0 pts</span>
+          </div>
+          <div class="exer-wrap" id="exer-wrap">
+            <div style="text-align:center;padding:40px 14px;color:var(--muted);">
+              <div style="font-size:44px;margin-bottom:10px;">✏️</div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Sem exercícios ainda</div>
+              <div style="font-size:12px;">Salve palavras no vocabulário para gerar exercícios</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── ABA VOCABULÁRIO ── -->
+        <div class="learn-tab-panel" id="ltp-vocab" style="flex-direction:column;overflow:hidden;">
+          <div class="vocab-search">
+            <input type="text" class="input-field" placeholder="🔍 Buscar palavra..." style="width:100%;font-size:13px;" oninput="filterVocab(this.value)">
+          </div>
+          <div class="vocab-scroll" id="vocab-scroll"></div>
+        </div>
+
+        <!-- ── ABA CONVERSAS ── -->
+        <div class="learn-tab-panel" id="ltp-conversas" style="flex-direction:column;overflow:hidden;">
+          <div style="padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;">
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:700;">💬 Aprenda com suas traduções</div>
+              <div style="font-size:11px;color:var(--muted);">Frases reais que você já traduziu</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="loadMyPhrases().then(renderConversasPanel)">🔄 Atualizar</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;" id="conversas-wrap">
+            <div style="text-align:center;padding:40px 14px;color:var(--muted);">
+              <div style="font-size:44px;margin-bottom:10px;">💬</div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Carregando suas conversas...</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.learn-page -->
     </div>
+
     <!-- ====== PROFILE / PLANO ====== -->
     <div class="page content-area" id="page-profile">
       <div class="page-header">
@@ -2321,6 +2504,7 @@ function navApp(name){
   if(name!=='escuta')stopEscuta();
   if(name==='profile')renderProfilePage();
   if(name==='sala')initSalaPage();
+  if(name==='learn'){loadStreak();loadVocab();}
   const hideBnav=['active','chat','admin','payment','langsel','sala-ativa'];
   const bnav=document.getElementById('bnav');if(bnav)bnav.style.display=hideBnav.includes(name)?'none':'';
   closeSidebar();
@@ -6549,125 +6733,566 @@ async function _salaVADProcessAudio(){
 // ════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════
-//  MODO APRENDIZAGEM
+//  MÓDULO APRENDIZAGEM — Professor, Lições, Flashcard, Exercícios, Vocabulário
 // ════════════════════════════════════════════════════════════════
+
+// ── Estado global ─────────────────────────────────────────────
 let _learnLang='inglês', _learnRecog=null, _learnListening=false, _learnHistory=[], _learnVoice=false;
+let _licaoLang='inglês', _flashLang='inglês', _exerLang='inglês';
+let _flashDeck=[], _flashIdx=0, _flashFlipped=false, _flashOk=0, _flashNope=0;
+let _exerScore=0, _exerTotal=0;
+let _vocabData=[], _vocabFiltered=[];
+let _streakDays=0, _streakPts=0;
+let _currentLicao=null;
 
-function learnToggleVoice(){
-  _learnVoice=!_learnVoice;
-  const t=document.getElementById('learn-voice-toggle');
-  const d=document.getElementById('learn-voice-dot');
-  const l=document.getElementById('learn-voice-label');
-  if(_learnVoice){
-    if(t){t.style.borderColor='rgba(0,229,255,.35)';t.style.background='var(--adim)';t.style.color='var(--accent)';}
-    if(d){d.style.background='var(--accent)';d.style.boxShadow='0 0 6px var(--accent)';}
-    if(l)l.textContent='🔊 Resposta em voz (on)';
-    showToast('🔊 Voz ativada','info');
-  }else{
-    if(t){t.style.borderColor='';t.style.background='var(--card)';t.style.color='var(--muted)';}
-    if(d){d.style.background='var(--muted)';d.style.boxShadow='none';}
-    if(l)l.textContent='🔇 Resposta em voz (off)';
+// ── Dados de lições ────────────────────────────────────────────
+const LICOES_DATA = {
+  inglês: [
+    { cat:'🟢 Iniciante', itens:[
+      { id:'en-cumprimentos', icon:'👋', nome:'Cumprimentos', desc:'Hello, Good morning, How are you...', frases:[
+        {orig:'Hello!', trans:'Olá!', pron:'heh-LOH'},
+        {orig:'Good morning!', trans:'Bom dia!', pron:'gud MOR-ning'},
+        {orig:'Good afternoon!', trans:'Boa tarde!', pron:'gud af-ter-NOON'},
+        {orig:'Good night!', trans:'Boa noite!', pron:'gud NAYT'},
+        {orig:'How are you?', trans:'Como você está?', pron:'hau ar YU'},
+        {orig:"I'm fine, thank you!", trans:'Estou bem, obrigado!', pron:'aym fayn, THANK yu'},
+        {orig:"What's your name?", trans:'Qual é o seu nome?', pron:'wats yor neym'},
+        {orig:'My name is...', trans:'Meu nome é...', pron:'may neym iz'},
+        {orig:'Nice to meet you!', trans:'Prazer em conhecê-lo!', pron:'nays tu mit YU'},
+        {orig:'Goodbye!', trans:'Tchau!', pron:'gud-BAY'}
+      ]},
+      { id:'en-numeros', icon:'🔢', nome:'Números', desc:'1 a 100 — one, two, three...', frases:[
+        {orig:'One', trans:'Um', pron:'wan'},{orig:'Two', trans:'Dois', pron:'tu'},
+        {orig:'Three', trans:'Três', pron:'thri'},{orig:'Four', trans:'Quatro', pron:'for'},
+        {orig:'Five', trans:'Cinco', pron:'fayv'},{orig:'Ten', trans:'Dez', pron:'ten'},
+        {orig:'Twenty', trans:'Vinte', pron:'TWEN-ti'},{orig:'Fifty', trans:'Cinquenta', pron:'FIF-ti'},
+        {orig:'One hundred', trans:'Cem', pron:'wan HAN-dred'}
+      ]},
+      { id:'en-cores', icon:'🎨', nome:'Cores', desc:'Red, blue, green, yellow...', frases:[
+        {orig:'Red', trans:'Vermelho', pron:'red'},{orig:'Blue', trans:'Azul', pron:'blu'},
+        {orig:'Green', trans:'Verde', pron:'grin'},{orig:'Yellow', trans:'Amarelo', pron:'YEL-oh'},
+        {orig:'Black', trans:'Preto', pron:'blak'},{orig:'White', trans:'Branco', pron:'wayt'},
+        {orig:'Orange', trans:'Laranja', pron:'OR-inj'},{orig:'Pink', trans:'Rosa', pron:'pink'}
+      ]},
+      { id:'en-familia', icon:'👨‍👩‍👧', nome:'Família', desc:'Father, mother, brother...', frases:[
+        {orig:'Father', trans:'Pai', pron:'FAH-ther'},{orig:'Mother', trans:'Mãe', pron:'MAH-ther'},
+        {orig:'Brother', trans:'Irmão', pron:'BRAH-ther'},{orig:'Sister', trans:'Irmã', pron:'SIS-ter'},
+        {orig:'Son', trans:'Filho', pron:'san'},{orig:'Daughter', trans:'Filha', pron:'DAW-ter'},
+        {orig:'Grandfather', trans:'Avô', pron:'GRAND-fah-ther'},{orig:'Grandmother', trans:'Avó', pron:'GRAND-mah-ther'}
+      ]}
+    ]},
+    { cat:'🔵 Intermediário', itens:[
+      { id:'en-restaurante', icon:'🍽️', nome:'No restaurante', desc:'Pedir comida, pagar a conta', frases:[
+        {orig:'A table for two, please.', trans:'Uma mesa para dois, por favor.', pron:'a TAY-bul for tu, pliz'},
+        {orig:'Can I see the menu?', trans:'Posso ver o cardápio?', pron:'kan ay si da MEN-yu'},
+        {orig:"I'd like to order...", trans:'Eu gostaria de pedir...', pron:'ayd layk tu OR-der'},
+        {orig:'What do you recommend?', trans:'O que você recomenda?', pron:'wot du yu rek-ah-MEND'},
+        {orig:'The bill, please.', trans:'A conta, por favor.', pron:'da bil, pliz'},
+        {orig:'Is service included?', trans:'O serviço está incluído?', pron:'iz SER-vis in-KLUD-id'},
+        {orig:'It was delicious!', trans:'Estava delicioso!', pron:'it woz da-LISH-us'}
+      ]},
+      { id:'en-viagem', icon:'✈️', nome:'Viagem', desc:'Aeroporto, hotel, direções', frases:[
+        {orig:'Where is the airport?', trans:'Onde fica o aeroporto?', pron:'wer iz di ER-port'},
+        {orig:'I have a reservation.', trans:'Tenho uma reserva.', pron:'ay hav a rez-er-VAY-shun'},
+        {orig:'Can you help me?', trans:'Você pode me ajudar?', pron:'kan yu help mi'},
+        {orig:'Turn left.', trans:'Vire à esquerda.', pron:'tern left'},
+        {orig:'Turn right.', trans:'Vire à direita.', pron:'tern rayt'},
+        {orig:'How much does it cost?', trans:'Quanto custa?', pron:'hau mach daz it kost'},
+        {orig:"I'm lost.", trans:'Estou perdido.', pron:'aym lost'}
+      ]},
+      { id:'en-negocios', icon:'💼', nome:'Negócios', desc:'Reuniões, apresentações, acordos', frases:[
+        {orig:"Let's schedule a meeting.", trans:'Vamos agendar uma reunião.', pron:'lets SKED-yul a MIT-ing'},
+        {orig:"I'd like to introduce myself.", trans:'Gostaria de me apresentar.', pron:'ayd layk tu in-tra-DYUS may-SELF'},
+        {orig:'Could you send me the report?', trans:'Pode me enviar o relatório?', pron:'kud yu send mi da ri-PORT'},
+        {orig:'We have a deal.', trans:'Temos um acordo.', pron:'wi hav a dil'},
+        {orig:'Let me check my calendar.', trans:'Deixa eu verificar minha agenda.', pron:'let mi chek may KAL-en-dar'}
+      ]}
+    ]},
+    { cat:'🔴 Avançado', itens:[
+      { id:'en-expressoes', icon:'💡', nome:'Expressões idiomáticas', desc:'Break a leg, hit the nail...', frases:[
+        {orig:'Break a leg!', trans:'Boa sorte!', pron:'brayk a leg'},
+        {orig:'Hit the nail on the head.', trans:'Acertar em cheio.', pron:'hit da nayl on da hed'},
+        {orig:"It's raining cats and dogs.", trans:'Está chovendo muito.', pron:'its RAY-ning kats and dogz'},
+        {orig:'Once in a blue moon.', trans:'Raramente.', pron:'wans in a blu mun'},
+        {orig:'Bite the bullet.', trans:'Encarar o problema.', pron:'bayt da BUL-it'},
+        {orig:'The ball is in your court.', trans:'A decisão é sua.', pron:'da bol iz in yor kort'}
+      ]}
+    ]}
+  ],
+  espanhol: [
+    { cat:'🟢 Iniciante', itens:[
+      { id:'es-cumprimentos', icon:'👋', nome:'Saludos', desc:'Hola, Buenos días, Cómo estás...', frases:[
+        {orig:'Hola!', trans:'Olá!', pron:'O-la'},{orig:'Buenos días', trans:'Bom dia', pron:'BWEH-nos DI-as'},
+        {orig:'Buenas tardes', trans:'Boa tarde', pron:'BWEH-nas TAR-des'},
+        {orig:'Buenas noches', trans:'Boa noite', pron:'BWEH-nas NO-ches'},
+        {orig:'Como estás?', trans:'Como você está?', pron:'KO-mo es-TAS'},
+        {orig:'Muy bien, gracias', trans:'Muito bem, obrigado', pron:'MWEE bien, GRA-sias'},
+        {orig:'Me llamo...', trans:'Meu nome é...', pron:'me YA-mo'},
+        {orig:'Mucho gusto!', trans:'Muito prazer!', pron:'MU-cho GUS-to'},
+        {orig:'Adios!', trans:'Tchau!', pron:'a-DIOS'}
+      ]},
+      { id:'es-numeros', icon:'🔢', nome:'Números', desc:'Uno, dos, tres...', frases:[
+        {orig:'Uno', trans:'Um', pron:'U-no'},{orig:'Dos', trans:'Dois', pron:'dos'},
+        {orig:'Tres', trans:'Três', pron:'tres'},{orig:'Cuatro', trans:'Quatro', pron:'KWA-tro'},
+        {orig:'Cinco', trans:'Cinco', pron:'SIN-ko'},{orig:'Diez', trans:'Dez', pron:'dyez'},
+        {orig:'Veinte', trans:'Vinte', pron:'BAYN-te'},{orig:'Cien', trans:'Cem', pron:'syen'}
+      ]}
+    ]}
+  ],
+  francês: [
+    { cat:'🟢 Iniciante', itens:[
+      { id:'fr-cumprimentos', icon:'👋', nome:'Salutations', desc:'Bonjour, Bonsoir, Comment allez-vous...', frases:[
+        {orig:'Bonjour!', trans:'Bom dia / Olá!', pron:'bon-ZHUR'},
+        {orig:'Bonsoir!', trans:'Boa noite!', pron:'bon-SWAR'},
+        {orig:'Comment allez-vous?', trans:'Como vai você?', pron:'ko-MON ta-lay-VU'},
+        {orig:'Je m'appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
+        {orig:'Enchante!', trans:'Prazer!', pron:'on-shon-TAY'},
+        {orig:'Au revoir!', trans:'Até logo!', pron:'o re-VWAR'},
+        {orig:'Merci beaucoup!', trans:'Muito obrigado!', pron:'mer-SI bo-KU'},
+        {orig:'S'il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
+      ]}
+    ]}
+  ],
+  alemão: [
+    { cat:'🟢 Iniciante', itens:[
+      { id:'de-cumprimentos', icon:'👋', nome:'Begrüßungen', desc:'Hallo, Guten Morgen, Wie geht es...', frases:[
+        {orig:'Hallo!', trans:'Olá!', pron:'HA-lo'},
+        {orig:'Guten Morgen!', trans:'Bom dia!', pron:'GU-ten MOR-gen'},
+        {orig:'Guten Tag!', trans:'Boa tarde!', pron:'GU-ten tak'},
+        {orig:'Guten Abend!', trans:'Boa noite!', pron:'GU-ten A-bent'},
+        {orig:'Wie geht es Ihnen?', trans:'Como vai?', pron:'vi geit es I-nen'},
+        {orig:'Ich heisse...', trans:'Meu nome é...', pron:'ich HAY-se'},
+        {orig:'Schuess!', trans:'Tchau!', pron:'chüs'}
+      ]}
+    ]}
+  ],
+  italiano: [
+    { cat:'🟢 Iniciante', itens:[
+      { id:'it-cumprimentos', icon:'👋', nome:'Saluti', desc:'Ciao, Buongiorno, Come stai...', frases:[
+        {orig:'Ciao!', trans:'Olá / Tchau!', pron:'CHAO'},
+        {orig:'Buongiorno!', trans:'Bom dia!', pron:'bwon-JOR-no'},
+        {orig:'Buonasera!', trans:'Boa noite!', pron:'bwon-a-SE-ra'},
+        {orig:'Come stai?', trans:'Como vai?', pron:'KO-me STAI'},
+        {orig:'Mi chiamo...', trans:'Meu nome é...', pron:'mi KYA-mo'},
+        {orig:'Piacere!', trans:'Prazer!', pron:'pya-CHE-re'},
+        {orig:'Grazie mille!', trans:'Muito obrigado!', pron:'GRA-tsye MIL-le'}
+      ]}
+    ]}
+  ],
+  japonês: [
+    { cat:'🟢 Iniciante', itens:[
+      { id:'ja-cumprimentos', icon:'👋', nome:'Saudações (あいさつ)', desc:'Ohayou, Konnichiwa, Arigatou...', frases:[
+        {orig:'Ohayou gozaimasu', trans:'Bom dia (formal)', pron:'o-ha-YO go-ZAI-mas'},
+        {orig:'Konnichiwa', trans:'Boa tarde / Olá', pron:'kon-ni-CHI-wa'},
+        {orig:'Konbanwa', trans:'Boa noite', pron:'kon-BAN-wa'},
+        {orig:'Arigatou gozaimasu', trans:'Muito obrigado', pron:'a-ri-GA-to go-ZAI-mas'},
+        {orig:'Hajimemashite', trans:'Prazer em conhecê-lo', pron:'ha-ji-me-MA-shi-te'},
+        {orig:'Watashi no namae wa...', trans:'Meu nome é...', pron:'wa-ta-shi no na-ma-e wa'},
+        {orig:'Sayounara', trans:'Até logo', pron:'sa-yo-NA-ra'}
+      ]}
+    ]}
+  ]
+};
+
+// ── Aba principal ─────────────────────────────────────────────
+function learnTab(tab, el) {
+  document.querySelectorAll('.learn-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.learn-tab-panel').forEach(p=>p.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const panel = document.getElementById('ltp-'+tab);
+  if(panel) panel.classList.add('active');
+  if(tab==='licoes') renderLicoes();
+  if(tab==='flash') renderFlash();
+  if(tab==='exer') renderExer();
+  if(tab==='vocab') renderVocab();
+  if(tab==='conversas'){ loadMyPhrases().then(renderConversasPanel); }
+}
+function renderConversasPanel(){
+  const wrap = document.getElementById('conversas-wrap'); if(!wrap) return;
+  if(!_myPhrases.length){
+    wrap.innerHTML='<div style="text-align:center;padding:40px 14px;color:var(--muted);"><div style="font-size:44px;margin-bottom:10px;">💬</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Sem conversas ainda</div><div style="font-size:12px;">Use o app para traduzir e as frases aparecem aqui automaticamente</div></div>';
+    return;
   }
+  const flags={en:'🇺🇸',pt:'🇧🇷',es:'🇪🇸',fr:'🇫🇷',de:'🇩🇪',it:'🇮🇹',ja:'🇯🇵',zh:'🇨🇳'};
+  let html=`<div style="padding:10px 14px;font-size:11px;color:var(--muted);font-family:var(--mono);">${_myPhrases.length} FRASES ENCONTRADAS — toque para salvar</div>`;
+  _myPhrases.forEach((p,i)=>{
+    const orig=p.orig.replace(/'/g,"\\'"); const trans=p.trans.replace(/'/g,"\\'");
+    html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin:0 14px 8px;" onclick="">
+      <div style="font-size:14px;font-weight:700;margin-bottom:3px;">${p.orig}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${p.trans}</div>
+      <div style="display:flex;gap:7px;">
+        <span style="font-size:10px;font-family:var(--mono);background:var(--surface);padding:2px 7px;border-radius:5px;color:var(--muted);">${flags[p.from]||''} ${p.from} → ${flags[p.to]||''} ${p.to}</span>
+        <button class="lb-btn" onclick="_speakTranslation('${orig}')" style="font-size:11px;">🔊</button>
+        <button class="lb-btn" onclick="saveVocabWord('${orig}','${trans}','inglês');this.textContent='✅'" style="font-size:11px;">📖 Salvar</button>
+      </div>
+    </div>`;
+  });
+  html+=`<div style="padding:14px;"><button class="btn btn-ghost btn-full" onclick="learnTab('flash',document.querySelector('.learn-tab:nth-child(3))');_flashDeck=_myPhrases.map(p=>({word:p.orig,trans:p.trans,lang:'conversas'}));_flashIdx=0;renderFlashCard();">🃏 Estudar essas frases como Flashcard</button></div>`;
+  wrap.innerHTML=html;
 }
 
-function setLearnLang(el){
-  document.querySelectorAll('.learn-lang-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active'); _learnLang=el.dataset.lang; _learnHistory=[];
-  _learnAddBubble('ai','Agora aprendendo <strong>'+_learnLang+'</strong>. O que quer saber?');
-}
-
-function _learnAddBubble(type,html,speak){
-  const bubs=document.getElementById('learn-bubs'); if(!bubs)return;
-  const div=document.createElement('div'); div.className='learn-bubble '+type;
-  div.innerHTML=(type==='ai'?'<div class="lb-label">🎓 PROFESSOR AIVOX</div>':'<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">VOCÊ</div>')+html;
-  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight;
-  if(speak&&html&&_learnVoice) _speakTranslation(html.replace(/<[^>]*>/g,''));
-}
-
-function _learnShowThinking(){
-  const bubs=document.getElementById('learn-bubs'); if(!bubs)return null;
-  const div=document.createElement('div'); div.className='learn-bubble ai'; div.id='learn-thinking-bub';
-  div.innerHTML='<div class="lb-label">🎓 PROFESSOR AIVOX</div><div class="learn-thinking"><span></span><span></span><span></span></div>';
-  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight; return div;
-}
-
-function learnToggleMic(){ if(_learnListening)_learnStopMic(); else _learnStartMic(); }
-
-function _learnStartMic(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){showToast('Seu navegador não suporta reconhecimento de voz','error');return;}
-  let _gotResult=false;
-  _learnRecog=new SR();
-  _learnRecog.lang='pt-BR';
-  _learnRecog.continuous=false;
-  _learnRecog.interimResults=false;
-  _learnRecog.maxAlternatives=1;
-  _learnRecog.onresult=(e)=>{
-    _gotResult=true;
-    const t=e.results[0][0].transcript;
-    if(t){_learnStopMic();learnAsk(t);}
+// ── STREAK ────────────────────────────────────────────────────
+function loadStreak() {
+  const uid = window._fbUser?.uid;
+  if (!uid) { _streakDays=0; _streakPts=0; updateStreakUI(); return; }
+  const backendUrl = getBackendUrl();
+  const _localLoad = () => {
+    try {
+      const d = JSON.parse(localStorage.getItem('aivox_streak_'+uid)||'{}');
+      const today = new Date().toDateString();
+      const yesterday = new Date(Date.now()-86400000).toDateString();
+      if(d.lastDay===today){ _streakDays=d.days||0; _streakPts=d.pts||0; }
+      else if(d.lastDay===yesterday){ _streakDays=(d.days||0)+1; _streakPts=d.pts||0; _saveStreak(); }
+      else { _streakDays=1; _streakPts=d.pts||0; _saveStreak(); }
+    } catch(e){ _streakDays=0; _streakPts=0; }
+    updateStreakUI();
   };
-  _learnRecog.onerror=(e)=>{
-    console.warn('learn mic error:',e.error);
-    if(e.error==='not-allowed'||e.error==='permission-denied'){
-      showToast('❌ Permissão de microfone negada. Libere nas configurações do navegador.','error');
-    }else if(e.error==='network'){
-      showToast('❌ Erro de rede no reconhecimento de voz','error');
-    }else if(e.error!=='no-speech'&&e.error!=='aborted'){
-      showToast('Erro de voz: '+e.error,'error');
-    }
-    _learnStopMic();
-  };
-  _learnRecog.onend=()=>{if(!_gotResult)_learnStopMic();};
-  try{
-    _learnRecog.start();
-    _learnListening=true;
-    const btn=document.getElementById('learn-mic-btn');
-    const st=document.getElementById('learn-status');
-    if(btn){btn.classList.add('listening');btn.textContent='⏹';}
-    if(st)st.textContent='🔴 Ouvindo... fale agora';
-  }catch(err){
-    console.warn('mic start error:',err);
-    showToast('Erro ao iniciar microfone','error');
-    _learnListening=false;
-  }
+  if (!backendUrl) { _localLoad(); return; }
+  auth?.currentUser?.getIdToken?.().then(token => {
+    return fetch(backendUrl+'/api/learn/streak', {
+      headers: { Authorization: 'Bearer '+token }
+    }).then(r => r.json());
+  }).then(d => {
+    if (!d || d.error) { _localLoad(); return; }
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now()-86400000).toDateString();
+    let { days=0, pts=0, lastDay } = d;
+    if (lastDay !== today && lastDay !== yesterday) days = 1;
+    else if (lastDay === yesterday) days = days + 1;
+    _streakDays = days; _streakPts = pts;
+    // Sincroniza local
+    try { localStorage.setItem('aivox_streak_'+uid, JSON.stringify({days,pts,lastDay:today})); } catch(e){}
+    updateStreakUI();
+  }).catch(() => _localLoad());
 }
-
-function _learnStopMic(){
-  _learnListening=false; try{_learnRecog?.stop();}catch(_){} _learnRecog=null;
-  const btn=document.getElementById('learn-mic-btn');
-  const st=document.getElementById('learn-status');
-  if(btn){btn.classList.remove('listening');btn.textContent='🎤';}
-  if(st)st.textContent='Toque para perguntar por voz';
-}
-
-function learnSendText(){
-  const inp=document.getElementById('learn-text-input');
-  if(!inp||!inp.value.trim())return; learnAsk(inp.value.trim()); inp.value='';
-}
-
-async function learnAsk(question){
-  if(!question.trim())return;
-  _learnAddBubble('user',question);
-  _learnHistory.push({role:'user',content:question});
-  const thinking=_learnShowThinking();
-  const backendUrl=getBackendUrl();
-  if(!backendUrl){if(thinking)thinking.remove();showToast('Backend não configurado','error');return;}
-  try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const r=await fetch(backendUrl+'/api/learn',{
+function _saveStreak(){
+  try {
+    const uid=window._fbUser?.uid||'x';
+    localStorage.setItem('aivox_streak_'+uid, JSON.stringify({days:_streakDays,pts:_streakPts,lastDay:new Date().toDateString()}));
+  } catch(e){}
+  // Salva no Firestore via backend
+  const backendUrl = getBackendUrl(); if(!backendUrl) return;
+  auth?.currentUser?.getIdToken?.().then(token => {
+    fetch(backendUrl+'/api/learn/streak', {
       method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({question,lang:_learnLang,history:_learnHistory.slice(-6)})
+      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+      body: JSON.stringify({days:_streakDays, pts:_streakPts})
+    }).catch(()=>{});
+  }).catch(()=>{});
+}
+function addPts(n){ _streakPts+=n; _saveStreak(); updateStreakUI(); }
+function updateStreakUI(){
+  const sn=document.getElementById('streak-num'), sp=document.getElementById('streak-pts');
+  if(sn)sn.textContent=_streakDays;
+  if(sp)sp.textContent=_streakPts+' pts';
+}
+
+// ── VOCABULÁRIO — Firestore via backend ─────────────────────────
+async function loadVocab(){
+  const uid = window._fbUser?.uid;
+  const backendUrl = getBackendUrl();
+  // Sempre carrega local primeiro (resposta imediata)
+  try { _vocabData=JSON.parse(localStorage.getItem('aivox_vocab_'+(uid||'x'))||'[]'); } catch(e){ _vocabData=[]; }
+  _vocabFiltered=[..._vocabData];
+  // Se tem backend, sincroniza com Firestore
+  if (!backendUrl || !uid) return;
+  try {
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    if (!token) return;
+    const r = await fetch(backendUrl+'/api/learn/vocab', { headers:{Authorization:'Bearer '+token} });
+    const d = await r.json();
+    if (d.words && d.words.length >= 0) {
+      _vocabData = d.words;
+      _vocabFiltered = [..._vocabData];
+      // Atualiza cache local
+      try { localStorage.setItem('aivox_vocab_'+(uid||'x'), JSON.stringify(_vocabData.slice(0,500))); } catch(e){}
+    }
+  } catch(e) { /* mantém dados locais */ }
+}
+async function saveVocabWord(word, trans, lang){
+  if(!word||!word.trim()) return;
+  // Otimista: adiciona local imediatamente
+  const uid = window._fbUser?.uid||'x';
+  try { _vocabData = JSON.parse(localStorage.getItem('aivox_vocab_'+uid)||'[]'); } catch(e){ _vocabData=[]; }
+  if(_vocabData.find(v=>v.word.toLowerCase()===word.toLowerCase()&&v.lang===lang)){
+    showToast('Palavra já está no vocabulário','info'); return;
+  }
+  const newWord = {word:word.trim(), trans:(trans||'').trim(), lang:lang||_learnLang, savedAt:Date.now()};
+  _vocabData.unshift(newWord);
+  _vocabFiltered=[..._vocabData];
+  try { localStorage.setItem('aivox_vocab_'+uid, JSON.stringify(_vocabData.slice(0,500))); } catch(e){}
+  showToast('📖 "'+word+'" salvo!','success');
+  addPts(1);
+  // Salva no Firestore via backend
+  const backendUrl = getBackendUrl(); if(!backendUrl) return;
+  try {
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
+    const r = await fetch(backendUrl+'/api/learn/vocab', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+      body: JSON.stringify({word:word.trim(), trans:(trans||'').trim(), lang:lang||_learnLang})
     });
-    const d=await r.json();
-    if(thinking)thinking.remove();
-    if(d.answer){_learnHistory.push({role:'assistant',content:d.answer});_learnAddBubble('ai',d.answer,true);}
-  }catch(e){
-    if(thinking)thinking.remove();
-    _learnAddBubble('ai','⚠️ Erro ao conectar.');
+    const d = await r.json();
+    if (d.id) { newWord.id = d.id; }
+    if (d.duplicate) { /* já existe, sem problema */ }
+  } catch(e) { /* falha silenciosa — dado já está local */ }
+}
+async function deleteVocabWord(idx){
+  const item = _vocabFiltered[idx]; if(!item) return;
+  const i = _vocabData.indexOf(item); if(i>-1) _vocabData.splice(i,1);
+  _vocabFiltered = [..._vocabData];
+  const uid = window._fbUser?.uid||'x';
+  try { localStorage.setItem('aivox_vocab_'+uid, JSON.stringify(_vocabData)); } catch(e){}
+  renderVocab(true);
+  // Remove do Firestore se tem id
+  if (!item.id) return;
+  const backendUrl = getBackendUrl(); if(!backendUrl) return;
+  try {
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
+    await fetch(backendUrl+'/api/learn/vocab/'+item.id, {
+      method:'DELETE', headers:{Authorization:'Bearer '+token}
+    });
+  } catch(e){}
+}
+function filterVocab(q){
+  _vocabFiltered = !q.trim() ? [..._vocabData] : _vocabData.filter(v=>
+    v.word.toLowerCase().includes(q.toLowerCase()) ||
+    v.trans.toLowerCase().includes(q.toLowerCase())
+  );
+  renderVocab(true);
+}
+function renderVocab(skipLoad){
+  if(!skipLoad) loadVocab().then(()=>_renderVocabList());
+  else _renderVocabList();
+}
+function _renderVocabList(){
+  const scroll=document.getElementById('vocab-scroll'); if(!scroll)return;
+  if(!_vocabFiltered.length){
+    scroll.innerHTML='<div class="vocab-empty"><div style="font-size:44px;margin-bottom:10px;">📖</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Vocabulário vazio</div><div style="font-size:12px;">Salve palavras do Professor ou das Lições</div></div>';
+    return;
+  }
+  const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
+  scroll.innerHTML=_vocabFiltered.map((v,i)=>{
+    const wo=v.word.replace(/'/g,"\'");
+    const accPct = v.reviews>0 ? Math.round(v.correct/v.reviews*100) : null;
+    const accBadge = accPct!==null ? `<span style="font-size:10px;font-family:var(--mono);color:${accPct>=70?'var(--green)':'var(--muted)'};margin-left:4px;">${accPct}%</span>` : '';
+    return `<div class="vocab-item"><div class="vocab-info"><div class="vocab-word">${v.word}${accBadge}</div><div class="vocab-trans">${v.trans||'—'}</div></div><span class="vocab-lang-tag">${flags[v.lang]||''} ${v.lang}</span><button class="vocab-speak" onclick="_speakTranslation('${wo}')" title="Ouvir">🔊</button><button class="vocab-del" onclick="deleteVocabWord(${i})" title="Remover">🗑️</button></div>`;
+  }).join('');
+}
+
+// ── SUAS CONVERSAS — aprende com traduções reais ─────────────────
+let _myPhrases = [];
+async function loadMyPhrases(){
+  const backendUrl = getBackendUrl(); if(!backendUrl) return;
+  try {
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
+    const r = await fetch(backendUrl+'/api/learn/history', { headers:{Authorization:'Bearer '+token} });
+    const d = await r.json();
+    _myPhrases = d.phrases || [];
+  } catch(e){ _myPhrases=[]; }
+}
+function renderMinhasConversas(){
+  const wrap = document.getElementById('flash-wrap'); if(!wrap) return;
+  if(!_myPhrases.length){
+    wrap.innerHTML='<div class="flash-empty"><div class="fe-icon">💬</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Sem conversas ainda</div><div style="font-size:12px;">Use o app para traduzir e suas frases aparecem aqui</div></div>';
+    return;
+  }
+  // Usa as frases reais como flashcards
+  _flashDeck = _myPhrases.map(p => ({word:p.orig, trans:p.trans, lang:'conversas', id:null}));
+  _flashIdx=0; _flashOk=0; _flashNope=0;
+  renderFlashCard();
+}
+
+// ── EXERCÍCIOS VIA GPT ───────────────────────────────────────────
+async function buildExerGPT(){
+  const wrap=document.getElementById('exer-wrap'); if(!wrap) return;
+  const words=_vocabData.filter(v=>v.lang===_exerLang).slice(0,15);
+  if(words.length < 2){ buildExer(); return; } // fallback local
+  const backendUrl = getBackendUrl();
+  if(!backendUrl){ buildExer(); return; }
+  // Loading
+  wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;">⏳</div><div style="font-size:13px;">Gerando exercícios personalizados com IA...</div></div>';
+  try {
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const r = await fetch(backendUrl+'/api/learn/exercises', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', ...(token?{Authorization:'Bearer '+token}:{})},
+      body: JSON.stringify({words, lang:_exerLang, level:'intermediário'})
+    });
+    const d = await r.json();
+    if(!d.exercises || !d.exercises.length){ buildExer(); return; }
+    // Renderiza exercícios GPT
+    let html='';
+    d.exercises.forEach((ex,i)=>{
+      const optsHtml = ex.opts.map(o=>{
+        const os=o.replace(/'/g,"\'"); const cs=ex.certa.replace(/'/g,"\'");
+        return `<button class="exer-opt" onclick="checkExer(${i},'${os}','${cs}',this)">${o}</button>`;
+      }).join('');
+      html+=`<div class="exer-card" id="exer-${i}"><div class="exer-tipo">${ex.tipo} <span style="font-size:9px;background:var(--adim);color:var(--accent);padding:1px 6px;border-radius:4px;margin-left:4px;">IA</span></div><div class="exer-pergunta">${ex.pergunta.replace(/\n/g,'<br>')}</div><div class="exer-opts">${optsHtml}</div><div class="exer-feedback" id="exfb-${i}"></div></div>`;
+    });
+    html+=`<div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="buildExerGPT()">🤖 Novos com IA</button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="buildExer()">🔀 Locais</button>
+    </div>`;
+    wrap.innerHTML=html;
+  } catch(e){
+    buildExer(); // fallback
   }
 }
+
+// ── FLASHCARD: atualiza revisão no backend ───────────────────────
+async function _flashReviewBackend(item, correct){
+  if(!item || !item.id) return;
+  const backendUrl = getBackendUrl(); if(!backendUrl) return;
+  try {
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
+    await fetch(backendUrl+'/api/learn/vocab/'+item.id+'/review', {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+      body: JSON.stringify({correct})
+    });
+  } catch(e){}
+}
+
+// ── FLASHCARDS ────────────────────────────────────────────────
+function _buildLangBar(containerId, setter){
+  const bar=document.getElementById(containerId); if(!bar||bar.innerHTML)return;
+  const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
+  Object.keys(flags).forEach((l,i)=>{
+    const btn=document.createElement('div');
+    btn.className='learn-lang-btn'+(i===0?' active':''); btn.dataset.lang=l;
+    btn.textContent=flags[l]+' '+l[0].toUpperCase()+l.slice(1);
+    btn.onclick=()=>{document.querySelectorAll('#'+containerId+' .learn-lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');setter(l);};
+    bar.appendChild(btn);
+  });
+}
+function renderFlash(){
+  _buildLangBar('flash-lang-bar',(l)=>{_flashLang=l;buildFlashDeck();renderFlashCard();});
+  // Adiciona botão "Minhas Conversas" se não existe
+  const bar=document.getElementById('flash-lang-bar');
+  if(bar && !bar.querySelector('[data-lang="conversas"]')){
+    const btn=document.createElement('div');
+    btn.className='learn-lang-btn'; btn.dataset.lang='conversas';
+    btn.textContent='💬 Minhas conversas';
+    btn.onclick=()=>{
+      document.querySelectorAll('#flash-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); _flashLang='conversas';
+      loadMyPhrases().then(()=>renderMinhasConversas());
+    };
+    bar.appendChild(btn);
+  }
+  buildFlashDeck(); renderFlashCard();
+}
+function buildFlashDeck(){
+  if(_flashLang==='conversas'){ renderMinhasConversas(); return; }
+  _flashDeck=[..._vocabData.filter(v=>v.lang===_flashLang)].sort(()=>Math.random()-.5);
+  _flashIdx=0; _flashOk=0; _flashNope=0; _flashFlipped=false;
+}
+function renderFlashCard(){
+  const wrap=document.getElementById('flash-wrap'); if(!wrap)return;
+  if(!_flashDeck.length){
+    wrap.innerHTML='<div class="flash-empty"><div class="fe-icon">🃏</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Nenhuma palavra ainda</div><div style="font-size:12px;">Salve palavras no Professor ou nas Lições</div></div>';
+    return;
+  }
+  if(_flashIdx>=_flashDeck.length){
+    const pct=Math.round(_flashOk/Math.max(_flashDeck.length,1)*100);
+    wrap.innerHTML=`<div style="text-align:center;padding:20px 0;"><div style="font-size:44px;margin-bottom:10px;">🎉</div><div style="font-size:18px;font-weight:900;margin-bottom:4px;">Deck completo!</div><div style="font-size:13px;color:var(--muted);margin-bottom:18px;">✅ ${_flashOk} sabia · ❌ ${_flashNope} não sabia</div></div><div class="flash-stats"><div class="flash-stat"><div class="flash-stat-n" style="color:var(--green);">${_flashOk}</div><div class="flash-stat-l">Sabia</div></div><div class="flash-stat"><div class="flash-stat-n" style="color:var(--red);">${_flashNope}</div><div class="flash-stat-l">Não sabia</div></div><div class="flash-stat"><div class="flash-stat-n" style="color:var(--accent);">${pct}%</div><div class="flash-stat-l">Acerto</div></div></div><button class="btn btn-primary" style="margin-top:16px;width:100%;max-width:320px;" onclick="buildFlashDeck();renderFlashCard();">🔄 Reiniciar deck</button>`;
+    addPts(5); return;
+  }
+  const card=_flashDeck[_flashIdx];
+  const wo=card.word.replace(/'/g,"\\'");
+  wrap.innerHTML=`<div class="flash-stats"><div class="flash-stat"><div class="flash-stat-n" style="color:var(--green);">${_flashOk}</div><div class="flash-stat-l">Sabia</div></div><div class="flash-stat"><div class="flash-stat-n" style="color:var(--red);">${_flashNope}</div><div class="flash-stat-l">Não sabia</div></div><div class="flash-stat"><div class="flash-stat-n">${_flashIdx+1}/${_flashDeck.length}</div><div class="flash-stat-l">Card</div></div></div><div class="flash-card-wrap"><div class="flash-card" id="flash-card-el" onclick="flipFlash()"><div class="flash-front"><div class="flash-word">${card.word}</div><div class="flash-hint">Toque para ver a tradução</div></div><div class="flash-back"><div class="flash-trans">${card.trans}</div></div></div></div><div class="flash-btns" id="flash-btns" style="display:none;"><button class="flash-btn nope" onclick="flashNope()">❌ Não sabia</button><button class="flash-btn got" onclick="flashGot()">✅ Sabia!</button></div><div class="flash-progress">Toque no card para revelar</div><button class="lb-btn" onclick="_speakTranslation('${wo}')" style="font-size:13px;margin-top:4px;">🔊 Ouvir pronúncia</button>`;
+}
+function flipFlash(){
+  const c=document.getElementById('flash-card-el'), b=document.getElementById('flash-btns');
+  _flashFlipped=!_flashFlipped;
+  if(_flashFlipped){if(c)c.classList.add('flip');if(b)b.style.display='flex';}
+  else{if(c)c.classList.remove('flip');if(b)b.style.display='none';}
+}
+function flashGot(){
+  const item=_flashDeck[_flashIdx];
+  _flashOk++; addPts(3); _flashIdx++; _flashFlipped=false;
+  _flashReviewBackend(item, true);
+  renderFlashCard();
+}
+function flashNope(){
+  const item=_flashDeck[_flashIdx];
+  _flashNope++; _flashIdx++; _flashFlipped=false;
+  _flashReviewBackend(item, false);
+  renderFlashCard();
+}
+
+// ── EXERCÍCIOS ────────────────────────────────────────────────
+function renderExer(){
+  _buildLangBar('exer-lang-bar',(l)=>{_exerLang=l; buildExerGPT();});
+  buildExerGPT();
+}
+function buildExer(){
+  const wrap=document.getElementById('exer-wrap'); if(!wrap)return;
+  const words=_vocabData.filter(v=>v.lang===_exerLang);
+  const licaoFrases=[];
+  (LICOES_DATA[_exerLang]||[]).forEach(g=>g.itens.forEach(l=>l.frases.slice(0,4).forEach(f=>licaoFrases.push({word:f.orig,trans:f.trans,lang:_exerLang}))));
+  const pool=[...words,...licaoFrases].slice(0,30);
+  if(pool.length<2){
+    wrap.innerHTML='<div style="text-align:center;padding:40px 14px;color:var(--muted);"><div style="font-size:44px;margin-bottom:10px;">✏️</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Poucas palavras</div><div style="font-size:12px;">Salve palavras no vocabulário ou conclua lições</div></div>';
+    return;
+  }
+  const exercicios=[];
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  shuffled.slice(0,6).forEach((item,i)=>{
+    const tipo=i%3;
+    if(tipo===0){
+      const wrong=pool.filter(p=>p.word!==item.word).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.trans);
+      const opts=[item.trans,...wrong].sort(()=>Math.random()-.5);
+      exercicios.push({tipo:'MÚLTIPLA ESCOLHA',pergunta:`Como se traduz?\n"${item.word}"`,certa:item.trans,opts});
+    }else if(tipo===1){
+      const wrong=pool.filter(p=>p.trans!==item.trans).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.word);
+      const opts=[item.word,...wrong].sort(()=>Math.random()-.5);
+      exercicios.push({tipo:'COMPLETE A FRASE',pergunta:`Como se diz em ${_exerLang}?\n"${item.trans}"`,certa:item.word,opts});
+    }else{
+      const falso=Math.random()>.5;
+      const fTrans=falso?(pool.find(p=>p.word!==item.word)?.trans||'????'):item.trans;
+      exercicios.push({tipo:'VERDADEIRO OU FALSO',pergunta:`"${item.word}" significa "${fTrans}"`,certa:falso?'Falso':'Verdadeiro',opts:['Verdadeiro','Falso']});
+    }
+  });
+  let html='';
+  exercicios.forEach((ex,i)=>{
+    const optsHtml=ex.opts.map(o=>{
+      const os=o.replace(/'/g,"\\'"); const cs=ex.certa.replace(/'/g,"\\'");
+      return `<button class="exer-opt" onclick="checkExer(${i},'${os}','${cs}',this)">${o}</button>`;
+    }).join('');
+    html+=`<div class="exer-card" id="exer-${i}"><div class="exer-tipo">${ex.tipo}</div><div class="exer-pergunta">${ex.pergunta.replace('\\n','<br>')}</div><div class="exer-opts">${optsHtml}</div><div class="exer-feedback" id="exfb-${i}"></div></div>`;
+  });
+  html+=`<div style="display:flex;gap:8px;margin-top:4px;"><button class="btn btn-ghost" style="flex:1;" onclick="buildExerGPT()">🤖 Gerar com IA</button><button class="btn btn-ghost" style="flex:1;" onclick="buildExer()">🔀 Aleatório</button></div>`;
+  wrap.innerHTML=html;
+}
+function checkExer(idx,resposta,certa,btn){
+  const card=document.getElementById('exer-'+idx);
+  if(!card||card.dataset.done)return; card.dataset.done='1';
+  card.querySelectorAll('.exer-opt').forEach(b=>b.style.pointerEvents='none');
+  const ok=resposta===certa;
+  btn.classList.add(ok?'certo':'errado');
+  if(!ok)card.querySelectorAll('.exer-opt').forEach(b=>{if(b.textContent===certa)b.classList.add('correta');});
+  const fb=document.getElementById('exfb-'+idx);
+  if(fb){fb.className='exer-feedback sh '+(ok?'ok':'err');fb.textContent=ok?'✅ Correto! +3 pts':'❌ Errado. Resposta certa: '+certa;}
+  if(ok){addPts(3);_exerScore+=3;}
+  _exerTotal++;
+  const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
+}
+
+// ── Init ─────────────────────────────────────────────────────
+(function(){
+  const pl=document.getElementById('page-learn');
+  if(pl){
+    const obs=new MutationObserver(()=>{
+      if(pl.classList.contains('active')){
+        loadStreak();
+        loadVocab().then(()=>{ _renderVocabList(); });
+      }
+    });
+    obs.observe(pl,{attributeFilter:['class']});
+  }
+})();
 
 // ════════════════════════════════════════════════════════════════
 //  PERMISSÕES DE ACESSO POR USUÁRIO

@@ -395,7 +395,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.rt-on{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);color:#a78bfa;}
 .continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
 .continuous-toggle.rt-disabled{opacity:.35;cursor:not-allowed;filter:grayscale(1);}
-/* ── APRENDIZAGEM ── */
 .learn-page{display:flex;flex-direction:column;height:100%;overflow:hidden;}
 .learn-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .learn-title{font-size:18px;font-weight:800;margin-bottom:2px;}
@@ -417,7 +416,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-thinking span:nth-child(2){animation-delay:.2s;}
 .learn-thinking span:nth-child(3){animation-delay:.4s;}
 @keyframes learnDot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
-/* ── PERMISSÕES DE ACESSO ── */
 .perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
 .perm-btn{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:all .18s;user-select:none;}
 .perm-btn.on{border-color:rgba(0,255,136,.35);background:rgba(0,255,136,.06);color:var(--green);}
@@ -978,11 +976,11 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
       </div>
       <div class="section-label">Modo de uso</div>
       <div class="mgrid">
-        <div class="mbtn" data-mode="conversa" onclick="selMode(this)" id="mbtn-conversa"><span style="font-size:21px;">💬</span><div class="mnm">Conversa</div><div class="mds">Diálogo bidirecional em tempo real</div></div>
-        <div class="mbtn" data-mode="reuniao" onclick="selMode(this);navApp('sala')" id="mbtn-reuniao"><span style="font-size:21px;">👥</span><div class="mnm">Reunião</div><div class="mds">Sala colaborativa · Pro+</div></div>
-        <div class="mbtn" data-mode="viagem" onclick="selMode(this)" id="mbtn-viagem"><span style="font-size:21px;">✈️</span><div class="mnm">Viagem</div><div class="mds">Offline · Web Speech API</div></div>
-        <div class="mbtn" data-mode="escuta" onclick="selMode(this)" id="mbtn-escuta" style="border-color:rgba(147,51,234,.35);background:rgba(147,51,234,.07);"><span style="font-size:21px;">🎧</span><div class="mnm" style="color:#a855f7;">Escuta ao vivo</div><div class="mds">Entenda qualquer conversa</div></div>
-        <div class="mbtn" data-mode="aprendizagem" onclick="selMode(this)" id="mbtn-aprendizagem" style="border-color:rgba(255,208,0,.35);background:rgba(255,208,0,.07);"><span style="font-size:21px;">🎓</span><div class="mnm" style="color:#ffd000;">Aprendizagem</div><div class="mds">Professor de idiomas por IA</div></div>
+        <div class="mbtn" data-mode="conversa" id="mbtn-conversa" onclick="selMode(this)"><span style="font-size:21px;">💬</span><div class="mnm">Conversa</div><div class="mds">Diálogo bidirecional em tempo real</div></div>
+        <div class="mbtn" data-mode="reuniao" onclick="selMode(this);navApp('sala')"><span style="font-size:21px;">👥</span><div class="mnm">Reunião</div><div class="mds">Sala colaborativa · Pro+</div></div>
+        <div class="mbtn" data-mode="viagem" id="mbtn-viagem" onclick="selMode(this)"><span style="font-size:21px;">✈️</span><div class="mnm">Viagem</div><div class="mds">Offline · Web Speech API</div></div>
+        <div class="mbtn" data-mode="escuta" id="mbtn-escuta" onclick="selMode(this)" style="border-color:rgba(147,51,234,.35);background:rgba(147,51,234,.07);"><span style="font-size:21px;">🎧</span><div class="mnm" style="color:#a855f7;">Escuta ao vivo</div><div class="mds">Entenda qualquer conversa</div></div>
+        <div class="mbtn" data-mode="aprendizagem" id="mbtn-aprendizagem" onclick="selMode(this)" style="border-color:rgba(255,208,0,.35);background:rgba(255,208,0,.07);"><span style="font-size:21px;">🎓</span><div class="mnm" style="color:#ffd000;">Aprendizagem</div><div class="mds">Professor de idiomas por IA</div></div>
       </div>
       <button class="sbtn" id="sbtn" onclick="startSelectedMode()">🎙️ <span id="actt">Iniciar Modo Conversa</span></button>
     </div>
@@ -1310,11 +1308,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div class="learn-bubs" id="learn-bubs">
           <div class="learn-bubble ai">
             <div class="lb-label">🎓 PROFESSOR AIVOX</div>
-            Olá! Sou seu professor de idiomas. Pergunte qualquer coisa — como pronunciar palavras, significados, frases do dia a dia, gramática. Pode falar ou digitar! 😊
+            Olá! Sou seu professor de idiomas. Pergunte qualquer coisa — pronuncia, significados, frases do dia a dia. Pode falar ou digitar! 😊
           </div>
         </div>
         <div class="learn-input-area">
-          <!-- Toggle resposta em voz -->
           <div style="display:flex;justify-content:center;margin-bottom:10px;">
             <div id="learn-voice-toggle" onclick="learnToggleVoice()" style="display:flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);transition:all .2s;user-select:none;">
               <div id="learn-voice-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all .2s;flex-shrink:0;"></div>
@@ -3885,18 +3882,7 @@ function renderUsers(planFilt){
 }
 function renderUserRow(u,list){const el=document.createElement('div');el.className='urw';if(u.status==='suspended')el.style.opacity='.55';const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100);const overPct=pct>=100,warnPct=pct>=80;const psMap={pago:{icon:'🟢',color:'var(--green)',bg:'var(--gdim)'},processando:{icon:'🟡',color:'var(--yellow)',bg:'var(--ydim)'},rejeitado:{icon:'🔴',color:'var(--red)',bg:'var(--rdim)'},cancelado:{icon:'🔴',color:'var(--red)',bg:'var(--rdim)'},reembolsado:{icon:'🔴',color:'var(--red)',bg:'var(--rdim)'},trial:{icon:'🔵',color:'var(--accent)',bg:'var(--adim)'}};const ps=u.payment_status||(u.plan==='trial'?'trial':null);const psBadge=ps&&psMap[ps]?`<span style="font-size:9px;font-weight:800;font-family:var(--mono);padding:1px 6px;border-radius:5px;background:${psMap[ps].bg};color:${psMap[ps].color};margin-top:3px;display:inline-block;">${psMap[ps].icon} ${ps.toUpperCase()}</span>`:'';el.innerHTML=`<div class="uav ${u.online?'on':'off'}">${(u.name||'?')[0]}</div><div style="flex:1;"><div class="un"><span class="usd ${u.online?'on':'off'}"></span>${u.name||'—'}${u.status==='suspended'?' <span style="font-size:9px;background:var(--rdim);color:var(--red);padding:1px 5px;border-radius:4px;font-family:var(--mono);">SUSP</span>':''}</div><div class="ue">${u.email||'—'}</div><div style="margin-top:5px;"><div style="height:4px;background:var(--surface);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${Math.min(pct,100)}%;border-radius:2px;background:${overPct?'var(--red)':warnPct?'var(--orange)':'var(--accent)'};"></div></div><div style="font-size:9px;color:var(--muted);margin-top:2px;font-family:var(--mono);">${u.minutesUsed||0}/${u.minutesLimit||5} min (${pct}%)</div></div></div><div class="ur"><div class="up ${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</div>${psBadge}</div>`;el.addEventListener('click',()=>openUser(u));list.appendChild(el);}
 function filtUsers(p,btn){document.querySelectorAll('#tab-usuarios .fcat').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderUsers(p);}
-function openUser(u){document.getElementById('udtit').textContent=u.name||'—';document.getElementById('udplan').innerHTML=`<span class="badge badge-${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</span>`;const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100),overPct=pct>=100,warnPct=pct>=80;document.getElementById('udsc').innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:12px;"><div class="uav ${u.online?'on':'off'}" style="width:44px;height:44px;font-size:16px;">${(u.name||'?')[0]}</div><div><div style="font-size:15px;font-weight:700;">${u.name||'—'}</div><div style="font-size:11px;color:var(--muted);">${u.email||'—'}</div></div></div><div class="ubr"><div class="ubrt"><span class="ubrl">Minutos usados</span><span class="ubrv">${u.minutesUsed||0} / ${u.minutesLimit||5}</span></div><div class="ubg"><div class="ubf ${overPct?'over':warnPct?'warn':''}" style="width:${Math.min(pct,100)}%;"></div></div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openResetPw('${u.uid||''}','${u.name||''}')">🔑 Reset senha</button><button class="btn ${u.status==='suspended'?'btn-primary':'btn-danger'} btn-sm" style="flex:1;" onclick="toggleSuspend('${u.uid||''}',${u.status==='suspended'})">${u.status==='suspended'?'✓ Reativar':'⛔ Suspender'}</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','basic')">Basic</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','pro')">Pro</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','business')">Business</button><button class="btn btn-sm" style="background:rgba(255,208,0,.12);border:1px solid rgba(255,208,0,.3);color:var(--yellow);" onclick="adminTestPix('${u.uid||''}')">🧪 Teste R$1</button></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">➕ Adicionar Minutos</div><div style="display:flex;gap:8px;align-items:center;"><input id="admin-add-min-input" type="number" min="1" max="9999" placeholder="Ex: 30" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;"><button class="btn btn-sm" style="background:var(--gdim);border:1px solid rgba(0,255,136,.25);color:var(--green);white-space:nowrap;" onclick="adminAddMinutes('${u.uid||''}')">✅ Adicionar</button></div><div style="font-size:10px;color:var(--muted);margin-top:5px;">Limite atual: ${u.minutesLimit||5} min · Usado: ${u.minutesUsed||0} min</div></div>
-<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;">
-<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">🔐 Permissões de Acesso</div>
-<div class="perm-grid" id="perm-grid-${u.uid||''}">
-${['conversa','viagem','reuniao','escuta','aprendizagem'].map(m=>{
-  const icons={conversa:'💬',viagem:'✈️',reuniao:'👥',escuta:'🎧',aprendizagem:'🎓'};
-  const labels={conversa:'Conversa',viagem:'Viagem',reuniao:'Reunião',escuta:'Escuta',aprendizagem:'Aprendizagem'};
-  const hasAccess=!u.blockedModes||!u.blockedModes.includes(m);
-  return `<div class="perm-btn ${hasAccess?'on':''}" id="perm-${u.uid||''}-${m}" onclick="adminTogglePerm('${u.uid||''}','${m}',this)"><div class="perm-dot"></div>${icons[m]} ${labels[m]}</div>`;
-}).join('')}
-</div></div>\`;"
-document.getElementById('udov').classList.add('sh');}
+function openUser(u){document.getElementById('udtit').textContent=u.name||'—';document.getElementById('udplan').innerHTML=`<span class="badge badge-${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</span>`;const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100),overPct=pct>=100,warnPct=pct>=80;document.getElementById('udsc').innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:12px;"><div class="uav ${u.online?'on':'off'}" style="width:44px;height:44px;font-size:16px;">${(u.name||'?')[0]}</div><div><div style="font-size:15px;font-weight:700;">${u.name||'—'}</div><div style="font-size:11px;color:var(--muted);">${u.email||'—'}</div></div></div><div class="ubr"><div class="ubrt"><span class="ubrl">Minutos usados</span><span class="ubrv">${u.minutesUsed||0} / ${u.minutesLimit||5}</span></div><div class="ubg"><div class="ubf ${overPct?'over':warnPct?'warn':''}" style="width:${Math.min(pct,100)}%;"></div></div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openResetPw('${u.uid||''}','${u.name||''}')">🔑 Reset senha</button><button class="btn ${u.status==='suspended'?'btn-primary':'btn-danger'} btn-sm" style="flex:1;" onclick="toggleSuspend('${u.uid||''}',${u.status==='suspended'})">${u.status==='suspended'?'✓ Reativar':'⛔ Suspender'}</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','basic')">Basic</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','pro')">Pro</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','business')">Business</button><button class="btn btn-sm" style="background:rgba(255,208,0,.12);border:1px solid rgba(255,208,0,.3);color:var(--yellow);" onclick="adminTestPix('${u.uid||''}')">🧪 Teste R$1</button></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">➕ Adicionar Minutos</div><div style="display:flex;gap:8px;align-items:center;"><input id="admin-add-min-input" type="number" min="1" max="9999" placeholder="Ex: 30" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;"><button class="btn btn-sm" style="background:var(--gdim);border:1px solid rgba(0,255,136,.25);color:var(--green);white-space:nowrap;" onclick="adminAddMinutes('${u.uid||''}')">✅ Adicionar</button></div><div style="font-size:10px;color:var(--muted);margin-top:5px;">Limite atual: ${u.minutesLimit||5} min · Usado: ${u.minutesUsed||0} min</div></div>`;document.getElementById('udov').classList.add('sh');}
 function clsUser(){document.getElementById('udov').classList.remove('sh');}
 async function toggleSuspend(uid,isSusp){if(!uid||!window.FB)return;await window.FB.suspendUser(uid,!isSusp);clsUser();renderUsers('todos');showToast(isSusp?'✓ Conta reativada':'⛔ Conta suspensa',isSusp?'success':'error');}
 async function adminUpgrade(uid,plan){if(!uid||!window.FB)return;await window.FB.upgradePlan(uid,plan);clsUser();renderUsers('todos');showToast('✓ Plano alterado para '+plan);}
@@ -6555,29 +6541,29 @@ async function _salaVADProcessAudio(){
 let _learnLang='inglês', _learnRecog=null, _learnListening=false, _learnHistory=[], _learnVoice=false;
 
 function learnToggleVoice(){
-  _learnVoice = !_learnVoice;
-  const toggle = document.getElementById('learn-voice-toggle');
-  const dot    = document.getElementById('learn-voice-dot');
-  const label  = document.getElementById('learn-voice-label');
+  _learnVoice=!_learnVoice;
+  const t=document.getElementById('learn-voice-toggle');
+  const d=document.getElementById('learn-voice-dot');
+  const l=document.getElementById('learn-voice-label');
   if(_learnVoice){
-    if(toggle){ toggle.style.borderColor='rgba(0,229,255,.35)'; toggle.style.background='var(--adim)'; toggle.style.color='var(--accent)'; }
-    if(dot){ dot.style.background='var(--accent)'; dot.style.boxShadow='0 0 6px var(--accent)'; }
-    if(label) label.textContent='🔊 Resposta em voz (on)';
-    showToast('🔊 Voz ativada — respostas serão lidas','info');
-  } else {
-    if(toggle){ toggle.style.borderColor=''; toggle.style.background='var(--card)'; toggle.style.color='var(--muted)'; }
-    if(dot){ dot.style.background='var(--muted)'; dot.style.boxShadow='none'; }
-    if(label) label.textContent='🔇 Resposta em voz (off)';
+    if(t){t.style.borderColor='rgba(0,229,255,.35)';t.style.background='var(--adim)';t.style.color='var(--accent)';}
+    if(d){d.style.background='var(--accent)';d.style.boxShadow='0 0 6px var(--accent)';}
+    if(l)l.textContent='🔊 Resposta em voz (on)';
+    showToast('🔊 Voz ativada','info');
+  }else{
+    if(t){t.style.borderColor='';t.style.background='var(--card)';t.style.color='var(--muted)';}
+    if(d){d.style.background='var(--muted)';d.style.boxShadow='none';}
+    if(l)l.textContent='🔇 Resposta em voz (off)';
   }
 }
 
 function setLearnLang(el){
   document.querySelectorAll('.learn-lang-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); _learnLang=el.dataset.lang; _learnHistory=[];
-  _learnAddBubble('ai',`Ótimo! Agora aprendendo <strong>${_learnLang}</strong>. O que quer saber?`);
+  _learnAddBubble('ai','Agora aprendendo <strong>'+_learnLang+'</strong>. O que quer saber?');
 }
 
-function _learnAddBubble(type,html,speak=false){
+function _learnAddBubble(type,html,speak){
   const bubs=document.getElementById('learn-bubs'); if(!bubs)return;
   const div=document.createElement('div'); div.className='learn-bubble '+type;
   div.innerHTML=(type==='ai'?'<div class="lb-label">🎓 PROFESSOR AIVOX</div>':'<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">VOCÊ</div>')+html;
@@ -6592,14 +6578,14 @@ function _learnShowThinking(){
   bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight; return div;
 }
 
-function learnToggleMic(){ if(_learnListening) _learnStopMic(); else _learnStartMic(); }
+function learnToggleMic(){ if(_learnListening)_learnStopMic(); else _learnStartMic(); }
 
 function _learnStartMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){showToast('Browser não suporta voz','error');return;}
   _learnRecog=new SR(); _learnRecog.lang='pt-BR'; _learnRecog.continuous=false; _learnRecog.interimResults=false;
-  _learnRecog.onresult=(e)=>{ const t=e.results[0][0].transcript; if(t)learnAsk(t); };
-  _learnRecog.onerror=(e)=>{ if(e.error!=='no-speech')console.warn('learn mic:',e.error); _learnStopMic(); };
+  _learnRecog.onresult=(e)=>{const t=e.results[0][0].transcript;if(t)learnAsk(t);};
+  _learnRecog.onerror=(e)=>{if(e.error!=='no-speech')console.warn('learn:',e.error);_learnStopMic();};
   _learnRecog.onend=()=>_learnStopMic();
   _learnRecog.start(); _learnListening=true;
   const btn=document.getElementById('learn-mic-btn');
@@ -6637,56 +6623,43 @@ async function learnAsk(question){
     });
     const d=await r.json();
     if(thinking)thinking.remove();
-    if(d.answer){ _learnHistory.push({role:'assistant',content:d.answer}); _learnAddBubble('ai',d.answer,true); }
+    if(d.answer){_learnHistory.push({role:'assistant',content:d.answer});_learnAddBubble('ai',d.answer,true);}
   }catch(e){
     if(thinking)thinking.remove();
-    _learnAddBubble('ai','⚠️ Erro ao conectar. Verifique o backend.');
+    _learnAddBubble('ai','⚠️ Erro ao conectar.');
   }
 }
 
 // ════════════════════════════════════════════════════════════════
 //  PERMISSÕES DE ACESSO POR USUÁRIO
 // ════════════════════════════════════════════════════════════════
-async function adminTogglePerm(uid, mode, btn){
-  const isOn = btn.classList.contains('on');
-  // Toggle visual imediato
+async function adminTogglePerm(uid,mode,btn){
+  const isOn=btn.classList.contains('on');
   btn.classList.toggle('on');
-
   try{
-    const userRef = db.collection('users').doc(uid);
-    const snap = await userRef.get();
-    const blocked = snap.data()?.blockedModes || [];
-    let newBlocked;
-    if(isOn){
-      // Era ativo, agora bloqueia
-      newBlocked = [...new Set([...blocked, mode])];
-    } else {
-      // Era bloqueado, agora libera
-      newBlocked = blocked.filter(m=>m!==mode);
-    }
-    await userRef.update({blockedModes: newBlocked});
-    showToast(isOn ? `🔒 ${mode} bloqueado` : `✅ ${mode} liberado`, isOn?'info':'success');
+    const userRef=db.collection('users').doc(uid);
+    const snap=await userRef.get();
+    const blocked=snap.data()?.blockedModes||[];
+    const newBlocked=isOn?[...new Set([...blocked,mode])]:blocked.filter(m=>m!==mode);
+    await userRef.update({blockedModes:newBlocked});
+    showToast(isOn?('🔒 '+mode+' bloqueado'):('✅ '+mode+' liberado'),isOn?'info':'success');
   }catch(e){
-    // Reverte visual se falhar
     btn.classList.toggle('on');
-    showToast('Erro ao salvar permissão','error');
+    showToast('Erro ao salvar','error');
   }
 }
 
-// Aplica permissões ao carregar o usuário logado
 function applyUserPermissions(userData){
-  const blocked = userData?.blockedModes || [];
-  const modos = ['conversa','viagem','reuniao','escuta','aprendizagem'];
-  const sideMap = {escuta:'snav-escuta', aprendizagem:'snav-learn'};
-  modos.forEach(mode=>{
-    const card = document.getElementById('mbtn-'+mode);
-    const side = sideMap[mode] ? document.getElementById(sideMap[mode]) : null;
+  const blocked=userData?.blockedModes||[];
+  ['conversa','viagem','reuniao','escuta','aprendizagem'].forEach(mode=>{
+    const card=document.getElementById('mbtn-'+mode);
+    const side=mode==='escuta'?document.getElementById('snav-escuta'):mode==='aprendizagem'?document.getElementById('snav-learn'):null;
     if(blocked.includes(mode)){
-      if(card) card.style.display='none';
-      if(side) side.style.display='none';
-    } else {
-      if(card) card.style.display='';
-      if(side) side.style.display='';
+      if(card)card.style.display='none';
+      if(side)side.style.display='none';
+    }else{
+      if(card)card.style.display='';
+      if(side)side.style.display='';
     }
   });
 }

@@ -408,7 +408,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-bubble.ai{background:var(--card);border:1px solid var(--border);align-self:flex-start;color:var(--text);}
 .learn-bubble.ai .lb-label{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px;font-family:var(--mono);}
 .learn-input-area{padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));}
-@media(max-width:1099px){.learn-input-area{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}}
+@media(max-width:1099px){.learn-input-area{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}}
 .learn-mic-btn{width:60px;height:60px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),#0080ff);cursor:pointer;font-size:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;transition:all .2s;box-shadow:0 4px 16px rgba(0,229,255,.3);}
 .learn-mic-btn.listening{background:linear-gradient(135deg,var(--red),#ff6b35);animation:ctPulse 1s ease infinite;}
 .learn-status{text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);}
@@ -3890,9 +3890,9 @@ function filtUsers(p,btn){document.querySelectorAll('#tab-usuarios .fcat').forEa
 function _renderUserDetailPanel(u){document.getElementById('udtit').textContent=u.name||'—';document.getElementById('udplan').innerHTML=`<span class="badge badge-${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</span>`;const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100),overPct=pct>=100,warnPct=pct>=80;document.getElementById('udsc').innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:12px;"><div class="uav ${u.online?'on':'off'}" style="width:44px;height:44px;font-size:16px;">${(u.name||'?')[0]}</div><div><div style="font-size:15px;font-weight:700;">${u.name||'—'}</div><div style="font-size:11px;color:var(--muted);">${u.email||'—'}</div></div></div><div class="ubr"><div class="ubrt"><span class="ubrl">Minutos usados</span><span class="ubrv">${u.minutesUsed||0} / ${u.minutesLimit||5}</span></div><div class="ubg"><div class="ubf ${overPct?'over':warnPct?'warn':''}" style="width:${Math.min(pct,100)}%;"></div></div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openResetPw('${u.uid||''}','${u.name||''}')">🔑 Reset senha</button><button class="btn ${u.status==='suspended'?'btn-primary':'btn-danger'} btn-sm" style="flex:1;" onclick="toggleSuspend('${u.uid||''}',${u.status==='suspended'})">${u.status==='suspended'?'✓ Reativar':'⛔ Suspender'}</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','basic')">Basic</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','pro')">Pro</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','business')">Business</button><button class="btn btn-sm" style="background:rgba(255,208,0,.12);border:1px solid rgba(255,208,0,.3);color:var(--yellow);" onclick="adminTestPix('${u.uid||''}')">🧪 Teste R$1</button></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">➕ Adicionar Minutos</div><div style="display:flex;gap:8px;align-items:center;"><input id="admin-add-min-input" type="number" min="1" max="9999" placeholder="Ex: 30" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;"><button class="btn btn-sm" style="background:var(--gdim);border:1px solid rgba(0,255,136,.25);color:var(--green);white-space:nowrap;" onclick="adminAddMinutes('${u.uid||''}')">✅ Adicionar</button></div><div style="font-size:10px;color:var(--muted);margin-top:5px;">Limite atual: ${u.minutesLimit||5} min · Usado: ${u.minutesUsed||0} min</div></div><div id="perm-panel-${u.uid||'x'}"></div>`;document.getElementById('udov').classList.add('sh');_renderPermPanel(u);}
 function openUser(u){
   _renderUserDetailPanel(u);
-  if(u.uid&&db){
+  if(u.uid&&typeof db!=='undefined'){
     db.collection('users').doc(u.uid).get().then(function(snap){
-      if(snap.exists){var fresh=snap.data();_renderPermPanel(fresh);}
+      if(snap.exists){_renderPermPanel(snap.data());}
     }).catch(function(){});
   }
 }
@@ -6595,16 +6595,42 @@ function learnToggleMic(){ if(_learnListening)_learnStopMic(); else _learnStartM
 
 function _learnStartMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){showToast('Browser não suporta voz','error');return;}
-  _learnRecog=new SR(); _learnRecog.lang='pt-BR'; _learnRecog.continuous=false; _learnRecog.interimResults=false;
-  _learnRecog.onresult=(e)=>{const t=e.results[0][0].transcript;if(t)learnAsk(t);};
-  _learnRecog.onerror=(e)=>{if(e.error!=='no-speech')console.warn('learn:',e.error);_learnStopMic();};
-  _learnRecog.onend=()=>_learnStopMic();
-  _learnRecog.start(); _learnListening=true;
-  const btn=document.getElementById('learn-mic-btn');
-  const st=document.getElementById('learn-status');
-  if(btn){btn.classList.add('listening');btn.textContent='⏹';}
-  if(st)st.textContent='🔴 Ouvindo...';
+  if(!SR){showToast('Seu navegador não suporta reconhecimento de voz','error');return;}
+  let _gotResult=false;
+  _learnRecog=new SR();
+  _learnRecog.lang='pt-BR';
+  _learnRecog.continuous=false;
+  _learnRecog.interimResults=false;
+  _learnRecog.maxAlternatives=1;
+  _learnRecog.onresult=(e)=>{
+    _gotResult=true;
+    const t=e.results[0][0].transcript;
+    if(t){_learnStopMic();learnAsk(t);}
+  };
+  _learnRecog.onerror=(e)=>{
+    console.warn('learn mic error:',e.error);
+    if(e.error==='not-allowed'||e.error==='permission-denied'){
+      showToast('❌ Permissão de microfone negada. Libere nas configurações do navegador.','error');
+    }else if(e.error==='network'){
+      showToast('❌ Erro de rede no reconhecimento de voz','error');
+    }else if(e.error!=='no-speech'&&e.error!=='aborted'){
+      showToast('Erro de voz: '+e.error,'error');
+    }
+    _learnStopMic();
+  };
+  _learnRecog.onend=()=>{if(!_gotResult)_learnStopMic();};
+  try{
+    _learnRecog.start();
+    _learnListening=true;
+    const btn=document.getElementById('learn-mic-btn');
+    const st=document.getElementById('learn-status');
+    if(btn){btn.classList.add('listening');btn.textContent='⏹';}
+    if(st)st.textContent='🔴 Ouvindo... fale agora';
+  }catch(err){
+    console.warn('mic start error:',err);
+    showToast('Erro ao iniciar microfone','error');
+    _learnListening=false;
+  }
 }
 
 function _learnStopMic(){

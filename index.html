@@ -6170,8 +6170,12 @@ async function _rtStartRealtime(){
       showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
     };
 
-    _rtWS.onmessage = (ev)=>{
-      try{ _rtHandleEvent(JSON.parse(ev.data)); }catch(e){}
+    _rtWS.onmessage = async (ev)=>{
+      try{
+        const text = (ev.data instanceof Blob) ? await ev.data.text() : String(ev.data);
+        if(!text || text[0]!=='{') return;
+        _rtHandleEvent(JSON.parse(text));
+      }catch(e){ console.warn('rt msg:',e.message); }
     };
 
     _rtWS.onerror = ()=>{ _rtStopRealtime(); showToast('❌ Erro no Modo Intérprete','error'); };
@@ -6195,7 +6199,7 @@ function _rtStartMicCapture(){
     for(let i=0;i<f32.length;i++) pcm[i]=Math.max(-32768,Math.min(32767,f32[i]*32768));
     const bytes=new Uint8Array(pcm.buffer);
     let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b));
-    if(!_rtSessionReady) return; // aguarda sessão estar pronta
+    if(!_rtSessionReady) return;
     _rtWS.send(JSON.stringify({type:'input_audio_buffer.append',audio:btoa(bin)}));
     // Barra VAD visual
     let sum=0; f32.forEach(v=>sum+=v*v);
@@ -6211,7 +6215,7 @@ function _rtHandleEvent(msg){
     case 'session.created':
     case 'session.updated':
       _rtSessionReady=true;
-      console.log('⚡ Sessão pronta');
+      console.log('⚡ Sessão Realtime pronta — enviando áudio');
       break;
     case 'conversation.item.input_audio_transcription.completed':{
       const t=msg.transcript?.trim();

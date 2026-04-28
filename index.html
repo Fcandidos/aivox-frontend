@@ -1395,7 +1395,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div class="learn-tab" onclick="learnTab('flash',this)">🃏 FLASHCARD</div>
           <div class="learn-tab" onclick="learnTab('exer',this)">✏️ PRATICAR</div>
           <div class="learn-tab" onclick="learnTab('vocab',this)">📖 VOCABULÁRIO</div>
-          <div class="learn-tab" onclick="learnTab('conversas',this)" style="color:var(--yellow);">💬 CONVERSAS</div>
         </div>
 
         <!-- ── ABA PROFESSOR ── -->
@@ -1489,23 +1488,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
             <input type="text" class="input-field" placeholder="🔍 Buscar palavra..." style="width:100%;font-size:13px;" oninput="filterVocab(this.value)">
           </div>
           <div class="vocab-scroll" id="vocab-scroll"></div>
-        </div>
-
-        <!-- ── ABA CONVERSAS ── -->
-        <div class="learn-tab-panel" id="ltp-conversas" style="flex-direction:column;overflow:hidden;">
-          <div style="padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;">
-            <div style="flex:1;">
-              <div style="font-size:13px;font-weight:700;">💬 Aprenda com suas traduções</div>
-              <div style="font-size:11px;color:var(--muted);">Frases reais que você já traduziu</div>
-            </div>
-            <button class="btn btn-ghost btn-sm" onclick="loadMyPhrases().then(renderConversasPanel)">🔄 Atualizar</button>
-          </div>
-          <div style="flex:1;overflow-y:auto;" id="conversas-wrap">
-            <div style="text-align:center;padding:40px 14px;color:var(--muted);">
-              <div style="font-size:44px;margin-bottom:10px;">💬</div>
-              <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Carregando suas conversas...</div>
-            </div>
-          </div>
         </div>
 
       </div><!-- /.learn-page -->
@@ -6845,11 +6827,11 @@ const LICOES_DATA = {
         {orig:'Bonjour!', trans:'Bom dia / Olá!', pron:'bon-ZHUR'},
         {orig:'Bonsoir!', trans:'Boa noite!', pron:'bon-SWAR'},
         {orig:'Comment allez-vous?', trans:'Como vai você?', pron:'ko-MON ta-lay-VU'},
-        {orig:'Je m'appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
+        {orig:'Je m\u2019appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
         {orig:'Enchante!', trans:'Prazer!', pron:'on-shon-TAY'},
         {orig:'Au revoir!', trans:'Até logo!', pron:'o re-VWAR'},
         {orig:'Merci beaucoup!', trans:'Muito obrigado!', pron:'mer-SI bo-KU'},
-        {orig:'S'il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
+        {orig:'S\u2019il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
       ]}
     ]}
   ],
@@ -6905,80 +6887,26 @@ function learnTab(tab, el) {
   if(tab==='flash') renderFlash();
   if(tab==='exer') renderExer();
   if(tab==='vocab') renderVocab();
-  if(tab==='conversas'){ loadMyPhrases().then(renderConversasPanel); }
-}
-function renderConversasPanel(){
-  const wrap = document.getElementById('conversas-wrap'); if(!wrap) return;
-  if(!_myPhrases.length){
-    wrap.innerHTML='<div style="text-align:center;padding:40px 14px;color:var(--muted);"><div style="font-size:44px;margin-bottom:10px;">💬</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Sem conversas ainda</div><div style="font-size:12px;">Use o app para traduzir e as frases aparecem aqui automaticamente</div></div>';
-    return;
-  }
-  const flags={en:'🇺🇸',pt:'🇧🇷',es:'🇪🇸',fr:'🇫🇷',de:'🇩🇪',it:'🇮🇹',ja:'🇯🇵',zh:'🇨🇳'};
-  let html=`<div style="padding:10px 14px;font-size:11px;color:var(--muted);font-family:var(--mono);">${_myPhrases.length} FRASES ENCONTRADAS — toque para salvar</div>`;
-  _myPhrases.forEach((p,i)=>{
-    const orig=p.orig.replace(/'/g,"\\'"); const trans=p.trans.replace(/'/g,"\\'");
-    html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin:0 14px 8px;" onclick="">
-      <div style="font-size:14px;font-weight:700;margin-bottom:3px;">${p.orig}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${p.trans}</div>
-      <div style="display:flex;gap:7px;">
-        <span style="font-size:10px;font-family:var(--mono);background:var(--surface);padding:2px 7px;border-radius:5px;color:var(--muted);">${flags[p.from]||''} ${p.from} → ${flags[p.to]||''} ${p.to}</span>
-        <button class="lb-btn" onclick="_speakTranslation('${orig}')" style="font-size:11px;">🔊</button>
-        <button class="lb-btn" onclick="saveVocabWord('${orig}','${trans}','inglês');this.textContent='✅'" style="font-size:11px;">📖 Salvar</button>
-      </div>
-    </div>`;
-  });
-  html+=`<div style="padding:14px;"><button class="btn btn-ghost btn-full" onclick="learnTab('flash',document.querySelector('.learn-tab:nth-child(3))');_flashDeck=_myPhrases.map(p=>({word:p.orig,trans:p.trans,lang:'conversas'}));_flashIdx=0;renderFlashCard();">🃏 Estudar essas frases como Flashcard</button></div>`;
-  wrap.innerHTML=html;
 }
 
 // ── STREAK ────────────────────────────────────────────────────
 function loadStreak() {
-  const uid = window._fbUser?.uid;
-  if (!uid) { _streakDays=0; _streakPts=0; updateStreakUI(); return; }
-  const backendUrl = getBackendUrl();
-  const _localLoad = () => {
-    try {
-      const d = JSON.parse(localStorage.getItem('aivox_streak_'+uid)||'{}');
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now()-86400000).toDateString();
-      if(d.lastDay===today){ _streakDays=d.days||0; _streakPts=d.pts||0; }
-      else if(d.lastDay===yesterday){ _streakDays=(d.days||0)+1; _streakPts=d.pts||0; _saveStreak(); }
-      else { _streakDays=1; _streakPts=d.pts||0; _saveStreak(); }
-    } catch(e){ _streakDays=0; _streakPts=0; }
-    updateStreakUI();
-  };
-  if (!backendUrl) { _localLoad(); return; }
-  auth?.currentUser?.getIdToken?.().then(token => {
-    return fetch(backendUrl+'/api/learn/streak', {
-      headers: { Authorization: 'Bearer '+token }
-    }).then(r => r.json());
-  }).then(d => {
-    if (!d || d.error) { _localLoad(); return; }
+  try {
+    const uid = window._fbUser?.uid||'x';
+    const d = JSON.parse(localStorage.getItem('aivox_streak_'+uid)||'{}');
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now()-86400000).toDateString();
-    let { days=0, pts=0, lastDay } = d;
-    if (lastDay !== today && lastDay !== yesterday) days = 1;
-    else if (lastDay === yesterday) days = days + 1;
-    _streakDays = days; _streakPts = pts;
-    // Sincroniza local
-    try { localStorage.setItem('aivox_streak_'+uid, JSON.stringify({days,pts,lastDay:today})); } catch(e){}
-    updateStreakUI();
-  }).catch(() => _localLoad());
+    if(d.lastDay===today){ _streakDays=d.days||0; _streakPts=d.pts||0; }
+    else if(d.lastDay===yesterday){ _streakDays=(d.days||0)+1; _streakPts=d.pts||0; _saveStreak(); }
+    else { _streakDays=1; _streakPts=d.pts||0; _saveStreak(); }
+  } catch(e){ _streakDays=0; _streakPts=0; }
+  updateStreakUI();
 }
 function _saveStreak(){
-  try {
+  try{
     const uid=window._fbUser?.uid||'x';
     localStorage.setItem('aivox_streak_'+uid, JSON.stringify({days:_streakDays,pts:_streakPts,lastDay:new Date().toDateString()}));
-  } catch(e){}
-  // Salva no Firestore via backend
-  const backendUrl = getBackendUrl(); if(!backendUrl) return;
-  auth?.currentUser?.getIdToken?.().then(token => {
-    fetch(backendUrl+'/api/learn/streak', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
-      body: JSON.stringify({days:_streakDays, pts:_streakPts})
-    }).catch(()=>{});
-  }).catch(()=>{});
+  }catch(e){}
 }
 function addPts(n){ _streakPts+=n; _saveStreak(); updateStreakUI(); }
 function updateStreakUI(){
@@ -6987,175 +6915,158 @@ function updateStreakUI(){
   if(sp)sp.textContent=_streakPts+' pts';
 }
 
-// ── VOCABULÁRIO — Firestore via backend ─────────────────────────
-async function loadVocab(){
-  const uid = window._fbUser?.uid;
-  const backendUrl = getBackendUrl();
-  // Sempre carrega local primeiro (resposta imediata)
-  try { _vocabData=JSON.parse(localStorage.getItem('aivox_vocab_'+(uid||'x'))||'[]'); } catch(e){ _vocabData=[]; }
-  _vocabFiltered=[..._vocabData];
-  // Se tem backend, sincroniza com Firestore
-  if (!backendUrl || !uid) return;
-  try {
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    if (!token) return;
-    const r = await fetch(backendUrl+'/api/learn/vocab', { headers:{Authorization:'Bearer '+token} });
-    const d = await r.json();
-    if (d.words && d.words.length >= 0) {
-      _vocabData = d.words;
-      _vocabFiltered = [..._vocabData];
-      // Atualiza cache local
-      try { localStorage.setItem('aivox_vocab_'+(uid||'x'), JSON.stringify(_vocabData.slice(0,500))); } catch(e){}
-    }
-  } catch(e) { /* mantém dados locais */ }
-}
-async function saveVocabWord(word, trans, lang){
-  if(!word||!word.trim()) return;
-  // Otimista: adiciona local imediatamente
-  const uid = window._fbUser?.uid||'x';
-  try { _vocabData = JSON.parse(localStorage.getItem('aivox_vocab_'+uid)||'[]'); } catch(e){ _vocabData=[]; }
-  if(_vocabData.find(v=>v.word.toLowerCase()===word.toLowerCase()&&v.lang===lang)){
-    showToast('Palavra já está no vocabulário','info'); return;
-  }
-  const newWord = {word:word.trim(), trans:(trans||'').trim(), lang:lang||_learnLang, savedAt:Date.now()};
-  _vocabData.unshift(newWord);
-  _vocabFiltered=[..._vocabData];
-  try { localStorage.setItem('aivox_vocab_'+uid, JSON.stringify(_vocabData.slice(0,500))); } catch(e){}
-  showToast('📖 "'+word+'" salvo!','success');
-  addPts(1);
-  // Salva no Firestore via backend
-  const backendUrl = getBackendUrl(); if(!backendUrl) return;
-  try {
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
-    const r = await fetch(backendUrl+'/api/learn/vocab', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
-      body: JSON.stringify({word:word.trim(), trans:(trans||'').trim(), lang:lang||_learnLang})
-    });
-    const d = await r.json();
-    if (d.id) { newWord.id = d.id; }
-    if (d.duplicate) { /* já existe, sem problema */ }
-  } catch(e) { /* falha silenciosa — dado já está local */ }
-}
-async function deleteVocabWord(idx){
-  const item = _vocabFiltered[idx]; if(!item) return;
-  const i = _vocabData.indexOf(item); if(i>-1) _vocabData.splice(i,1);
-  _vocabFiltered = [..._vocabData];
-  const uid = window._fbUser?.uid||'x';
-  try { localStorage.setItem('aivox_vocab_'+uid, JSON.stringify(_vocabData)); } catch(e){}
-  renderVocab(true);
-  // Remove do Firestore se tem id
-  if (!item.id) return;
-  const backendUrl = getBackendUrl(); if(!backendUrl) return;
-  try {
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
-    await fetch(backendUrl+'/api/learn/vocab/'+item.id, {
-      method:'DELETE', headers:{Authorization:'Bearer '+token}
-    });
-  } catch(e){}
-}
-function filterVocab(q){
-  _vocabFiltered = !q.trim() ? [..._vocabData] : _vocabData.filter(v=>
-    v.word.toLowerCase().includes(q.toLowerCase()) ||
-    v.trans.toLowerCase().includes(q.toLowerCase())
-  );
-  renderVocab(true);
-}
-function renderVocab(skipLoad){
-  if(!skipLoad) loadVocab().then(()=>_renderVocabList());
-  else _renderVocabList();
-}
-function _renderVocabList(){
-  const scroll=document.getElementById('vocab-scroll'); if(!scroll)return;
-  if(!_vocabFiltered.length){
-    scroll.innerHTML='<div class="vocab-empty"><div style="font-size:44px;margin-bottom:10px;">📖</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Vocabulário vazio</div><div style="font-size:12px;">Salve palavras do Professor ou das Lições</div></div>';
-    return;
-  }
-  const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
-  scroll.innerHTML=_vocabFiltered.map((v,i)=>{
-    const wo=v.word.replace(/'/g,"\'");
-    const accPct = v.reviews>0 ? Math.round(v.correct/v.reviews*100) : null;
-    const accBadge = accPct!==null ? `<span style="font-size:10px;font-family:var(--mono);color:${accPct>=70?'var(--green)':'var(--muted)'};margin-left:4px;">${accPct}%</span>` : '';
-    return `<div class="vocab-item"><div class="vocab-info"><div class="vocab-word">${v.word}${accBadge}</div><div class="vocab-trans">${v.trans||'—'}</div></div><span class="vocab-lang-tag">${flags[v.lang]||''} ${v.lang}</span><button class="vocab-speak" onclick="_speakTranslation('${wo}')" title="Ouvir">🔊</button><button class="vocab-del" onclick="deleteVocabWord(${i})" title="Remover">🗑️</button></div>`;
-  }).join('');
-}
-
-// ── SUAS CONVERSAS — aprende com traduções reais ─────────────────
-let _myPhrases = [];
-async function loadMyPhrases(){
-  const backendUrl = getBackendUrl(); if(!backendUrl) return;
-  try {
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
-    const r = await fetch(backendUrl+'/api/learn/history', { headers:{Authorization:'Bearer '+token} });
-    const d = await r.json();
-    _myPhrases = d.phrases || [];
-  } catch(e){ _myPhrases=[]; }
-}
-function renderMinhasConversas(){
-  const wrap = document.getElementById('flash-wrap'); if(!wrap) return;
-  if(!_myPhrases.length){
-    wrap.innerHTML='<div class="flash-empty"><div class="fe-icon">💬</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Sem conversas ainda</div><div style="font-size:12px;">Use o app para traduzir e suas frases aparecem aqui</div></div>';
-    return;
-  }
-  // Usa as frases reais como flashcards
-  _flashDeck = _myPhrases.map(p => ({word:p.orig, trans:p.trans, lang:'conversas', id:null}));
-  _flashIdx=0; _flashOk=0; _flashNope=0;
-  renderFlashCard();
-}
-
-// ── EXERCÍCIOS VIA GPT ───────────────────────────────────────────
-async function buildExerGPT(){
-  const wrap=document.getElementById('exer-wrap'); if(!wrap) return;
-  const words=_vocabData.filter(v=>v.lang===_exerLang).slice(0,15);
-  if(words.length < 2){ buildExer(); return; } // fallback local
-  const backendUrl = getBackendUrl();
-  if(!backendUrl){ buildExer(); return; }
-  // Loading
-  wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;">⏳</div><div style="font-size:13px;">Gerando exercícios personalizados com IA...</div></div>';
-  try {
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const r = await fetch(backendUrl+'/api/learn/exercises', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', ...(token?{Authorization:'Bearer '+token}:{})},
-      body: JSON.stringify({words, lang:_exerLang, level:'intermediário'})
-    });
-    const d = await r.json();
-    if(!d.exercises || !d.exercises.length){ buildExer(); return; }
-    // Renderiza exercícios GPT
-    let html='';
-    d.exercises.forEach((ex,i)=>{
-      const optsHtml = ex.opts.map(o=>{
-        const os=o.replace(/'/g,"\'"); const cs=ex.certa.replace(/'/g,"\'");
-        return `<button class="exer-opt" onclick="checkExer(${i},'${os}','${cs}',this)">${o}</button>`;
-      }).join('');
-      html+=`<div class="exer-card" id="exer-${i}"><div class="exer-tipo">${ex.tipo} <span style="font-size:9px;background:var(--adim);color:var(--accent);padding:1px 6px;border-radius:4px;margin-left:4px;">IA</span></div><div class="exer-pergunta">${ex.pergunta.replace(/\n/g,'<br>')}</div><div class="exer-opts">${optsHtml}</div><div class="exer-feedback" id="exfb-${i}"></div></div>`;
-    });
-    html+=`<div style="display:flex;gap:8px;margin-top:4px;">
-      <button class="btn btn-ghost" style="flex:1;" onclick="buildExerGPT()">🤖 Novos com IA</button>
-      <button class="btn btn-ghost" style="flex:1;" onclick="buildExer()">🔀 Locais</button>
-    </div>`;
-    wrap.innerHTML=html;
-  } catch(e){
-    buildExer(); // fallback
+// ── PROFESSOR ─────────────────────────────────────────────────
+function learnToggleVoice(){
+  _learnVoice=!_learnVoice;
+  const t=document.getElementById('learn-voice-toggle'),d=document.getElementById('learn-voice-dot'),l=document.getElementById('learn-voice-label');
+  if(_learnVoice){
+    if(t){t.style.borderColor='rgba(0,229,255,.35)';t.style.background='var(--adim)';t.style.color='var(--accent)';}
+    if(d){d.style.background='var(--accent)';d.style.boxShadow='0 0 6px var(--accent)';}
+    if(l)l.textContent='🔊 Resposta em voz (on)';
+    showToast('🔊 Voz ativada','info');
+  }else{
+    if(t){t.style.borderColor='';t.style.background='var(--card)';t.style.color='var(--muted)';}
+    if(d){d.style.background='var(--muted)';d.style.boxShadow='none';}
+    if(l)l.textContent='🔇 Resposta em voz (off)';
   }
 }
-
-// ── FLASHCARD: atualiza revisão no backend ───────────────────────
-async function _flashReviewBackend(item, correct){
-  if(!item || !item.id) return;
-  const backendUrl = getBackendUrl(); if(!backendUrl) return;
-  try {
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null); if(!token) return;
-    await fetch(backendUrl+'/api/learn/vocab/'+item.id+'/review', {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
-      body: JSON.stringify({correct})
-    });
-  } catch(e){}
+function setLearnLang(el){
+  document.querySelectorAll('.learn-lang-strip .learn-lang-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); _learnLang=el.dataset.lang; _learnHistory=[];
+  _learnAddBubble('ai','Agora aprendendo <strong>'+_learnLang+'</strong>. O que quer saber?');
+}
+function _learnAddBubble(type,html,speak){
+  const bubs=document.getElementById('learn-bubs'); if(!bubs)return;
+  const div=document.createElement('div'); div.className='learn-bubble '+type;
+  if(type==='ai'){
+    div.innerHTML='<div class="lb-label">🎓 PROFESSOR AIVOX</div>'+html+'<div class="lb-actions"><button class="lb-btn" onclick="_learnSpeak(this)">🔊 Ouvir</button><button class="lb-btn" onclick="_learnSave(this)">📖 Salvar</button></div>';
+  }else{
+    div.innerHTML='<div style="font-size:10px;color:var(--muted);margin-bottom:3px;">VOCÊ</div>'+html;
+  }
+  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight;
+  if(speak&&html&&_learnVoice)_speakTranslation(html.replace(/<[^>]*>/g,''));
+}
+function _learnSpeak(btn){
+  const bub=btn.closest('.learn-bubble');
+  const txt=(bub?bub.innerText:'').replace('PROFESSOR AIVOX','').replace('Ouvir','').replace('Salvar','').trim();
+  if(txt)_speakTranslation(txt);
+}
+function _learnSave(btn){
+  const bub=btn.closest('.learn-bubble');
+  const lines=(bub?bub.innerText:'').split('\n').filter(l=>l.trim()&&!['PROFESSOR AIVOX','Ouvir','Salvar'].includes(l.trim()));
+  const word=lines[0]?.trim(), trans=lines[1]?.trim()||'';
+  if(!word){showToast('Não encontrei palavra para salvar','error');return;}
+  saveVocabWord(word,trans,_learnLang);
+}
+function _learnShowThinking(){
+  const bubs=document.getElementById('learn-bubs'); if(!bubs)return null;
+  const div=document.createElement('div'); div.className='learn-bubble ai'; div.id='learn-thinking-bub';
+  div.innerHTML='<div class="lb-label">🎓 PROFESSOR AIVOX</div><div class="learn-thinking"><span></span><span></span><span></span></div>';
+  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight; return div;
+}
+function learnToggleMic(){if(_learnListening)_learnStopMic();else _learnStartMic();}
+function _learnStartMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Seu navegador não suporta reconhecimento de voz','error');return;}
+  let _got=false;
+  _learnRecog=new SR(); _learnRecog.lang='pt-BR'; _learnRecog.continuous=false; _learnRecog.interimResults=false; _learnRecog.maxAlternatives=1;
+  _learnRecog.onresult=(e)=>{_got=true;const t=e.results[0][0].transcript;if(t){_learnStopMic();learnAsk(t);}};
+  _learnRecog.onerror=(e)=>{
+    if(e.error==='not-allowed'||e.error==='permission-denied'){showToast('❌ Permissão de microfone negada','error');}
+    else if(e.error!=='no-speech'&&e.error!=='aborted'){showToast('Erro de voz: '+e.error,'error');}
+    _learnStopMic();
+  };
+  _learnRecog.onend=()=>{if(!_got)_learnStopMic();};
+  try{
+    _learnRecog.start(); _learnListening=true;
+    const btn=document.getElementById('learn-mic-btn'),st=document.getElementById('learn-status');
+    if(btn){btn.classList.add('listening');btn.textContent='⏹';}
+    if(st)st.textContent='🔴 Ouvindo... fale agora';
+  }catch(err){showToast('Erro ao iniciar microfone','error');_learnListening=false;}
+}
+function _learnStopMic(){
+  _learnListening=false; try{_learnRecog?.stop();}catch(_){} _learnRecog=null;
+  const btn=document.getElementById('learn-mic-btn'),st=document.getElementById('learn-status');
+  if(btn){btn.classList.remove('listening');btn.textContent='🎤';}
+  if(st)st.textContent='Toque para perguntar por voz';
+}
+function learnSendText(){
+  const inp=document.getElementById('learn-text-input');
+  if(!inp||!inp.value.trim())return; learnAsk(inp.value.trim()); inp.value='';
+}
+async function learnAsk(question){
+  if(!question.trim())return;
+  _learnAddBubble('user',question);
+  _learnHistory.push({role:'user',content:question});
+  const thinking=_learnShowThinking();
+  const backendUrl=getBackendUrl();
+  if(!backendUrl){if(thinking)thinking.remove();showToast('Backend não configurado','error');return;}
+  try{
+    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const r=await fetch(backendUrl+'/api/learn',{method:'POST',
+      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+      body:JSON.stringify({question,lang:_learnLang,history:_learnHistory.slice(-6)})});
+    const d=await r.json();
+    if(thinking)thinking.remove();
+    if(d.answer){_learnHistory.push({role:'assistant',content:d.answer});_learnAddBubble('ai',d.answer,true);addPts(2);}
+  }catch(e){if(thinking)thinking.remove();_learnAddBubble('ai','⚠️ Erro ao conectar.');}
 }
 
-// ── FLASHCARDS ────────────────────────────────────────────────
-function _buildLangBar(containerId, setter){
+// ── LIÇÕES ────────────────────────────────────────────────────
+function setLicaoLang(el){
+  document.querySelectorAll('#licoes-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); _licaoLang=el.dataset.lang; renderLicoes();
+}
+function renderLicoes(){
+  const scroll=document.getElementById('licoes-scroll'); if(!scroll)return;
+  const dados=LICOES_DATA[_licaoLang]||[];
+  const conc=_getLicoesConcluidas(); let html='';
+  dados.forEach(grupo=>{
+    html+=`<div class="licao-cat">${grupo.cat}</div>`;
+    grupo.itens.forEach(l=>{
+      const ok=conc.includes(l.id);
+      html+=`<div class="licao-card" onclick="openLicao('${l.id}')"><div class="licao-icon">${l.icon}</div><div class="licao-info"><div class="licao-nome">${l.nome}</div><div class="licao-desc">${l.desc}</div></div><div class="licao-badge ${ok?'ok':'novo'}">${ok?'✓ OK':'NOVO'}</div></div>`;
+    });
+  });
+  if(!html)html='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Mais lições em breve!</div>';
+  scroll.innerHTML=html;
+}
+function _getLicoesConcluidas(){
+  try{return JSON.parse(localStorage.getItem('aivox_licoes_'+(window._fbUser?.uid||'x'))||'[]');}catch(e){return[];}
+}
+function _setLicaoConcluida(id){
+  const key='aivox_licoes_'+(window._fbUser?.uid||'x');
+  try{const arr=_getLicoesConcluidas();if(!arr.includes(id)){arr.push(id);localStorage.setItem(key,JSON.stringify(arr));}}catch(e){}
+}
+function openLicao(id){
+  let licao=null;
+  Object.values(LICOES_DATA).forEach(gs=>gs.forEach(g=>g.itens.forEach(l=>{if(l.id===id)licao=l;})));
+  if(!licao)return; _currentLicao=licao;
+  document.getElementById('licao-modal-title').textContent=licao.icon+' '+licao.nome;
+  document.getElementById('licao-modal-sub').textContent=licao.desc;
+  let html=`<div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);">${licao.frases.length} FRASES — toque em 🔊 para ouvir</div>`;
+  licao.frases.forEach(f=>{
+    const wo=f.orig.replace(/['"]/g,''); const wt=f.trans.replace(/['"]/g,'');
+    html+=`<div class="licao-phrase"><div class="licao-phrase-orig">${f.orig}</div><div class="licao-phrase-trans">${f.trans}</div><div class="licao-phrase-pron">/${f.pron}/</div><div style="display:flex;gap:8px;margin-top:8px;"><button class="lb-btn" onclick="_speakTranslation(this.closest('.licao-phrase').querySelector('.licao-phrase-orig').textContent)" style="font-size:12px;">🔊 Ouvir</button><button class="lb-btn" onclick="saveVocabWord('${wo}','${wt}','${_licaoLang}')" style="font-size:12px;">📖 Salvar</button></div></div>`;
+  });
+  html+=`<button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="concluirLicao('${id}')">✅ Marcar como concluída +10 pts</button>`;
+  document.getElementById('licao-modal-body').innerHTML=html;
+  document.getElementById('licao-modal').classList.add('sh');
+}
+function closeLicao(){document.getElementById('licao-modal').classList.remove('sh');}
+function concluirLicao(id){
+  _setLicaoConcluida(id); addPts(10);
+  showToast('🏆 Lição concluída! +10 pts','success');
+  closeLicao(); renderLicoes();
+}
+function licaoAskProf(){
+  if(!_currentLicao)return; closeLicao();
+  learnTab('professor', document.querySelector('.learn-tab'));
+  setTimeout(()=>learnAsk('Me explique mais sobre "'+_currentLicao.nome+'" em '+_licaoLang),300);
+}
+
+// ── FLASHCARDS ───────────────────────────────────────────────
+function _buildLangBar(containerId, langVar, setter){
   const bar=document.getElementById(containerId); if(!bar||bar.innerHTML)return;
   const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
   Object.keys(flags).forEach((l,i)=>{
@@ -7167,24 +7078,10 @@ function _buildLangBar(containerId, setter){
   });
 }
 function renderFlash(){
-  _buildLangBar('flash-lang-bar',(l)=>{_flashLang=l;buildFlashDeck();renderFlashCard();});
-  // Adiciona botão "Minhas Conversas" se não existe
-  const bar=document.getElementById('flash-lang-bar');
-  if(bar && !bar.querySelector('[data-lang="conversas"]')){
-    const btn=document.createElement('div');
-    btn.className='learn-lang-btn'; btn.dataset.lang='conversas';
-    btn.textContent='💬 Minhas conversas';
-    btn.onclick=()=>{
-      document.querySelectorAll('#flash-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active'); _flashLang='conversas';
-      loadMyPhrases().then(()=>renderMinhasConversas());
-    };
-    bar.appendChild(btn);
-  }
+  _buildLangBar('flash-lang-bar','_flashLang',(l)=>{_flashLang=l;buildFlashDeck();renderFlashCard();});
   buildFlashDeck(); renderFlashCard();
 }
 function buildFlashDeck(){
-  if(_flashLang==='conversas'){ renderMinhasConversas(); return; }
   _flashDeck=[..._vocabData.filter(v=>v.lang===_flashLang)].sort(()=>Math.random()-.5);
   _flashIdx=0; _flashOk=0; _flashNope=0; _flashFlipped=false;
 }
@@ -7200,7 +7097,7 @@ function renderFlashCard(){
     addPts(5); return;
   }
   const card=_flashDeck[_flashIdx];
-  const wo=card.word.replace(/'/g,"\\'");
+  const wo=card.word.replace(/'/g,"\'");
   wrap.innerHTML=`<div class="flash-stats"><div class="flash-stat"><div class="flash-stat-n" style="color:var(--green);">${_flashOk}</div><div class="flash-stat-l">Sabia</div></div><div class="flash-stat"><div class="flash-stat-n" style="color:var(--red);">${_flashNope}</div><div class="flash-stat-l">Não sabia</div></div><div class="flash-stat"><div class="flash-stat-n">${_flashIdx+1}/${_flashDeck.length}</div><div class="flash-stat-l">Card</div></div></div><div class="flash-card-wrap"><div class="flash-card" id="flash-card-el" onclick="flipFlash()"><div class="flash-front"><div class="flash-word">${card.word}</div><div class="flash-hint">Toque para ver a tradução</div></div><div class="flash-back"><div class="flash-trans">${card.trans}</div></div></div></div><div class="flash-btns" id="flash-btns" style="display:none;"><button class="flash-btn nope" onclick="flashNope()">❌ Não sabia</button><button class="flash-btn got" onclick="flashGot()">✅ Sabia!</button></div><div class="flash-progress">Toque no card para revelar</div><button class="lb-btn" onclick="_speakTranslation('${wo}')" style="font-size:13px;margin-top:4px;">🔊 Ouvir pronúncia</button>`;
 }
 function flipFlash(){
@@ -7209,23 +7106,13 @@ function flipFlash(){
   if(_flashFlipped){if(c)c.classList.add('flip');if(b)b.style.display='flex';}
   else{if(c)c.classList.remove('flip');if(b)b.style.display='none';}
 }
-function flashGot(){
-  const item=_flashDeck[_flashIdx];
-  _flashOk++; addPts(3); _flashIdx++; _flashFlipped=false;
-  _flashReviewBackend(item, true);
-  renderFlashCard();
-}
-function flashNope(){
-  const item=_flashDeck[_flashIdx];
-  _flashNope++; _flashIdx++; _flashFlipped=false;
-  _flashReviewBackend(item, false);
-  renderFlashCard();
-}
+function flashGot(){_flashOk++;addPts(3);_flashIdx++;_flashFlipped=false;renderFlashCard();}
+function flashNope(){_flashNope++;_flashIdx++;_flashFlipped=false;renderFlashCard();}
 
-// ── EXERCÍCIOS ────────────────────────────────────────────────
+// ── EXERCÍCIOS ───────────────────────────────────────────────
 function renderExer(){
-  _buildLangBar('exer-lang-bar',(l)=>{_exerLang=l; buildExerGPT();});
-  buildExerGPT();
+  _buildLangBar('exer-lang-bar','_exerLang',(l)=>{_exerLang=l;buildExer();});
+  buildExer();
 }
 function buildExer(){
   const wrap=document.getElementById('exer-wrap'); if(!wrap)return;
@@ -7244,26 +7131,27 @@ function buildExer(){
     if(tipo===0){
       const wrong=pool.filter(p=>p.word!==item.word).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.trans);
       const opts=[item.trans,...wrong].sort(()=>Math.random()-.5);
-      exercicios.push({tipo:'MÚLTIPLA ESCOLHA',pergunta:`Como se traduz?\n"${item.word}"`,certa:item.trans,opts});
+      exercicios.push({tipo:'MÚLTIPLA ESCOLHA',pergunta:`Como se traduz para português?\n"${item.word}"`,certa:item.trans,opts});
     }else if(tipo===1){
       const wrong=pool.filter(p=>p.trans!==item.trans).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.word);
       const opts=[item.word,...wrong].sort(()=>Math.random()-.5);
       exercicios.push({tipo:'COMPLETE A FRASE',pergunta:`Como se diz em ${_exerLang}?\n"${item.trans}"`,certa:item.word,opts});
     }else{
       const falso=Math.random()>.5;
-      const fTrans=falso?(pool.find(p=>p.word!==item.word)?.trans||'????'):item.trans;
+      const fTrans=falso?(pool.find(p=>p.word!==item.word)?.trans||'???'):item.trans;
       exercicios.push({tipo:'VERDADEIRO OU FALSO',pergunta:`"${item.word}" significa "${fTrans}"`,certa:falso?'Falso':'Verdadeiro',opts:['Verdadeiro','Falso']});
     }
   });
   let html='';
   exercicios.forEach((ex,i)=>{
     const optsHtml=ex.opts.map(o=>{
-      const os=o.replace(/'/g,"\\'"); const cs=ex.certa.replace(/'/g,"\\'");
+      const os=o.replace(/\\/g,'\\').replace(/'/g,"\'").replace(/"/g,'&quot;');
+      const cs=ex.certa.replace(/\\/g,'\\').replace(/'/g,"\'").replace(/"/g,'&quot;');
       return `<button class="exer-opt" onclick="checkExer(${i},'${os}','${cs}',this)">${o}</button>`;
     }).join('');
-    html+=`<div class="exer-card" id="exer-${i}"><div class="exer-tipo">${ex.tipo}</div><div class="exer-pergunta">${ex.pergunta.replace('\\n','<br>')}</div><div class="exer-opts">${optsHtml}</div><div class="exer-feedback" id="exfb-${i}"></div></div>`;
+    html+=`<div class="exer-card" id="exer-${i}"><div class="exer-tipo">${ex.tipo}</div><div class="exer-pergunta">${ex.pergunta.replace('\n','<br>')}</div><div class="exer-opts">${optsHtml}</div><div class="exer-feedback" id="exfb-${i}"></div></div>`;
   });
-  html+=`<div style="display:flex;gap:8px;margin-top:4px;"><button class="btn btn-ghost" style="flex:1;" onclick="buildExerGPT()">🤖 Gerar com IA</button><button class="btn btn-ghost" style="flex:1;" onclick="buildExer()">🔀 Aleatório</button></div>`;
+  html+=`<button class="btn btn-ghost btn-full" style="margin-top:4px;" onclick="buildExer()">🔄 Novos exercícios</button>`;
   wrap.innerHTML=html;
 }
 function checkExer(idx,resposta,certa,btn){
@@ -7280,15 +7168,52 @@ function checkExer(idx,resposta,certa,btn){
   const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
 }
 
+// ── VOCABULÁRIO ──────────────────────────────────────────────
+function loadVocab(){
+  try{_vocabData=JSON.parse(localStorage.getItem('aivox_vocab_'+(window._fbUser?.uid||'x'))||'[]');}catch(e){_vocabData=[];}
+  _vocabFiltered=[..._vocabData];
+}
+function saveVocabWord(word,trans,lang){
+  if(!word||!word.trim())return;
+  loadVocab();
+  if(_vocabData.find(v=>v.word.toLowerCase()===word.toLowerCase()&&v.lang===lang)){showToast('Palavra já está no vocabulário','info');return;}
+  _vocabData.unshift({word:word.trim(),trans:(trans||'').trim(),lang:lang||_learnLang,savedAt:Date.now()});
+  localStorage.setItem('aivox_vocab_'+(window._fbUser?.uid||'x'),JSON.stringify(_vocabData.slice(0,500)));
+  _vocabFiltered=[..._vocabData];
+  showToast('📖 "'+word+'" salvo!','success'); addPts(1);
+}
+function deleteVocabWord(globalIdx){
+  loadVocab();
+  const item=_vocabFiltered[globalIdx]; if(!item)return;
+  const i=_vocabData.indexOf(item); if(i>-1)_vocabData.splice(i,1);
+  localStorage.setItem('aivox_vocab_'+(window._fbUser?.uid||'x'),JSON.stringify(_vocabData));
+  _vocabFiltered=[..._vocabData]; renderVocab(true);
+}
+function filterVocab(q){
+  loadVocab();
+  _vocabFiltered=!q.trim()?[..._vocabData]:_vocabData.filter(v=>v.word.toLowerCase().includes(q.toLowerCase())||v.trans.toLowerCase().includes(q.toLowerCase()));
+  renderVocab(true);
+}
+function renderVocab(skipLoad){
+  if(!skipLoad)loadVocab();
+  const scroll=document.getElementById('vocab-scroll'); if(!scroll)return;
+  if(!_vocabFiltered.length){
+    scroll.innerHTML='<div class="vocab-empty"><div style="font-size:44px;margin-bottom:10px;">📖</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Vocabulário vazio</div><div style="font-size:12px;">Salve palavras do Professor ou das Lições</div></div>';
+    return;
+  }
+  const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
+  scroll.innerHTML=_vocabFiltered.map((v,i)=>{
+    const wo=v.word.replace(/'/g,"\'");
+    return `<div class="vocab-item"><div class="vocab-info"><div class="vocab-word">${v.word}</div><div class="vocab-trans">${v.trans||'—'}</div></div><span class="vocab-lang-tag">${flags[v.lang]||''} ${v.lang}</span><button class="vocab-speak" onclick="_speakTranslation('${wo}')" title="Ouvir">🔊</button><button class="vocab-del" onclick="deleteVocabWord(${i})" title="Remover">🗑️</button></div>`;
+  }).join('');
+}
+
 // ── Init ─────────────────────────────────────────────────────
 (function(){
   const pl=document.getElementById('page-learn');
   if(pl){
     const obs=new MutationObserver(()=>{
-      if(pl.classList.contains('active')){
-        loadStreak();
-        loadVocab().then(()=>{ _renderVocabList(); });
-      }
+      if(pl.classList.contains('active')){loadStreak();loadVocab();}
     });
     obs.observe(pl,{attributeFilter:['class']});
   }

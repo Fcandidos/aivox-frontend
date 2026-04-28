@@ -6164,17 +6164,37 @@ async function _rtStartRealtime(){
       if(toggle){toggle.classList.add('rt-on');toggle.querySelector('span').textContent='⚡ Intérprete ON';}
       const lbl=document.getElementById('sala-micl');
       if(lbl) lbl.textContent='⚡ Modo Intérprete ativo...';
-      document.getElementById('sala-ptt-wrap').style.display='none';
-      document.getElementById('sala-vad-bar').style.opacity='1';
+      const _pttWrap=document.getElementById('sala-ptt-wrap');
+      const _vadBar=document.getElementById('sala-vad-bar');
+      if(_pttWrap) _pttWrap.style.display='none';
+      if(_vadBar)  _vadBar.style.opacity='1';
       showToast('⚡ Modo Intérprete ativado — fale quando quiser!','success');
     };
 
-    _rtWS.onmessage = (ev)=>{
-      try{ _rtHandleEvent(JSON.parse(ev.data)); }catch(e){}
+    _rtWS.onmessage = async (ev)=>{
+      try{
+        const text = (ev.data instanceof Blob) ? await ev.data.text() : ev.data;
+        if(!text||text[0]!=='{') return;
+        _rtHandleEvent(JSON.parse(text));
+      }catch(e){ console.warn('rt msg:',e.message); }
     };
 
-    _rtWS.onerror = ()=>{ _rtStopRealtime(); showToast('❌ Erro no Modo Intérprete','error'); };
-    _rtWS.onclose = ()=>{ if(_rtMode) _rtStopRealtime(); };
+    _rtWS.onerror = (e)=>{
+      console.warn('⚡ WS error:', e);
+      if(!_rtMode){ _rtConnecting=false; showToast('❌ Erro ao conectar','error'); }
+      else _rtStopRealtime();
+    };
+
+    _rtWS.onclose = (ev)=>{
+      console.log('⚡ WS fechou code:', ev.code, 'wasOpen:', _rtMode);
+      if(_rtMode) _rtStopRealtime();
+      else if(_rtConnecting){
+        _rtConnecting=false;
+        try{_rtStream?.getTracks().forEach(t=>t.stop());}catch(_){}
+        if(toggle) toggle.querySelector('span').textContent='⚡ Modo Intérprete';
+        showToast('❌ Conexão recusada ('+ev.code+') — tente novamente','error');
+      }
+    };
 
   }catch(e){
     showToast('❌ Falha: '+e.message,'error');
@@ -6186,23 +6206,19 @@ async function _rtStartRealtime(){
 function _rtStartMicCapture(){
   _rtAudioCtx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000});
   const source = _rtAudioCtx.createMediaStreamSource(_rtStream);
-  // ScriptProcessorNode deprecated — mantido por compatibilidade mas com conversão correta
-  _rtProcessor = _rtAudioCtx.createScriptProcessor(2048,1,1);
+  _rtProcessor = _rtAudioCtx.createScriptProcessor(4096,1,1);
   _rtProcessor.onaudioprocess = (e)=>{
     if(!_rtWS||_rtWS.readyState!==WebSocket.OPEN) return;
     const f32 = e.inputBuffer.getChannelData(0);
-    // Converte Float32 → PCM16 corretamente
     const pcm16 = new Int16Array(f32.length);
     for(let i=0;i<f32.length;i++){
-      const s = Math.max(-1, Math.min(1, f32[i]));
-      pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      const s=Math.max(-1,Math.min(1,f32[i]));
+      pcm16[i] = s<0 ? s*0x8000 : s*0x7FFF;
     }
-    // Base64 eficiente via Uint8Array
-    const uint8 = new Uint8Array(pcm16.buffer);
-    const b64 = btoa(String.fromCharCode.apply(null, uint8));
-    _rtWS.send(JSON.stringify({type:'input_audio_buffer.append', audio: b64}));
+    const b64=btoa(String.fromCharCode.apply(null,new Uint8Array(pcm16.buffer)));
+    _rtWS.send(JSON.stringify({type:'input_audio_buffer.append',audio:b64}));
     // Barra VAD visual
-    let sum=0; for(let i=0;i<f32.length;i++) sum+=f32[i]*f32[i];
+    let sum=0; f32.forEach(v=>sum+=v*v);
     const fill=document.getElementById('sala-vad-fill');
     if(fill) fill.style.width=Math.min(100,Math.sqrt(sum/f32.length)*800)+'%';
   };

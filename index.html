@@ -1060,7 +1060,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
       <div class="section-label">Modo de uso</div>
       <div class="mgrid">
         <div class="mbtn" data-mode="conversa" id="mbtn-conversa" onclick="selMode(this)"><span style="font-size:21px;">💬</span><div class="mnm">Conversa</div><div class="mds">Diálogo bidirecional em tempo real</div></div>
-        <div class="mbtn" data-mode="reuniao" onclick="selMode(this);navApp('sala')"><span style="font-size:21px;">👥</span><div class="mnm">Reunião</div><div class="mds">Sala colaborativa · Pro+</div></div>
+        <div class="mbtn" data-mode="reuniao" id="mbtn-reuniao" onclick="selMode(this);navApp('sala')"><span style="font-size:21px;">👥</span><div class="mnm">Reunião</div><div class="mds">Sala colaborativa · Pro+</div></div>
         <div class="mbtn" data-mode="viagem" id="mbtn-viagem" onclick="selMode(this)"><span style="font-size:21px;">✈️</span><div class="mnm">Viagem</div><div class="mds">Offline · Web Speech API</div></div>
         <div class="mbtn" data-mode="escuta" id="mbtn-escuta" onclick="selMode(this)" style="border-color:rgba(147,51,234,.35);background:rgba(147,51,234,.07);"><span style="font-size:21px;">🎧</span><div class="mnm" style="color:#a855f7;">Escuta ao vivo</div><div class="mds">Entenda qualquer conversa</div></div>
         <div class="mbtn" data-mode="aprendizagem" id="mbtn-aprendizagem" onclick="selMode(this)" style="border-color:rgba(255,208,0,.35);background:rgba(255,208,0,.07);"><span style="font-size:21px;">🎓</span><div class="mnm" style="color:#ffd000;">Aprendizagem</div><div class="mds">Professor de idiomas por IA</div></div>
@@ -2392,6 +2392,13 @@ auth.onAuthStateChanged(async(user)=>{
         const ap=['page-landing','page-login','page-register','page-reset','page-2fa'];
         const onAuth=ap.some(p=>document.getElementById(p)?.classList.contains('active'));
         if(onAuth){
+          // ── Bloqueia usuário suspenso ──────────────────────────
+          if(data.status==='suspended'){
+            await auth.signOut();
+            showToast('⛔ Sua conta foi suspensa. Entre em contato com o suporte.','error');
+            showAuth('login');
+            return;
+          }
           enterApp(data);
           showToast('✅ Bem-vindo de volta, '+data.name.split(' ')[0]+'!');
           if(data.role!=='admin') _startUserPermListener(user.uid);
@@ -6827,11 +6834,11 @@ const LICOES_DATA = {
         {orig:'Bonjour!', trans:'Bom dia / Olá!', pron:'bon-ZHUR'},
         {orig:'Bonsoir!', trans:'Boa noite!', pron:'bon-SWAR'},
         {orig:'Comment allez-vous?', trans:'Como vai você?', pron:'ko-MON ta-lay-VU'},
-        {orig:'Je m\u2019appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
+        {orig:'Je m'appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
         {orig:'Enchante!', trans:'Prazer!', pron:'on-shon-TAY'},
         {orig:'Au revoir!', trans:'Até logo!', pron:'o re-VWAR'},
         {orig:'Merci beaucoup!', trans:'Muito obrigado!', pron:'mer-SI bo-KU'},
-        {orig:'S\u2019il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
+        {orig:'S'il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
       ]}
     ]}
   ],
@@ -7268,6 +7275,14 @@ function _startUserPermListener(uid){
 }
 
 function applyUserPermissions(userData){
+  // ── Se conta foi suspensa em tempo real, desloga ────────────
+  if(userData?.status==='suspended'){
+    auth.signOut().then(()=>{
+      showToast('⛔ Sua conta foi suspensa.','error');
+      if(typeof showLanding==='function') showLanding();
+    });
+    return;
+  }
   const blocked=userData?.blockedModes||[];
   ['conversa','viagem','reuniao','escuta','aprendizagem'].forEach(mode=>{
     const card=document.getElementById('mbtn-'+mode);

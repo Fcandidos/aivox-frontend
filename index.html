@@ -394,7 +394,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.on .ct-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:ctPulse 1.2s ease infinite;}
 .continuous-toggle.rt-on{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);color:#a78bfa;}
 .continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
-.continuous-toggle.rt-disabled{opacity:.35;cursor:not-allowed;filter:grayscale(1);}
 @keyframes ctPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .vad-bar{width:100%;max-width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
 .vad-bar-fill{height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .08s linear;}
@@ -2040,10 +2039,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div class="ct-dot"></div>
           <span id="sala-ct-label">Modo Contínuo</span>
         </div>
-        <!-- Toggle Modo Intérprete (OpenAI Realtime) — em construção -->
-        <div class="continuous-toggle rt-disabled" id="sala-realtime-toggle" onclick="showToast('⚡ Modo Intérprete em breve — disponível no plano Pro+','info')" style="border-color:rgba(124,58,237,.2);margin-top:6px;">
+        <!-- Toggle Modo Intérprete (OpenAI Realtime) -->
+        <div class="continuous-toggle" id="sala-realtime-toggle" onclick="salaToggleRealtime()" style="border-color:rgba(124,58,237,.3);margin-top:6px;">
           <div class="ct-dot"></div>
-          <span id="sala-rt-label">⚡ Modo Intérprete <span style="font-size:9px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:4px;padding:1px 5px;margin-left:4px;">Em breve</span></span>
+          <span id="sala-rt-label">⚡ Modo Intérprete</span>
         </div>
         <!-- Barra VAD -->
         <div class="vad-bar" id="sala-vad-bar" style="opacity:0;margin:6px 0;">
@@ -3434,6 +3433,8 @@ function togMic(){
 //  MODO VIAGEM — Web Speech API (reconhecimento offline)
 // ════════════════════════════════════════════════════════════
 let _viagemActive=false, _viagemRecog=null, _viagemLang='en-US';
+let _viagemLastFinal=''; // fora do escopo para persistir entre reinícios
+let _viagemTranslating=false; // evita traduções duplicadas simultâneas
 
 const _viagemLangMap={
   'pt':'pt-BR','en':'en-US','es':'es-ES','fr':'fr-FR',
@@ -3477,16 +3478,19 @@ function startViagemMode(){
   _viagemRecog.onresult=(e)=>{
     let interim='', final='';
     for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript.trim();
       else interim+=e.results[i][0].transcript;
     }
     // Mostra texto interim em tempo real
-    if(interim) document.getElementById('tr1').textContent='🎙️ '+interim;
-
-    // Quando tiver texto final, traduz
-    if(final && final !== _lastFinal){
-      _lastFinal=final;
-      document.getElementById('tr1').textContent=final;
+    if(interim){
+      const tr1=document.getElementById('tr1');
+      if(tr1) tr1.textContent='🎙️ '+interim;
+    }
+    // Quando tiver texto final, traduz — evita duplicatas
+    if(final && final !== _viagemLastFinal && !_viagemTranslating){
+      _viagemLastFinal=final;
+      const tr1=document.getElementById('tr1');
+      if(tr1) tr1.textContent=final;
       _viagemTranslate(final);
     }
   };
@@ -3498,8 +3502,8 @@ function startViagemMode(){
   };
 
   _viagemRecog.onend=()=>{
+    _viagemLastFinal=''; // reseta para nova sessão de reconhecimento
     if(_viagemActive){
-      // Delay pequeno para o Chrome não bloquear reinício imediato
       setTimeout(()=>{
         if(_viagemActive&&_viagemRecog){
           try{_viagemRecog.start();}catch(e){}
@@ -3514,6 +3518,8 @@ function startViagemMode(){
 
 async function _viagemTranslate(text){
   if(!text||!text.trim())return;
+  if(_viagemTranslating)return; // evita chamadas simultâneas
+  _viagemTranslating=true;
   document.getElementById('tr2').textContent='⏳ Traduzindo...';
   document.getElementById('sp2').classList.add('speaking');
   const wi2=animWF('wf2',true);wis.push(wi2);
@@ -3560,6 +3566,8 @@ async function _viagemTranslate(text){
 function stopViagemMode(){
   if(!_viagemActive&&!_viagemRecog)return;
   _viagemActive=false;
+  _viagemLastFinal='';
+  _viagemTranslating=false;
   try{_viagemRecog?.stop();}catch(e){}
   _viagemRecog=null;
   wis.forEach(clearInterval);wis=[];

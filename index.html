@@ -1290,7 +1290,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== APRENDIZAGEM ====== -->
-    <div class="page content-area" id="page-learn" style="padding:0;flex-direction:column;">
+    <div class="page content-area" id="page-learn" style="padding:0;display:none;flex-direction:column;">
       <div class="learn-page">
         <div class="learn-header">
           <div class="learn-title">🎓 Aprendizagem</div>
@@ -2290,6 +2290,9 @@ function enterApp(data){
   // Sidebar footer click: admin vai p/ settings, user vai p/ chat
   document.querySelector('.sidebar-user').onclick=()=>navApp(isAdmin?'settings':'profile');
   document.getElementById('sb-av-top').onclick=()=>navApp(isAdmin?'settings':'profile');
+  // Aplica permissões de acesso antes de navegar
+  if(!isAdmin) applyUserPermissions(data);
+
   if(isAdmin){navApp('admin');}
   else{navApp('home');}
   if(!isAdmin)setupPlan();setTimeout(checkMinutesAlert,1500);loadPrecos();
@@ -2305,7 +2308,7 @@ function navApp(name){
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const bn=document.getElementById('bn-'+name);if(bn)bn.classList.add('active');
-  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem'};
+  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa','sala':'Salas Colaborativas','sala-ativa':'Sala Ativa'};
   const tb=document.getElementById('topbar-title');if(tb)tb.textContent=titles[name]||'';
   if(name==='history'){renderHist(histData);_histTab='sess';switchHistTab('sess');}
   if(name==='faq'){renderFaq('todos');setTimeout(()=>goSlide(0),100);}
@@ -3882,17 +3885,7 @@ function renderUsers(planFilt){
 }
 function renderUserRow(u,list){const el=document.createElement('div');el.className='urw';if(u.status==='suspended')el.style.opacity='.55';const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100);const overPct=pct>=100,warnPct=pct>=80;const psMap={pago:{icon:'🟢',color:'var(--green)',bg:'var(--gdim)'},processando:{icon:'🟡',color:'var(--yellow)',bg:'var(--ydim)'},rejeitado:{icon:'🔴',color:'var(--red)',bg:'var(--rdim)'},cancelado:{icon:'🔴',color:'var(--red)',bg:'var(--rdim)'},reembolsado:{icon:'🔴',color:'var(--red)',bg:'var(--rdim)'},trial:{icon:'🔵',color:'var(--accent)',bg:'var(--adim)'}};const ps=u.payment_status||(u.plan==='trial'?'trial':null);const psBadge=ps&&psMap[ps]?`<span style="font-size:9px;font-weight:800;font-family:var(--mono);padding:1px 6px;border-radius:5px;background:${psMap[ps].bg};color:${psMap[ps].color};margin-top:3px;display:inline-block;">${psMap[ps].icon} ${ps.toUpperCase()}</span>`:'';el.innerHTML=`<div class="uav ${u.online?'on':'off'}">${(u.name||'?')[0]}</div><div style="flex:1;"><div class="un"><span class="usd ${u.online?'on':'off'}"></span>${u.name||'—'}${u.status==='suspended'?' <span style="font-size:9px;background:var(--rdim);color:var(--red);padding:1px 5px;border-radius:4px;font-family:var(--mono);">SUSP</span>':''}</div><div class="ue">${u.email||'—'}</div><div style="margin-top:5px;"><div style="height:4px;background:var(--surface);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${Math.min(pct,100)}%;border-radius:2px;background:${overPct?'var(--red)':warnPct?'var(--orange)':'var(--accent)'};"></div></div><div style="font-size:9px;color:var(--muted);margin-top:2px;font-family:var(--mono);">${u.minutesUsed||0}/${u.minutesLimit||5} min (${pct}%)</div></div></div><div class="ur"><div class="up ${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</div>${psBadge}</div>`;el.addEventListener('click',()=>openUser(u));list.appendChild(el);}
 function filtUsers(p,btn){document.querySelectorAll('#tab-usuarios .fcat').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderUsers(p);}
-function openUser(u){document.getElementById('udtit').textContent=u.name||'—';document.getElementById('udplan').innerHTML=`<span class="badge badge-${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</span>`;const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100),overPct=pct>=100,warnPct=pct>=80;document.getElementById('udsc').innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:12px;"><div class="uav ${u.online?'on':'off'}" style="width:44px;height:44px;font-size:16px;">${(u.name||'?')[0]}</div><div><div style="font-size:15px;font-weight:700;">${u.name||'—'}</div><div style="font-size:11px;color:var(--muted);">${u.email||'—'}</div></div></div><div class="ubr"><div class="ubrt"><span class="ubrl">Minutos usados</span><span class="ubrv">${u.minutesUsed||0} / ${u.minutesLimit||5}</span></div><div class="ubg"><div class="ubf ${overPct?'over':warnPct?'warn':''}" style="width:${Math.min(pct,100)}%;"></div></div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openResetPw('${u.uid||''}','${u.name||''}')">🔑 Reset senha</button><button class="btn ${u.status==='suspended'?'btn-primary':'btn-danger'} btn-sm" style="flex:1;" onclick="toggleSuspend('${u.uid||''}',${u.status==='suspended'})">${u.status==='suspended'?'✓ Reativar':'⛔ Suspender'}</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','basic')">Basic</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','pro')">Pro</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','business')">Business</button><button class="btn btn-sm" style="background:rgba(255,208,0,.12);border:1px solid rgba(255,208,0,.3);color:var(--yellow);" onclick="adminTestPix('${u.uid||''}')">🧪 Teste R$1</button></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">➕ Adicionar Minutos</div><div style="display:flex;gap:8px;align-items:center;"><input id="admin-add-min-input" type="number" min="1" max="9999" placeholder="Ex: 30" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;"><button class="btn btn-sm" style="background:var(--gdim);border:1px solid rgba(0,255,136,.25);color:var(--green);white-space:nowrap;" onclick="adminAddMinutes('${u.uid||''}')">✅ Adicionar</button></div><div style="font-size:10px;color:var(--muted);margin-top:5px;">Limite atual: ${u.minutesLimit||5} min · Usado: ${u.minutesUsed||0} min</div></div>` +
-    `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-top:10px;">` +
-    `<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">🔐 Permissões de Acesso</div>` +
-    `<div class="perm-grid">` +
-    ['conversa','viagem','reuniao','escuta','aprendizagem'].map(function(m){
-      var icons={conversa:'💬',viagem:'✈️',reuniao:'👥',escuta:'🎧',aprendizagem:'🎓'};
-      var labels={conversa:'Conversa',viagem:'Viagem',reuniao:'Reunião',escuta:'Escuta',aprendizagem:'Aprendizagem'};
-      var has=!u.blockedModes||!u.blockedModes.includes(m);
-      return '<div class="perm-btn '+(has?'on':'')+'" data-uid="'+u.uid+'" data-mode="'+m+'" onclick="adminTogglePermEl(this)"><div class="perm-dot"></div>'+icons[m]+' '+labels[m]+'</div>';
-    }).join('') +
-    `</div></div>`;document.getElementById('udov').classList.add('sh');}
+function openUser(u){document.getElementById('udtit').textContent=u.name||'—';document.getElementById('udplan').innerHTML=`<span class="badge badge-${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</span>`;const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100),overPct=pct>=100,warnPct=pct>=80;document.getElementById('udsc').innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:12px;"><div class="uav ${u.online?'on':'off'}" style="width:44px;height:44px;font-size:16px;">${(u.name||'?')[0]}</div><div><div style="font-size:15px;font-weight:700;">${u.name||'—'}</div><div style="font-size:11px;color:var(--muted);">${u.email||'—'}</div></div></div><div class="ubr"><div class="ubrt"><span class="ubrl">Minutos usados</span><span class="ubrv">${u.minutesUsed||0} / ${u.minutesLimit||5}</span></div><div class="ubg"><div class="ubf ${overPct?'over':warnPct?'warn':''}" style="width:${Math.min(pct,100)}%;"></div></div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openResetPw('${u.uid||''}','${u.name||''}')">🔑 Reset senha</button><button class="btn ${u.status==='suspended'?'btn-primary':'btn-danger'} btn-sm" style="flex:1;" onclick="toggleSuspend('${u.uid||''}',${u.status==='suspended'})">${u.status==='suspended'?'✓ Reativar':'⛔ Suspender'}</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','basic')">Basic</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','pro')">Pro</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','business')">Business</button><button class="btn btn-sm" style="background:rgba(255,208,0,.12);border:1px solid rgba(255,208,0,.3);color:var(--yellow);" onclick="adminTestPix('${u.uid||''}')">🧪 Teste R$1</button></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">➕ Adicionar Minutos</div><div style="display:flex;gap:8px;align-items:center;"><input id="admin-add-min-input" type="number" min="1" max="9999" placeholder="Ex: 30" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;"><button class="btn btn-sm" style="background:var(--gdim);border:1px solid rgba(0,255,136,.25);color:var(--green);white-space:nowrap;" onclick="adminAddMinutes('${u.uid||''}')">✅ Adicionar</button></div><div style="font-size:10px;color:var(--muted);margin-top:5px;">Limite atual: ${u.minutesLimit||5} min · Usado: ${u.minutesUsed||0} min</div></div>`;document.getElementById('udov').classList.add('sh');}
 function clsUser(){document.getElementById('udov').classList.remove('sh');}
 async function toggleSuspend(uid,isSusp){if(!uid||!window.FB)return;await window.FB.suspendUser(uid,!isSusp);clsUser();renderUsers('todos');showToast(isSusp?'✓ Conta reativada':'⛔ Conta suspensa',isSusp?'success':'error');}
 async function adminUpgrade(uid,plan){if(!uid||!window.FB)return;await window.FB.upgradePlan(uid,plan);clsUser();renderUsers('todos');showToast('✓ Plano alterado para '+plan);}
@@ -6643,10 +6636,6 @@ async function learnAsk(question){
 // ════════════════════════════════════════════════════════════════
 //  PERMISSÕES DE ACESSO POR USUÁRIO
 // ════════════════════════════════════════════════════════════════
-function adminTogglePermEl(el){
-  adminTogglePerm(el.dataset.uid, el.dataset.mode, el);
-}
-
 async function adminTogglePerm(uid,mode,btn){
   const isOn=btn.classList.contains('on');
   btn.classList.toggle('on');
@@ -6665,15 +6654,21 @@ async function adminTogglePerm(uid,mode,btn){
 
 function applyUserPermissions(userData){
   const blocked=userData?.blockedModes||[];
+  const sideMap={escuta:'snav-escuta',aprendizagem:'snav-learn'};
   ['conversa','viagem','reuniao','escuta','aprendizagem'].forEach(mode=>{
+    const isBlocked=blocked.includes(mode);
+    // Card na tela inicial
     const card=document.getElementById('mbtn-'+mode);
-    const side=mode==='escuta'?document.getElementById('snav-escuta'):mode==='aprendizagem'?document.getElementById('snav-learn'):null;
-    if(blocked.includes(mode)){
-      if(card)card.style.display='none';
-      if(side)side.style.display='none';
-    }else{
-      if(card)card.style.display='';
-      if(side)side.style.display='';
+    if(card) card.style.display=isBlocked?'none':'';
+    // Item no sidebar (só escuta e aprendizagem têm snav próprio)
+    if(sideMap[mode]){
+      const side=document.getElementById(sideMap[mode]);
+      if(side) side.style.display=isBlocked?'none':'';
+    }
+    // Se usuário está na página bloqueada, redireciona para home
+    if(isBlocked && currentPage===mode){
+      navApp('home');
+      showToast('Você não tem acesso a este módulo','error');
     }
   });
 }

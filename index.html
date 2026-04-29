@@ -395,7 +395,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .continuous-toggle.rt-on{border-color:rgba(124,58,237,.6);background:rgba(124,58,237,.08);color:#a78bfa;}
 .continuous-toggle.rt-on .ct-dot{background:#a78bfa;box-shadow:0 0 6px #a78bfa;animation:ctPulse .8s ease infinite;}
 .continuous-toggle.rt-disabled{opacity:.35;cursor:not-allowed;filter:grayscale(1);}
-.learn-page{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.learn-page{display:flex;flex-direction:column;height:100%;overflow:hidden;min-height:0;}
 .learn-header{padding:12px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .learn-title{font-size:17px;font-weight:800;margin-bottom:1px;}
 .learn-sub{font-size:11px;color:var(--muted);}
@@ -409,14 +409,14 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-tabs::-webkit-scrollbar{display:none;}
 .learn-tab{flex:1;min-width:56px;padding:9px 4px;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;letter-spacing:.3px;}
 .learn-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.learn-tab-panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.learn-tab-panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
 .learn-tab-panel.active{display:flex;}
 /* LANG STRIP */
 .learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
 .learn-lang-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
 /* PROFESSOR CHAT */
-.learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;-webkit-overflow-scrolling:touch;}
 .learn-bubble{border-radius:14px;padding:11px 14px;max-width:90%;font-size:14px;line-height:1.55;}
 .learn-bubble.user{background:var(--adim);border:1px solid rgba(0,229,255,.15);align-self:flex-end;color:var(--text);}
 .learn-bubble.ai{background:var(--card);border:1px solid var(--border);align-self:flex-start;color:var(--text);}
@@ -436,7 +436,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 /* LIÇÕES */
 .licoes-lang-bar{display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
 .licoes-lang-bar::-webkit-scrollbar{display:none;}
-.licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;}
+.licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;}
 .licao-cat{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;}
 .licao-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
 .licao-card:active{transform:scale(.98);}
@@ -477,7 +477,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .flash-empty .fe-icon{font-size:44px;margin-bottom:10px;}
 /* EXERCÍCIOS */
 .exer-score{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;}
-.exer-wrap{flex:1;overflow-y:auto;padding:14px;}
+.exer-wrap{flex:1;overflow-y:auto;padding:14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;}
 .exer-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:11px;}
 .exer-tipo{font-size:10px;font-family:var(--mono);color:var(--accent);font-weight:700;letter-spacing:2px;margin-bottom:7px;}
 .exer-pergunta{font-size:15px;font-weight:700;margin-bottom:12px;line-height:1.4;}
@@ -490,7 +490,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .exer-feedback.sh{display:block;}.exer-feedback.ok{background:var(--gdim);color:var(--green);}.exer-feedback.err{background:var(--rdim);color:var(--red);}
 /* VOCABULÁRIO */
 .vocab-search{padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.vocab-scroll{flex:1;overflow-y:auto;padding:10px 14px;}
+.vocab-scroll{flex:1;overflow-y:auto;padding:10px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;}
 .vocab-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
 .vocab-info{flex:1;}.vocab-word{font-size:15px;font-weight:800;}
 .vocab-trans{font-size:12px;color:var(--muted);margin-top:1px;}
@@ -1374,7 +1374,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
     <!-- ====== APRENDIZAGEM ====== -->
     <div class="page content-area" id="page-learn" style="padding:0;flex-direction:column;height:100%;overflow:hidden;">
-      <div class="learn-page">
+      <div class="learn-page" style="flex:1;min-height:0;">
         <!-- Header -->
         <div class="learn-header">
           <div class="learn-title">🎓 Aprendizagem</div>

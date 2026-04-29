@@ -2392,7 +2392,6 @@ auth.onAuthStateChanged(async(user)=>{
         const ap=['page-landing','page-login','page-register','page-reset','page-2fa'];
         const onAuth=ap.some(p=>document.getElementById(p)?.classList.contains('active'));
         if(onAuth){
-          // ── Bloqueia usuário suspenso ──────────────────────────
           if(data.status==='suspended'){
             await auth.signOut();
             showToast('⛔ Sua conta foi suspensa. Entre em contato com o suporte.','error');
@@ -6834,11 +6833,11 @@ const LICOES_DATA = {
         {orig:'Bonjour!', trans:'Bom dia / Olá!', pron:'bon-ZHUR'},
         {orig:'Bonsoir!', trans:'Boa noite!', pron:'bon-SWAR'},
         {orig:'Comment allez-vous?', trans:'Como vai você?', pron:'ko-MON ta-lay-VU'},
-        {orig:'Je m'appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
+        {orig:'Je m\u2019appelle...', trans:'Meu nome é...', pron:'zhe ma-PEL'},
         {orig:'Enchante!', trans:'Prazer!', pron:'on-shon-TAY'},
         {orig:'Au revoir!', trans:'Até logo!', pron:'o re-VWAR'},
         {orig:'Merci beaucoup!', trans:'Muito obrigado!', pron:'mer-SI bo-KU'},
-        {orig:'S'il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
+        {orig:'S\u2019il vous plait', trans:'Por favor', pron:'sil vu PLAY'}
       ]}
     ]}
   ],
@@ -7275,7 +7274,6 @@ function _startUserPermListener(uid){
 }
 
 function applyUserPermissions(userData){
-  // ── Se conta foi suspensa em tempo real, desloga ────────────
   if(userData?.status==='suspended'){
     auth.signOut().then(()=>{
       showToast('⛔ Sua conta foi suspensa.','error');

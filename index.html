@@ -434,8 +434,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-thinking span:nth-child(2){animation-delay:.2s;}.learn-thinking span:nth-child(3){animation-delay:.4s;}
 @keyframes learnDot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
 /* LIÇÕES */
-.licoes-lang-bar{display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.licoes-lang-bar{display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;align-items:center;}
 .licoes-lang-bar::-webkit-scrollbar{display:none;}
+.learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.learn-lang-strip::-webkit-scrollbar{display:none;}
 .licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;}
 .licao-cat{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;}
 .licao-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
@@ -1456,7 +1458,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
         <!-- ── ABA LIÇÕES ── -->
         <div class="learn-tab-panel" id="ltp-licoes" style="flex-direction:column;overflow:hidden;position:relative;">
-          <div class="licoes-lang-bar" id="licoes-lang-bar">
+          <div class="licoes-lang-bar" id="licoes-lang-bar" style="align-items:center;">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
             <div class="learn-lang-btn active" data-lang="inglês" onclick="setLicaoLang(this)">🇺🇸 Inglês</div>
             <div class="learn-lang-btn" data-lang="espanhol" onclick="setLicaoLang(this)">🇪🇸 Espanhol</div>
             <div class="learn-lang-btn" data-lang="francês" onclick="setLicaoLang(this)">🇫🇷 Francês</div>
@@ -1492,10 +1495,12 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
         <!-- ── ABA PRATICAR ── -->
         <div class="learn-tab-panel" id="ltp-exer" style="flex-direction:column;overflow:hidden;">
-          <div class="exer-score">
-            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">IDIOMA:</span>
-            <div id="exer-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
-            <span style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--yellow);" id="exer-score-txt">0 pts</span>
+          <div style="padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+              <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
+              <div id="exer-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;overflow-x:auto;scrollbar-width:none;"></div>
+              <span style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--yellow);flex-shrink:0;" id="exer-score-txt">0 pts</span>
+            </div>
           </div>
           <div class="exer-wrap" id="exer-wrap">
             <div style="text-align:center;padding:40px 14px;color:var(--muted);">

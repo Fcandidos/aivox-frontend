@@ -1821,6 +1821,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div style="display:flex;gap:9px;margin-bottom:10px;">
           <button class="btn btn-primary" style="flex:1;" onclick="saveBackendUrl()">💾 Salvar e testar</button>
           <button class="btn btn-ghost btn-sm" onclick="testBackendPing()">🔄 Pingar</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--orange);" onclick="wakeBackend(()=>testBackendPing())">⏰ Acordar</button>
         </div>
         <div id="backend-save-feedback" style="display:none;margin-bottom:10px;font-size:12px;font-family:var(--mono);"></div>
         <!-- Info box -->
@@ -1941,6 +1942,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
                   Auto-refresh: <span id="api-countdown" style="color:var(--accent);">5s</span>
                   <span id="api-monitor-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:4px;animation:blink 1.5s ease infinite;"></span>
                 </span>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px;" onclick="checkApiStatus(true)">🔄 Verificar APIs</button>
+                <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px;color:var(--orange);" onclick="wakeBackend(()=>checkApiStatus(false))">⏰ Acordar Render</button>
               </div>
               <div class="aps" id="api-status-list">
                 <div class="apr"><div class="aps-dot" id="dot-openai" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">OpenAI Whisper (STT)</div><div class="apl" id="lat-openai">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-openai">—</div><div class="apbadge" id="badge-openai" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
@@ -2216,6 +2221,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
                 <button class="btn btn-primary btn-full" onclick="criarSala()" id="sala-criar-btn">
                   👥 Criar sala agora
                 </button>
+                <div style="font-size:10px;color:var(--muted);margin-top:10px;text-align:center;">Se falhar, o servidor pode estar dormindo. <span style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="wakeBackend(()=>showToast('Backend acordou! Tente criar a sala.','success'))">Acordar backend</span></div>
               </div>
             </div>
             <div id="sala-apos-criar" style="display:none;">
@@ -2507,6 +2513,26 @@ function getBackendUrl(){
 }
 // Compat: BACKEND_URL usado em algumas rotas antigas
 Object.defineProperty(window,'BACKEND_URL',{get:()=>getBackendUrl(),configurable:true});
+
+// ── Backend wake-up (Render.com free tier dorme após inatividade) ──
+let _backendWaking=false;
+function wakeBackend(onWake){
+  if(_backendWaking)return;
+  _backendWaking=true;
+  showToast('⏳ Acordando backend (Render)... aguarde ~30s','info');
+  const url=getBackendUrl();
+  let attempts=0;
+  const tryWake=async()=>{
+    attempts++;
+    try{
+      const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(8000)});
+      if(r.ok){_backendWaking=false;showToast('✅ Backend online!','success');if(onWake)onWake();return;}
+    }catch(e){}
+    if(attempts<6){setTimeout(tryWake,6000);}
+    else{_backendWaking=false;showToast('❌ Backend não respondeu. Verifique o deploy no Render.','error');}
+  };
+  tryWake();
+}
 
 let loginAttempts=0,loginLocked=false,lockTimer=null;
 const MAX_ATTEMPTS=5;
@@ -3860,9 +3886,12 @@ async function _viagemTranslate(text){
   document.getElementById('sp2').classList.add('speaking');
   const wi2=animWF('wf2',true);wis.push(wi2);
 
-  // Detecta idioma de destino
+  // Idioma de destino da sessão ativa
   const toLang=LO[lti]?.s||'PT';
-  const fromLang=_viagemLangMap[document.getElementById('escuta-lang-from')?.value||'en']?.split('-')[0]||'en';
+  // Idioma de origem: usa o idioma fonte da sessão (LO[lfi]), não o seletor de escuta ao vivo
+  const fromCode=LO[lfi]?.code||'PT-BR';
+  const fromShort=fromCode.split('-')[0].toLowerCase();
+  const fromLang=_viagemLangMap[fromShort]?.split('-')[0]||fromShort||'pt';
 
   try{
     // Tenta usar backend para tradução se disponível
@@ -3872,6 +3901,7 @@ async function _viagemTranslate(text){
       const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
       const res=await fetch(backendUrl+'/api/translate',{
         method:'POST',headers,
+        signal:AbortSignal.timeout(12000),
         body:JSON.stringify({text,from:fromLang,to:toLang.toLowerCase()})
       });
       if(res.ok){
@@ -3887,6 +3917,11 @@ async function _viagemTranslate(text){
           bubs.insertBefore(b,document.getElementById('tind'));
           b.scrollIntoView({behavior:'smooth'});
         }
+      } else if(res.status===502||res.status===503||res.status===504){
+        document.getElementById('tr2').textContent='⚠️ Backend offline — reconhecimento local ativo: '+text;
+        showToast('⚠️ Backend dormindo (Render). Aguarde ~30s e tente novamente.','error');
+      } else {
+        document.getElementById('tr2').textContent='⚠️ Erro '+res.status+': '+text;
       }
     } else {
       // Sem backend: mostra original com aviso
@@ -3910,9 +3945,11 @@ function stopViagemMode(){
   document.getElementById('sp1').classList.remove('speaking');
   document.getElementById('sp2').classList.remove('speaking');
   const mb=document.getElementById('micbtn');
-  if(mb)mb.className='micb';
-  document.getElementById('mico').textContent='🎙';
+  if(mb)mb.className='micb idle';
+  document.getElementById('mico').textContent='🎙️';
   document.getElementById('micl').textContent='Toque p/ falar';
+  document.getElementById('tr1').textContent='✈️ Modo Offline — toque no microfone';
+  document.getElementById('tr2').textContent='Aguardando resposta...';
   stopSess();
 }
 // ====== SESSÃO ATIVA — MIC REAL + BACKEND ======
@@ -4022,7 +4059,14 @@ async function _processSessAudio(){
     const t0=Date.now();
 
     // Usa /api/listen — confiável e compatível com Render
-    const r=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd});
+    const r=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
+    if(r.status===502||r.status===503||r.status===504){
+      document.getElementById('tr1').textContent='⚠️ Backend offline';
+      document.getElementById('tr2').textContent='Acordando servidor... tente em ~30s';
+      wakeBackend(null);
+      _resetMicBtn();
+      return;
+    }
     const d=await r.json();
     const latMs=Date.now()-t0;
     if(!d.original||d.original.trim().length<2){
@@ -4889,10 +4933,14 @@ let chatUnsubscribe=null;
 
 function initUserChat(){
   const uid=window._fbUser?.uid;
-  if(!uid||!window.FB)return;
+  const msgs=document.getElementById('chat-msgs');
+  if(!msgs)return;
+  if(!uid||!window.FB){
+    msgs.innerHTML='<div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div><div class="cmsg agent"><div class="cmsg-inner" style="background:var(--odim);border:1px solid rgba(255,140,0,.2);">⚠️ Modo offline — suas mensagens serão enviadas quando a conexão for restaurada. Você também pode nos contatar via WhatsApp.</div><div class="cmsg-meta">Sistema · agora</div></div>';
+    return;
+  }
   // Load existing messages and listen for new ones
   if(chatUnsubscribe)chatUnsubscribe();
-  const msgs=document.getElementById('chat-msgs');
   // Clear existing messages except the welcome one
   msgs.innerHTML='<div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div>';
   try{
@@ -5947,8 +5995,14 @@ async function criarSala(){
     const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
     const r = await fetch(getBackendUrl()+'/api/rooms/create',{
       method:'POST',
+      signal:AbortSignal.timeout(12000),
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})}
     });
+    if(r.status===502||r.status===503||r.status===504){
+      if(btn){btn.disabled=false;btn.textContent='👥 Criar sala agora';}
+      wakeBackend(()=>showToast('Backend acordou! Tente criar a sala novamente.','success'));
+      return;
+    }
     const d = await _salaSafeJson(r);
     if(!r.ok||d.error) throw new Error(d.error||'Erro ao criar sala');
 
@@ -6087,6 +6141,18 @@ function _salaConectarSocket(code){
     reconnection:true,
     reconnectionAttempts:10,
     reconnectionDelay:1000,
+  });
+
+  let _connectErrShown=false;
+  _salaSocket.on('connect_error',(err)=>{
+    if(!_connectErrShown){
+      _connectErrShown=true;
+      showToast('⚠️ Backend offline — acordando servidor (~30s)...','error');
+      wakeBackend(()=>{
+        showToast('✅ Backend acordou! Reconectando sala...','success');
+        _salaConectarSocket(code);
+      });
+    }
   });
 
   _salaSocket.on('connect',()=>{

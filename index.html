@@ -498,6 +498,23 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .vocab-del{background:none;border:none;cursor:pointer;font-size:16px;opacity:.5;padding:4px;}
 .vocab-speak{background:none;border:none;cursor:pointer;font-size:16px;opacity:.6;padding:4px;}
 .vocab-empty{text-align:center;padding:40px 14px;color:var(--muted);}
+/* CONVERSA LIVRE */
+.livre-nivel-btn{padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;user-select:none;}
+.livre-nivel-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
+.livre-sit-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .18s;text-align:left;}
+.livre-sit-card:active{transform:scale(.97);}
+.livre-sit-card:hover{border-color:rgba(0,229,255,.25);}
+.livre-sit-icon{font-size:26px;margin-bottom:6px;}
+.livre-sit-nome{font-size:13px;font-weight:700;margin-bottom:2px;}
+.livre-sit-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+.livre-bub{border-radius:14px;padding:10px 13px;max-width:92%;font-size:13px;line-height:1.55;}
+.livre-bub.user{background:var(--adim);border:1px solid rgba(0,229,255,.15);align-self:flex-end;}
+.livre-bub.ai{background:var(--card);border:1px solid var(--border);align-self:flex-start;}
+.livre-bub .lb-label{font-size:10px;font-weight:700;font-family:var(--mono);margin-bottom:4px;}
+.livre-bub.ai .lb-label{color:var(--green);}
+.livre-bub .lb-correcao{font-size:11px;color:var(--orange);background:var(--odim);border-radius:7px;padding:5px 8px;margin-top:6px;line-height:1.4;}
+.livre-bub .lb-acao{display:flex;gap:6px;margin-top:7px;}
+.livre-mic-btn-rec{background:linear-gradient(135deg,var(--red),#ff6b35) !important;animation:ctPulse 1s ease infinite;}
 
 .perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
 .perm-btn{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:all .18s;user-select:none;}
@@ -1401,6 +1418,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div class="learn-tab" onclick="learnTab('flash',this)">🃏 FLASHCARD</div>
           <div class="learn-tab" onclick="learnTab('exer',this)">✏️ PRATICAR</div>
           <div class="learn-tab" onclick="learnTab('vocab',this)">📖 VOCABULÁRIO</div>
+          <div class="learn-tab" id="tab-livre" onclick="learnTab('livre',this)" style="position:relative;">🗣️ LIVRE<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:var(--green);"></span></div>
         </div>
 
         <!-- ── ABA PROFESSOR ── -->
@@ -1496,8 +1514,62 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div class="vocab-scroll" id="vocab-scroll"></div>
         </div>
 
-      </div><!-- /.learn-page -->
-    </div>
+        <!-- ── ABA CONVERSA LIVRE ── -->
+        <div class="learn-tab-panel" id="ltp-livre" style="flex-direction:column;overflow:hidden;">
+          <div id="livre-situacao-sel" style="flex:1;overflow-y:auto;padding:14px;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));min-height:0;">
+            <div style="text-align:center;margin-bottom:16px;">
+              <div style="font-size:28px;margin-bottom:6px;">🗣️</div>
+              <div style="font-size:16px;font-weight:800;margin-bottom:4px;">Conversa Livre</div>
+              <div style="font-size:12px;color:var(--muted);">Escolha uma situação e pratique com IA via voz</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">IDIOMA:</span>
+              <div id="livre-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+              <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">NÍVEL:</span>
+              <div class="livre-nivel-btn active" data-nivel="iniciante" onclick="setLivreNivel(this)">🟢 Iniciante</div>
+              <div class="livre-nivel-btn" data-nivel="intermediário" onclick="setLivreNivel(this)">🔵 Intermediário</div>
+              <div class="livre-nivel-btn" data-nivel="avançado" onclick="setLivreNivel(this)">🔴 Avançado</div>
+            </div>
+            <div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">SITUAÇÕES</div>
+            <div id="livre-sit-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;"></div>
+            <button onclick="livreIASituacao()" style="width:100%;padding:14px;border-radius:13px;background:linear-gradient(135deg,rgba(0,255,136,.12),rgba(0,229,255,.08));border:1px solid rgba(0,255,136,.3);color:var(--green);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">✨ Gerar situação aleatória com IA</button>
+          </div>
+          <div id="livre-conversa" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;">
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;background:var(--surface);">
+              <button onclick="livreVoltar()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text);font-size:16px;">‹</button>
+              <div style="flex:1;min-width:0;">
+                <div id="livre-sit-titulo" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Conversa</div>
+                <div id="livre-sit-sub" style="font-size:10px;color:var(--muted);font-family:var(--mono);"></div>
+              </div>
+              <div id="livre-score-badge" style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--yellow);">0 pts</div>
+            </div>
+            <div id="livre-bubs" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;min-height:0;"></div>
+            <div style="padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));">
+              <div id="livre-dica" style="display:none;font-size:11px;color:var(--accent);background:var(--adim);border-radius:8px;padding:6px 10px;margin-bottom:8px;line-height:1.4;"></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div id="livre-voice-toggle" onclick="livreToggleVoz()" style="display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:11px;font-weight:700;color:var(--muted);transition:all .2s;user-select:none;">
+                  <div id="livre-voice-dot" style="width:7px;height:7px;border-radius:50%;background:var(--muted);transition:all .2s;"></div>
+                  <span id="livre-voice-lbl">🔇 Voz IA off</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:flex-end;">
+                <button id="livre-mic-btn" onclick="livreToggleMic()" style="width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),#0080ff);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 14px rgba(0,229,255,.3);flex-shrink:0;">🎤</button>
+                <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                  <div id="livre-mic-status" style="font-size:11px;color:var(--muted);font-family:var(--mono);">Toque no microfone para falar</div>
+                  <div style="display:flex;gap:6px;">
+                    <input type="text" id="livre-text-inp" class="input-field" placeholder="Ou escreva aqui..." style="flex:1;font-size:13px;" onkeydown="if(event.key==='Enter')livreEnviarTexto()">
+                    <button onclick="livreEnviarTexto()" style="background:var(--adim);border:1px solid rgba(0,229,255,.3);color:var(--accent);border-radius:10px;padding:0 14px;cursor:pointer;font-size:16px;">→</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div><!-- /.learn-page -->
+
 
     <!-- ====== PROFILE / PLANO ====== -->
     <div class="page content-area" id="page-profile">
@@ -7132,64 +7204,6 @@ function flashGot(){_flashOk++;addPts(3);_flashIdx++;_flashFlipped=false;renderF
 function flashNope(){_flashNope++;_flashIdx++;_flashFlipped=false;renderFlashCard();}
 
 // ── EXERCÍCIOS ───────────────────────────────────────────────
-function renderExer(){
-  _buildLangBar('exer-lang-bar','_exerLang',(l)=>{_exerLang=l;buildExer();});
-  buildExer();
-}
-function buildExer(){
-  const wrap=document.getElementById('exer-wrap'); if(!wrap)return;
-  const words=_vocabData.filter(v=>v.lang===_exerLang);
-  const licaoFrases=[];
-  (LICOES_DATA[_exerLang]||[]).forEach(g=>g.itens.forEach(l=>l.frases.slice(0,4).forEach(f=>licaoFrases.push({word:f.orig,trans:f.trans,lang:_exerLang}))));
-  const pool=[...words,...licaoFrases].slice(0,30);
-  if(pool.length<2){
-    wrap.innerHTML='<div style="text-align:center;padding:40px 14px;color:var(--muted);"><div style="font-size:44px;margin-bottom:10px;">✏️</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Poucas palavras</div><div style="font-size:12px;">Salve palavras no vocabulário ou conclua lições</div></div>';
-    return;
-  }
-  const exercicios=[];
-  const shuffled=[...pool].sort(()=>Math.random()-.5);
-  shuffled.slice(0,6).forEach((item,i)=>{
-    const tipo=i%3;
-    if(tipo===0){
-      const wrong=pool.filter(p=>p.word!==item.word).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.trans);
-      const opts=[item.trans,...wrong].sort(()=>Math.random()-.5);
-      exercicios.push({tipo:'MÚLTIPLA ESCOLHA',pergunta:`Como se traduz para português?\n"${item.word}"`,certa:item.trans,opts});
-    }else if(tipo===1){
-      const wrong=pool.filter(p=>p.trans!==item.trans).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.word);
-      const opts=[item.word,...wrong].sort(()=>Math.random()-.5);
-      exercicios.push({tipo:'COMPLETE A FRASE',pergunta:`Como se diz em ${_exerLang}?\n"${item.trans}"`,certa:item.word,opts});
-    }else{
-      const falso=Math.random()>.5;
-      const fTrans=falso?(pool.find(p=>p.word!==item.word)?.trans||'???'):item.trans;
-      exercicios.push({tipo:'VERDADEIRO OU FALSO',pergunta:`"${item.word}" significa "${fTrans}"`,certa:falso?'Falso':'Verdadeiro',opts:['Verdadeiro','Falso']});
-    }
-  });
-  let html='';
-  exercicios.forEach((ex,i)=>{
-    const optsHtml=ex.opts.map(o=>{
-      const os=o.replace(/\\/g,'\\').replace(/'/g,"\'").replace(/"/g,'&quot;');
-      const cs=ex.certa.replace(/\\/g,'\\').replace(/'/g,"\'").replace(/"/g,'&quot;');
-      return `<button class="exer-opt" onclick="checkExer(${i},'${os}','${cs}',this)">${o}</button>`;
-    }).join('');
-    html+=`<div class="exer-card" id="exer-${i}"><div class="exer-tipo">${ex.tipo}</div><div class="exer-pergunta">${ex.pergunta.replace('\n','<br>')}</div><div class="exer-opts">${optsHtml}</div><div class="exer-feedback" id="exfb-${i}"></div></div>`;
-  });
-  html+=`<button class="btn btn-ghost btn-full" style="margin-top:4px;" onclick="buildExer()">🔄 Novos exercícios</button>`;
-  wrap.innerHTML=html;
-}
-function checkExer(idx,resposta,certa,btn){
-  const card=document.getElementById('exer-'+idx);
-  if(!card||card.dataset.done)return; card.dataset.done='1';
-  card.querySelectorAll('.exer-opt').forEach(b=>b.style.pointerEvents='none');
-  const ok=resposta===certa;
-  btn.classList.add(ok?'certo':'errado');
-  if(!ok)card.querySelectorAll('.exer-opt').forEach(b=>{if(b.textContent===certa)b.classList.add('correta');});
-  const fb=document.getElementById('exfb-'+idx);
-  if(fb){fb.className='exer-feedback sh '+(ok?'ok':'err');fb.textContent=ok?'✅ Correto! +3 pts':'❌ Errado. Resposta certa: '+certa;}
-  if(ok){addPts(3);_exerScore+=3;}
-  _exerTotal++;
-  const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
-}
-
 // ── VOCABULÁRIO ──────────────────────────────────────────────
 function loadVocab(){
   try{_vocabData=JSON.parse(localStorage.getItem('aivox_vocab_'+(window._fbUser?.uid||'x'))||'[]');}catch(e){_vocabData=[];}
@@ -7238,6 +7252,750 @@ function renderVocab(skipLoad){
       if(pl.classList.contains('active')){loadStreak();loadVocab();}
     });
     obs.observe(pl,{attributeFilter:['class']});
+  }
+})();
+
+// ════════════════════════════════════════════════════════════════
+//  MELHORIAS MÓDULO APRENDIZAGEM
+// ════════════════════════════════════════════════════════════════
+
+// ── 1. LIÇÕES VIA IA (dinâmicas, sem estático) ────────────────
+let _licoesCacheIA = {}; // {lang_nivel: [{cat,itens}]}
+const _LICOES_TEMAS = {
+  inglês:   ['Cumprimentos','Números','Cores','Família','Restaurante','Viagem','Negócios','Saúde','Compras','Tecnologia','Esportes','Expressões idiomáticas','Phrasal Verbs','Gírias','Trabalho'],
+  espanhol: ['Saludos','Números','Familia','Restaurante','Viaje','Negocios','Salud','Compras','Tecnología','Expresiones'],
+  francês:  ['Salutations','Chiffres','Famille','Restaurant','Voyage','Affaires','Santé','Shopping','Tech','Expressions'],
+  alemão:   ['Begrüßungen','Zahlen','Familie','Restaurant','Reise','Geschäft','Gesundheit','Einkaufen','Technologie','Ausdrücke'],
+  italiano: ['Saluti','Numeri','Famiglia','Ristorante','Viaggio','Affari','Salute','Shopping','Tecnologia','Espressioni'],
+  japonês:  ['挨拶','数字','家族','レストラン','旅行','ビジネス','健康','買い物','技術','表現']
+};
+
+async function _carregarLicoesIA(lang, forceRefresh){
+  const key = lang;
+  if(!forceRefresh && _licoesCacheIA[key]) return _licoesCacheIA[key];
+  // Mostra skeleton loader
+  const scroll = document.getElementById('licoes-scroll');
+  if(scroll) scroll.innerHTML = _licoesSkeleton();
+  try{
+    const temas = _LICOES_TEMAS[lang] || _LICOES_TEMAS['inglês'];
+    const prompt = `Crie um currículo de aprendizado de ${lang} para brasileiros. 
+Retorne APENAS JSON válido (sem markdown), com este formato exato:
+[
+  {"cat":"🟢 Iniciante","itens":[
+    {"id":"${lang.slice(0,2)}-tema1","icon":"emoji","nome":"Nome","desc":"desc curta","frases":[
+      {"orig":"frase no idioma","trans":"tradução em PT","pron":"pronúncia simplificada"}
+    ]}
+  ]},
+  {"cat":"🔵 Intermediário","itens":[...]},
+  {"cat":"🔴 Avançado","itens":[...]}
+]
+Regras:
+- Iniciante: 4 lições, 8 frases cada
+- Intermediário: 4 lições, 7 frases cada  
+- Avançado: 3 lições, 6 frases cada
+- Frases variadas e úteis do dia a dia
+- IDs únicos como "${lang.slice(0,2)}-cumprimentos"
+- Emojis relevantes para cada tema
+- Pronúncia em notação fácil para brasileiros`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:3000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const txt = data.content?.[0]?.text || '';
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    _licoesCacheIA[key] = parsed;
+    return parsed;
+  }catch(e){
+    console.error('IA licoes erro:',e);
+    // fallback ao estático
+    return LICOES_DATA[lang] || [];
+  }
+}
+
+function _licoesSkeleton(){
+  let h = '';
+  for(let i=0;i<3;i++){
+    h += `<div style="height:14px;width:120px;border-radius:4px;margin:14px 0 8px;" class="skeleton"></div>`;
+    for(let j=0;j<3;j++) h+=`<div style="height:64px;border-radius:14px;margin-bottom:9px;" class="skeleton"></div>`;
+  }
+  return h;
+}
+
+// Override renderLicoes to use IA
+async function renderLicoes(){
+  const scroll=document.getElementById('licoes-scroll'); if(!scroll)return;
+  const dados = await _carregarLicoesIA(_licaoLang);
+  const conc=_getLicoesConcluidas();
+  const prog=_getLicoesProgresso();
+  let html='';
+  dados.forEach(grupo=>{
+    html+=`<div class="licao-cat">${grupo.cat}</div>`;
+    grupo.itens.forEach(l=>{
+      const ok=conc.includes(l.id);
+      const p=prog[l.id]||0;
+      const total=l.frases?.length||1;
+      const pct=Math.round(p/total*100);
+      const barColor=ok?'var(--green)':'var(--accent)';
+      html+=`<div class="licao-card" onclick="openLicao('${l.id}','ia')">
+        <div class="licao-icon">${l.icon}</div>
+        <div class="licao-info">
+          <div class="licao-nome">${l.nome}</div>
+          <div class="licao-desc">${l.desc}</div>
+          ${p>0?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:5px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;transition:width .4s;"></div></div>`:''}
+        </div>
+        <div class="licao-badge ${ok?'ok':'novo'}">${ok?'✓ OK':p>0?p+'/'+total:'NOVO'}</div>
+      </div>`;
+    });
+  });
+  if(!html) html='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Gerando lições...</div>';
+  // botão para regenerar
+  html+=`<button onclick="renderLicoesForce()" class="btn btn-ghost btn-full" style="margin-top:8px;font-size:12px;">🔄 Regenerar lições com IA</button>`;
+  scroll.innerHTML=html;
+  // cache IA data globally for openLicao
+  window._licoesIAData = window._licoesIAData || {};
+  window._licoesIAData[_licaoLang] = _licoesCacheIA[_licaoLang];
+}
+function renderLicoesForce(){
+  delete _licoesCacheIA[_licaoLang];
+  renderLicoes();
+}
+
+function _getLicoesProgresso(){
+  try{return JSON.parse(localStorage.getItem('aivox_prog_'+(window._fbUser?.uid||'x'))||'{}');}catch(e){return{};}
+}
+function _setLicaoProgresso(id, fraseIdx){
+  const key='aivox_prog_'+(window._fbUser?.uid||'x');
+  try{
+    const d=_getLicoesProgresso();
+    d[id]=Math.max(d[id]||0, fraseIdx+1);
+    localStorage.setItem(key,JSON.stringify(d));
+  }catch(e){}
+}
+
+// Override openLicao to work with IA data
+async function openLicao(id, src){
+  let licao=null;
+  // Try IA data first
+  if(window._licoesIAData?.[_licaoLang]){
+    window._licoesIAData[_licaoLang].forEach(g=>g.itens.forEach(l=>{if(l.id===id)licao=l;}));
+  }
+  if(!licao) Object.values(LICOES_DATA).forEach(gs=>gs.forEach(g=>g.itens.forEach(l=>{if(l.id===id)licao=l;})));
+  if(!licao) return;
+  _currentLicao=licao;
+  document.getElementById('licao-modal-title').textContent=licao.icon+' '+licao.nome;
+  document.getElementById('licao-modal-sub').textContent=licao.desc;
+  const prog=_getLicoesProgresso();
+  let html=`<div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);">${licao.frases.length} FRASES — toque em 🔊 para ouvir ou 📖 para salvar</div>`;
+  licao.frases.forEach((f,idx)=>{
+    const wo=f.orig.replace(/['"]/g,''); const wt=f.trans.replace(/['"]/g,'');
+    const saved=(prog[licao.id]||0)>idx;
+    html+=`<div class="licao-phrase" id="lp-${idx}" style="${saved?'border-color:rgba(0,255,136,.25);':''}">
+      <div class="licao-phrase-orig">${f.orig}</div>
+      <div class="licao-phrase-trans">${f.trans}</div>
+      <div class="licao-phrase-pron">/${f.pron}/</div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="lb-btn" onclick="_speakTranslation('${wo.replace(/'/g,"\\'")}')">🔊 Ouvir</button>
+        <button class="lb-btn" id="lp-save-${idx}" onclick="licaoSalvarFrase('${licao.id}',${idx},'${wo.replace(/'/g,"\\'")}','${wt.replace(/'/g,"\\'")}','${_licaoLang}')" style="${saved?'color:var(--green);border-color:rgba(0,255,136,.3);':''}">📖 ${saved?'Salvo':'Salvar'}</button>
+      </div>
+    </div>`;
+  });
+  html+=`<button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="concluirLicao('${id}')">✅ Marcar como concluída +10 pts</button>`;
+  document.getElementById('licao-modal-body').innerHTML=html;
+  document.getElementById('licao-modal').classList.add('sh');
+}
+function licaoSalvarFrase(id, idx, word, trans, lang){
+  saveVocabWord(word,trans,lang);
+  _setLicaoProgresso(id,idx);
+  const btn=document.getElementById('lp-save-'+idx);
+  const ph=document.getElementById('lp-'+idx);
+  if(btn){btn.textContent='📖 Salvo';btn.style.color='var(--green)';btn.style.borderColor='rgba(0,255,136,.3)';}
+  if(ph)ph.style.borderColor='rgba(0,255,136,.25)';
+  // check auto-concluir
+  const licao=_currentLicao;
+  if(licao){
+    const prog=_getLicoesProgresso();
+    if((prog[id]||0)>=licao.frases.length) showToast('🏆 Todas frases salvas! Lição concluída!','success');
+  }
+}
+
+// ── 2. SRS — Repetição Espaçada nos Flashcards ───────────────
+function _getSRSData(){
+  try{return JSON.parse(localStorage.getItem('aivox_srs_'+(window._fbUser?.uid||'x'))||'{}');}catch(e){return{};}
+}
+function _saveSRS(data){
+  try{localStorage.setItem('aivox_srs_'+(window._fbUser?.uid||'x'),JSON.stringify(data));}catch(e){}
+}
+function _updateSRS(word, lang, knew){
+  const d=_getSRSData(); const k=lang+'|'+word;
+  const item=d[k]||{interval:1,ease:2.5,due:0,reps:0};
+  const now=Date.now();
+  if(knew){
+    item.reps=(item.reps||0)+1;
+    item.interval=item.reps<2?1:item.reps<3?3:Math.round(item.interval*item.ease);
+    item.ease=Math.max(1.3,item.ease+0.1);
+  }else{
+    item.interval=1; item.reps=0; item.ease=Math.max(1.3,item.ease-0.2);
+  }
+  item.due=now+item.interval*86400000;
+  d[k]=item; _saveSRS(d);
+}
+function _getSRSDue(){
+  const d=_getSRSData(); const now=Date.now();
+  return Object.keys(d).filter(k=>d[k].due<=now).length;
+}
+
+// Override buildFlashDeck to prioritize SRS due cards
+function buildFlashDeck(){
+  const srs=_getSRSData(); const now=Date.now();
+  const all=[..._vocabData.filter(v=>v.lang===_flashLang)].sort(()=>Math.random()-.5);
+  // Prioritize overdue cards
+  const due=all.filter(v=>{const k=_flashLang+'|'+v.word; return !srs[k]||(srs[k].due||0)<=now;});
+  const notDue=all.filter(v=>{const k=_flashLang+'|'+v.word; return srs[k]&&srs[k].due>now;});
+  _flashDeck=[...due,...notDue.slice(0,3)];
+  _flashIdx=0; _flashOk=0; _flashNope=0; _flashFlipped=false;
+  // Update due badge
+  const dueCount=_getSRSDue();
+  const tab=document.querySelector('.learn-tab[onclick*="flash"]');
+  if(tab&&dueCount>0) tab.innerHTML=`🃏 FLASHCARD <span style="background:var(--red);color:#fff;font-size:9px;border-radius:5px;padding:1px 5px;font-family:var(--mono);">${dueCount}</span>`;
+}
+// Override flashGot/flashNope to update SRS
+const _origFlashGot=window.flashGot;
+window.flashGot=function(){
+  if(_flashDeck[_flashIdx]) _updateSRS(_flashDeck[_flashIdx].word,_flashLang,true);
+  _flashOk++; addPts(3); _flashIdx++; _flashFlipped=false; renderFlashCard();
+};
+window.flashNope=function(){
+  if(_flashDeck[_flashIdx]) _updateSRS(_flashDeck[_flashIdx].word,_flashLang,false);
+  _flashNope++; _flashIdx++; _flashFlipped=false; renderFlashCard();
+};
+
+// ── 3. EXERCÍCIOS MELHORADOS (IA + escrita + voz) ────────────
+let _exerMode='vocab'; // 'vocab' | 'licoes' | 'ambos'
+
+function renderExer(){
+  _buildLangBar('exer-lang-bar','_exerLang',(l)=>{_exerLang=l;buildExerIA();});
+  buildExerIA();
+}
+
+async function buildExerIA(){
+  const wrap=document.getElementById('exer-wrap'); if(!wrap)return;
+  const words=_vocabData.filter(v=>v.lang===_exerLang);
+  const licaoFrases=[];
+  (LICOES_DATA[_exerLang]||[]).forEach(g=>g.itens.forEach(l=>l.frases.slice(0,4).forEach(f=>licaoFrases.push({word:f.orig,trans:f.trans,lang:_exerLang}))));
+  // também usar lições IA
+  if(window._licoesIAData?.[_exerLang]){
+    window._licoesIAData[_exerLang].forEach(g=>g.itens.forEach(l=>l.frases?.slice(0,3).forEach(f=>licaoFrases.push({word:f.orig,trans:f.trans,lang:_exerLang}))));
+  }
+  const pool=[...words,...licaoFrases].slice(0,40);
+  if(pool.length<2){
+    wrap.innerHTML=`<div style="text-align:center;padding:40px 14px;color:var(--muted);">
+      <div style="font-size:44px;margin-bottom:10px;">✏️</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Poucas palavras</div>
+      <div style="font-size:12px;">Salve palavras no vocabulário ou acesse as lições</div>
+    </div>`; return;
+  }
+  // Filtro de modo
+  wrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+    <span style="font-size:11px;color:var(--muted);font-family:var(--mono);">FONTE:</span>
+    ${['ambos','vocab','licoes'].map(m=>`<div onclick="setExerMode('${m}',this)" class="exer-mode-btn ${_exerMode===m?'active':''}" style="padding:3px 10px;border-radius:20px;border:1px solid ${_exerMode===m?'rgba(0,229,255,.4)':'var(--border)'};background:${_exerMode===m?'var(--adim)':'var(--card)'};font-size:11px;font-weight:700;cursor:pointer;color:${_exerMode===m?'var(--accent)':'var(--muted)'};transition:all .18s;">${m==='ambos'?'🔀 Ambos':m==='vocab'?'📖 Vocabulário':'📚 Lições'}</div>`).join('')}
+  </div><div id="exer-cards-wrap"></div>`;
+  _buildExerCards(pool);
+}
+function setExerMode(mode, el){
+  _exerMode=mode;
+  document.querySelectorAll('.exer-mode-btn').forEach(b=>{
+    const isThis=b.textContent.toLowerCase().includes(mode)||b.onclick?.toString().includes(mode);
+  });
+  buildExerIA();
+}
+function _buildExerCards(pool){
+  const target=document.getElementById('exer-cards-wrap')||document.getElementById('exer-wrap');
+  if(!target)return;
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  const exercicios=[];
+  shuffled.slice(0,8).forEach((item,i)=>{
+    const tipo=i%4;
+    if(tipo===0){
+      // Múltipla escolha PT→idioma
+      const wrong=pool.filter(p=>p.word!==item.word).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.trans);
+      const opts=[item.trans,...wrong].sort(()=>Math.random()-.5);
+      exercicios.push({tipo:'MÚLTIPLA ESCOLHA',pergunta:`Como se traduz?\n"${item.word}"`,certa:item.trans,opts,word:item.word});
+    }else if(tipo===1){
+      // Escreva a palavra
+      exercicios.push({tipo:'ESCREVA',pergunta:`Como se diz em ${_exerLang}?\n"${item.trans}"`,certa:item.word,opts:null,word:item.word,trans:item.trans});
+    }else if(tipo===2){
+      // Complete (idioma→PT)
+      const wrong=pool.filter(p=>p.trans!==item.trans).sort(()=>Math.random()-.5).slice(0,3).map(p=>p.word);
+      const opts=[item.word,...wrong].sort(()=>Math.random()-.5);
+      exercicios.push({tipo:'COMPLETE A FRASE',pergunta:`Como se diz em ${_exerLang}?\n"${item.trans}"`,certa:item.word,opts,word:item.word});
+    }else{
+      // Verdadeiro/Falso
+      const falso=Math.random()>.5;
+      const fTrans=falso?(pool.find(p=>p.word!==item.word)?.trans||'???'):item.trans;
+      exercicios.push({tipo:'VERDADEIRO OU FALSO',pergunta:`"${item.word}" significa "${fTrans}"`,certa:falso?'Falso':'Verdadeiro',opts:['Verdadeiro','Falso'],word:item.word});
+    }
+  });
+  let html='';
+  exercicios.forEach((ex,i)=>{
+    if(ex.tipo==='ESCREVA'){
+      const cEsc=ex.certa.replace(/'/g,"\\'");
+      html+=`<div class="exer-card" id="exer-${i}">
+        <div class="exer-tipo">${ex.tipo}</div>
+        <div class="exer-pergunta">${ex.pergunta.replace('\n','<br>')}</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="exer-inp-${i}" class="input-field" placeholder="Digite em ${_exerLang}..." style="flex:1;font-size:14px;" onkeydown="if(event.key==='Enter')checkExerEscrita(${i},'${cEsc}')">
+          <button onclick="checkExerEscrita(${i},'${cEsc}')" style="background:var(--adim);border:1px solid rgba(0,229,255,.3);color:var(--accent);border-radius:10px;padding:0 14px;cursor:pointer;">→</button>
+        </div>
+        <div class="exer-feedback" id="exfb-${i}"></div>
+      </div>`;
+    }else{
+      const optsHtml=ex.opts.map(o=>{
+        const os=o.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const cs=ex.certa.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        return `<button class="exer-opt" onclick="checkExer(${i},'${os}','${cs}',this)">${o}</button>`;
+      }).join('');
+      html+=`<div class="exer-card" id="exer-${i}">
+        <div class="exer-tipo">${ex.tipo}</div>
+        <div class="exer-pergunta">${ex.pergunta.replace('\n','<br>')}</div>
+        <div class="exer-opts">${optsHtml}</div>
+        <div class="exer-feedback" id="exfb-${i}"></div>
+      </div>`;
+    }
+  });
+  html+=`<button class="btn btn-ghost btn-full" style="margin-top:4px;" onclick="buildExerIA()">🔄 Novos exercícios</button>`;
+  target.innerHTML=html;
+}
+function checkExer(idx,resposta,certa,btn){
+  const card=document.getElementById('exer-'+idx);
+  if(!card||card.dataset.done)return; card.dataset.done='1';
+  card.querySelectorAll('.exer-opt').forEach(b=>b.style.pointerEvents='none');
+  const ok=resposta===certa;
+  btn.classList.add(ok?'certo':'errado');
+  if(!ok)card.querySelectorAll('.exer-opt').forEach(b=>{if(b.textContent===certa)b.classList.add('correta');});
+  const fb=document.getElementById('exfb-'+idx);
+  if(fb){
+    fb.className='exer-feedback sh '+(ok?'ok':'err');
+    fb.innerHTML=ok?'✅ Correto! +3 pts':`❌ Errado. Certa: <strong>${certa}</strong> <button class="lb-btn" onclick="_speakTranslation('${certa.replace(/'/g,"\\'")}')">🔊</button>`;
+  }
+  if(ok){addPts(3);_exerScore+=3;}
+  _exerTotal++;
+  const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
+}
+function checkExerEscrita(idx, certa){
+  const card=document.getElementById('exer-'+idx);
+  if(!card||card.dataset.done)return; card.dataset.done='1';
+  const inp=document.getElementById('exer-inp-'+idx); if(!inp)return;
+  const resp=inp.value.trim();
+  inp.disabled=true;
+  // Levenshtein tolerance 1
+  const dist=(a,b)=>{const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=a[i-1]===b[j-1]?d[i-1][j-1]:1+Math.min(d[i-1][j],d[i][j-1],d[i-1][j-1]);return d[m][n];};
+  const ok=resp.toLowerCase()===certa.toLowerCase()||dist(resp.toLowerCase(),certa.toLowerCase())<=1;
+  const fb=document.getElementById('exfb-'+idx);
+  if(fb){
+    fb.className='exer-feedback sh '+(ok?'ok':'err');
+    fb.innerHTML=(ok?`✅ Correto! +5 pts`:`❌ Resposta: <strong>${certa}</strong> <button class="lb-btn" onclick="_speakTranslation('${certa.replace(/'/g,"\\'")}')">🔊</button>`);
+  }
+  if(ok){addPts(5);_exerScore+=5;}
+  _exerTotal++;
+  const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
+}
+
+// ── 4. SWIPE nos flashcards (mobile) ─────────────────────────
+let _flashTouchX=0;
+document.addEventListener('touchstart',e=>{
+  if(e.target.closest('#flash-wrap')) _flashTouchX=e.touches[0].clientX;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!e.target.closest('#flash-wrap'))return;
+  const dx=e.changedTouches[0].clientX-_flashTouchX;
+  if(Math.abs(dx)>60&&_flashFlipped){
+    if(dx>0) flashGot(); else flashNope();
+  }else if(Math.abs(dx)>60&&!_flashFlipped){
+    flipFlash();
+  }
+},{passive:true});
+
+// ── 5. GRÁFICO DE PROGRESSO SEMANAL ──────────────────────────
+function _saveProgressDay(pts){
+  try{
+    const uid=window._fbUser?.uid||'x';
+    const key='aivox_progress_'+uid;
+    const d=JSON.parse(localStorage.getItem(key)||'{}');
+    const today=new Date().toISOString().slice(0,10);
+    d[today]=(d[today]||0)+pts;
+    // keep last 30 days
+    const keys=Object.keys(d).sort().slice(-30);
+    const trimmed={}; keys.forEach(k=>trimmed[k]=d[k]);
+    localStorage.setItem(key,JSON.stringify(trimmed));
+  }catch(e){}
+}
+// Hook addPts to also save daily progress
+const _origAddPts=window.addPts||function(){};
+window.addPts=function(n){
+  _streakPts+=n; _saveStreak(); updateStreakUI();
+  _saveProgressDay(n);
+};
+
+function renderProgressBar(){
+  const uid=window._fbUser?.uid||'x';
+  try{
+    const d=JSON.parse(localStorage.getItem('aivox_progress_'+uid)||'{}');
+    const today=new Date();
+    const days=Array.from({length:7},(_,i)=>{
+      const dt=new Date(today); dt.setDate(dt.getDate()-6+i);
+      const k=dt.toISOString().slice(0,10);
+      return{k,pts:d[k]||0,day:['D','S','T','Q','Q','S','S'][dt.getDay()]};
+    });
+    const max=Math.max(...days.map(x=>x.pts),1);
+    const today0=today.toISOString().slice(0,10);
+    let html=`<div style="display:flex;align-items:flex-end;gap:4px;height:44px;margin-top:8px;">`;
+    days.forEach(d=>{
+      const pct=Math.round(d.pts/max*100);
+      const isToday=d.k===today0;
+      html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <div style="width:100%;height:${Math.max(pct*0.3,2)}px;background:${isToday?'var(--accent)':'var(--adim)'};border-radius:3px 3px 0 0;min-height:2px;transition:height .4s;"></div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);">${d.day}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+    const existing=document.getElementById('streak-progress-chart');
+    if(!existing){
+      const bar=document.querySelector('.learn-streak-bar');
+      if(bar){
+        const chart=document.createElement('div');
+        chart.id='streak-progress-chart';
+        chart.style.cssText='width:100%;padding:0 16px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;';
+        chart.innerHTML=html;
+        bar.after(chart);
+      }
+    }else{
+      existing.innerHTML=html;
+    }
+  }catch(e){}
+}
+
+// ── 6. AUTO-SALVAR PALAVRAS DO PROFESSOR ─────────────────────
+function _extractVocabFromAI(text, lang){
+  // Extract words between ** or in the form "word - translation"
+  const matches=[];
+  // Pattern: **word** ou *word*
+  const boldReg=/\*{1,2}([^*]{2,30})\*{1,2}/g;
+  let m;
+  while((m=boldReg.exec(text))!==null){
+    if(!m[1].includes('\n')) matches.push(m[1].trim());
+  }
+  return [...new Set(matches)].slice(0,5);
+}
+function _showVocabChips(words, lang, bubbleEl){
+  if(!words.length)return;
+  const chips=document.createElement('div');
+  chips.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;';
+  chips.innerHTML='<span style="font-size:10px;color:var(--muted);font-family:var(--mono);width:100%;">💡 SALVAR:</span>';
+  words.forEach(w=>{
+    const btn=document.createElement('button');
+    btn.className='lb-btn';
+    btn.style.cssText='font-size:11px;padding:3px 9px;';
+    btn.textContent='+ '+w;
+    btn.onclick=()=>{saveVocabWord(w,'',lang);btn.style.background='var(--gdim)';btn.style.color='var(--green)';btn.disabled=true;btn.textContent='✓ '+w;};
+    chips.appendChild(btn);
+  });
+  bubbleEl.appendChild(chips);
+}
+
+// ── 7. STREAK SAVE TO FIRESTORE ──────────────────────────────
+async function _syncProgressFirestore(){
+  if(!window.db||!window._fbUser?.uid)return;
+  try{
+    const uid=window._fbUser.uid;
+    const d=JSON.parse(localStorage.getItem('aivox_progress_'+uid)||'{}');
+    const today=new Date().toISOString().slice(0,10);
+    if(d[today]>0){
+      await db.collection('users').doc(uid).collection('progress').doc(today)
+        .set({pts:d[today],date:today,updatedAt:serverTimestamp()},{merge:true});
+    }
+    // Sync vocab
+    const vocab=JSON.parse(localStorage.getItem('aivox_vocab_'+uid)||'[]');
+    if(vocab.length>0){
+      await db.collection('users').doc(uid).set({vocabCount:vocab.length},{merge:true});
+    }
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MÓDULO CONVERSA LIVRE
+// ════════════════════════════════════════════════════════════════
+let _livreLang='inglês', _livreNivel='iniciante', _livreSit=null;
+let _livreHistory=[], _livreListening=false, _livreRecog=null, _livreVoz=false;
+let _livrePts=0;
+
+const _LIVRE_SITUACOES = [
+  {id:'restaurante',icon:'🍽️',nome:'No restaurante',desc:'Peça comida, vinho, pergunte sobre o menu',personagem:'garçom(ã) de um restaurante chique',lugar:'restaurante'},
+  {id:'aeroporto',icon:'✈️',nome:'No aeroporto',desc:'Check-in, alfândega, embarque',personagem:'agente de aeroporto',lugar:'aeroporto'},
+  {id:'entrevista',icon:'💼',nome:'Entrevista de emprego',desc:'Apresente-se, fale de experiências',personagem:'entrevistador(a) de RH de empresa tech',lugar:'sala de entrevistas'},
+  {id:'hotel',icon:'🏨',nome:'Check-in no hotel',desc:'Reserve quarto, pergunte sobre serviços',personagem:'recepcionista de hotel',lugar:'recepção do hotel'},
+  {id:'medico',icon:'🏥',nome:'Consulta médica',desc:'Descreva sintomas, entenda diagnóstico',personagem:'médico(a)',lugar:'consultório'},
+  {id:'shopping',icon:'🛍️',nome:'Fazendo compras',desc:'Pergunte tamanhos, preços, trocas',personagem:'vendedor(a) de loja',lugar:'loja de roupas'},
+  {id:'taxi',icon:'🚕',nome:'No táxi / Uber',desc:'Dê o endereço, pergunte o tempo',personagem:'motorista de táxi',lugar:'carro'},
+  {id:'banco',icon:'🏦',nome:'No banco',desc:'Abra conta, pergunte sobre serviços',personagem:'gerente de banco',lugar:'agência bancária'},
+  {id:'turismo',icon:'🗺️',nome:'Pedindo informações',desc:'Pergunte direções, pontos turísticos',personagem:'morador local',lugar:'rua da cidade'},
+  {id:'amigo',icon:'👋',nome:'Encontro casual',desc:'Bate-papo informal com amigo nativo',personagem:'amigo(a) nativo(a) descontraído',lugar:'café'},
+  {id:'reuniao',icon:'📊',nome:'Reunião de negócios',desc:'Apresente projeto, negocie, faça perguntas',personagem:'sócio(a) de negócios',lugar:'sala de reuniões'},
+  {id:'escola',icon:'🎓',nome:'Na universidade',desc:'Fale com professor, pergunte sobre aula',personagem:'professor(a) universitário',lugar:'campus universitário'},
+];
+
+function renderLivre(){
+  _buildLangBar('livre-lang-bar','_livreLang',(l)=>{_livreLang=l;});
+  const grid=document.getElementById('livre-sit-grid'); if(!grid)return;
+  grid.innerHTML=_LIVRE_SITUACOES.map(s=>`
+    <div class="livre-sit-card" onclick="livreIniciar('${s.id}')">
+      <div class="livre-sit-icon">${s.icon}</div>
+      <div class="livre-sit-nome">${s.nome}</div>
+      <div class="livre-sit-desc">${s.desc}</div>
+    </div>`).join('');
+}
+
+async function livreIASituacao(){
+  const btn=event.target; btn.textContent='⏳ Gerando...'; btn.disabled=true;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages:[{role:'user',content:`Crie uma situação de conversa para praticar ${_livreLang} nível ${_livreNivel}. 
+Retorne APENAS JSON (sem markdown):
+{"id":"unico","icon":"emoji","nome":"Nome curto","desc":"Descrição 1 linha","personagem":"quem é o outro","lugar":"onde acontece"}
+Seja criativo e diferente do comum!`}]
+      })
+    });
+    const data=await res.json();
+    const txt=data.content?.[0]?.text||'';
+    const s=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    _LIVRE_SITUACOES.unshift(s);
+    renderLivre();
+    livreIniciar(s.id);
+  }catch(e){
+    showToast('Erro ao gerar situação','error');
+  }finally{btn.textContent='✨ Gerar situação aleatória com IA';btn.disabled=false;}
+}
+
+async function livreIniciar(sitId){
+  const sit=_LIVRE_SITUACOES.find(s=>s.id===sitId);
+  if(!sit)return;
+  _livreSit=sit; _livreHistory=[]; _livrePts=0;
+  document.getElementById('livre-sit-titulo').textContent=sit.icon+' '+sit.nome;
+  document.getElementById('livre-sit-sub').textContent=sit.personagem+' · '+sit.lugar;
+  document.getElementById('livre-score-badge').textContent='0 pts';
+  document.getElementById('livre-bubs').innerHTML='';
+  document.getElementById('livre-situacao-sel').style.display='none';
+  const conv=document.getElementById('livre-conversa'); conv.style.display='flex';
+  // Iniciar com mensagem da IA
+  await livreRespostaIA(null, true);
+}
+
+function livreVoltar(){
+  if(_livreListening) _livreStopMic();
+  document.getElementById('livre-conversa').style.display='none';
+  document.getElementById('livre-situacao-sel').style.display='block';
+  _livreSit=null; _livreHistory=[];
+}
+
+function livreAddBubble(tipo, html, speak, showAudio){
+  const bubs=document.getElementById('livre-bubs'); if(!bubs)return;
+  const div=document.createElement('div');
+  div.className='livre-bub '+tipo;
+  const label=tipo==='ai'?`<div class="lb-label">🤖 ${_livreSit?.personagem?.toUpperCase()||'IA'}</div>`:`<div class="lb-label">👤 VOCÊ</div>`;
+  let actions='';
+  if(tipo==='ai'&&showAudio){
+    const safeHtml=html.replace(/'/g,"\\'").replace(/<[^>]*>/g,'').slice(0,200);
+    actions=`<div class="lb-acao"><button class="lb-btn" onclick="_speakTranslation('${safeHtml}')">🔊 Ouvir</button></div>`;
+  }
+  div.innerHTML=label+html+actions;
+  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight;
+  if(speak&&_livreVoz){
+    const plain=html.replace(/<[^>]*>/g,'').replace(/\[.*?\]/g,'').trim();
+    setTimeout(()=>_speakTranslation(plain),200);
+  }
+}
+
+function livreShowThinking(){
+  const bubs=document.getElementById('livre-bubs'); if(!bubs)return null;
+  const div=document.createElement('div'); div.className='livre-bub ai'; div.id='livre-thinking';
+  const dot=document.getElementById('livre-status-dot');
+  if(dot){dot.style.background='var(--yellow)';dot.style.boxShadow='0 0 6px var(--yellow)';}
+  div.innerHTML=`<div class="lb-label">🤖 ${_livreSit?.personagem?.toUpperCase()||'IA'}</div><div class="learn-thinking"><span></span><span></span><span></span></div>`;
+  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight; return div;
+}
+
+async function livreRespostaIA(userMsg, isFirst){
+  const thinking=livreShowThinking();
+  try{
+    const langMap={'inglês':'English','espanhol':'Spanish','francês':'French','alemão':'German','italiano':'Italian','japonês':'Japanese'};
+    const targetLang=langMap[_livreLang]||'English';
+    const sysPrompt=`You are playing the role of: ${_livreSit?.personagem||'a native speaker'}.
+Location: ${_livreSit?.lugar||'unknown'}.
+The user is a Brazilian learning ${targetLang} at ${_livreNivel} level.
+Rules:
+- ALWAYS respond in ${targetLang} (the target language)
+- Keep responses natural and conversational (2-4 sentences max)
+- Match the situation: ${_livreSit?.nome||'conversation'}
+- If the user makes grammar/vocabulary errors, gently correct at the end with: [Dica: ...]
+- Adapt difficulty to ${_livreNivel} level
+- Stay in character throughout
+- If initiating: start the conversation naturally as your character would`;
+
+    const messages=[...(_livreHistory.slice(-8))];
+    if(userMsg) messages.push({role:'user',content:userMsg});
+    else messages.push({role:'user',content:`Start the conversation. You are ${_livreSit?.personagem} at ${_livreSit?.lugar}. Begin naturally.`});
+
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        system:sysPrompt,
+        messages
+      })
+    });
+    const data=await res.json();
+    if(thinking)thinking.remove();
+    const dot=document.getElementById('livre-status-dot');
+    if(dot){dot.style.background='var(--green)';dot.style.boxShadow='0 0 6px var(--green)';}
+
+    const resp=data.content?.[0]?.text||'...';
+    // Separate correction hint if present
+    const dica=resp.match(/\[Dica:(.*?)\]/s);
+    let mainResp=resp.replace(/\[Dica:.*?\]/s,'').trim();
+
+    _livreHistory.push({role:userMsg?'user':'user',content:userMsg||'(start)'});
+    _livreHistory.push({role:'assistant',content:mainResp});
+
+    let html=mainResp.replace(/\n/g,'<br>');
+    if(dica){
+      html+=`<div class="lb-correcao">💡 Dica: ${dica[1].trim()}</div>`;
+    }
+    livreAddBubble('ai', html, true, true);
+    addPts(1);
+  }catch(e){
+    if(thinking)thinking.remove();
+    livreAddBubble('ai','⚠️ Erro de conexão. Tente novamente.',false,false);
+  }
+}
+
+async function livreEnviarMensagem(texto){
+  if(!texto.trim()||!_livreSit)return;
+  livreAddBubble('user', texto, false, false);
+  _livrePts+=2; addPts(2);
+  document.getElementById('livre-score-badge').textContent=_livrePts+' pts';
+  await livreRespostaIA(texto, false);
+}
+
+function livreEnviarTexto(){
+  const inp=document.getElementById('livre-text-inp'); if(!inp||!inp.value.trim())return;
+  const txt=inp.value.trim(); inp.value='';
+  livreEnviarMensagem(txt);
+}
+
+function livreToggleVoz(){
+  _livreVoz=!_livreVoz;
+  const t=document.getElementById('livre-voice-toggle');
+  const d=document.getElementById('livre-voice-dot');
+  const l=document.getElementById('livre-voice-lbl');
+  if(_livreVoz){
+    if(t){t.style.borderColor='rgba(0,229,255,.35)';t.style.background='var(--adim)';t.style.color='var(--accent)';}
+    if(d){d.style.background='var(--accent)';d.style.boxShadow='0 0 6px var(--accent)';}
+    if(l)l.textContent='🔊 Voz IA on';
+    showToast('🔊 Voz da IA ativada','info');
+  }else{
+    if(t){t.style.borderColor='';t.style.background='var(--card)';t.style.color='var(--muted)';}
+    if(d){d.style.background='var(--muted)';d.style.boxShadow='none';}
+    if(l)l.textContent='🔇 Voz IA off';
+  }
+}
+
+function livreToggleMic(){if(_livreListening)_livreStopMic();else _livreStartMic();}
+function _livreStartMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Navegador não suporta voz','error');return;}
+  const langCodes={'inglês':'en-US','espanhol':'es-ES','francês':'fr-FR','alemão':'de-DE','italiano':'it-IT','japonês':'ja-JP'};
+  let got=false;
+  _livreRecog=new SR();
+  _livreRecog.lang=langCodes[_livreLang]||'en-US';
+  _livreRecog.continuous=false; _livreRecog.interimResults=false;
+  _livreRecog.onresult=(e)=>{got=true;const t=e.results[0][0].transcript;_livreStopMic();if(t)livreEnviarMensagem(t);};
+  _livreRecog.onerror=(e)=>{if(e.error!=='no-speech'&&e.error!=='aborted')showToast('Erro mic: '+e.error,'error');_livreStopMic();};
+  _livreRecog.onend=()=>{if(!got)_livreStopMic();};
+  try{
+    _livreRecog.start(); _livreListening=true;
+    const btn=document.getElementById('livre-mic-btn'), st=document.getElementById('livre-mic-status');
+    if(btn){btn.classList.add('livre-mic-btn-rec');btn.textContent='⏹';}
+    if(st)st.textContent='🔴 Ouvindo em '+_livreLang+'...';
+  }catch(e){showToast('Erro ao iniciar mic','error');_livreListening=false;}
+}
+function _livreStopMic(){
+  _livreListening=false; try{_livreRecog?.stop();}catch(_){} _livreRecog=null;
+  const btn=document.getElementById('livre-mic-btn'), st=document.getElementById('livre-mic-status');
+  if(btn){btn.classList.remove('livre-mic-btn-rec');btn.textContent='🎤';}
+  if(st)st.textContent='Toque no microfone para falar';
+}
+function setLivreNivel(el){
+  document.querySelectorAll('.livre-nivel-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); _livreNivel=el.dataset.nivel;
+}
+
+// ── Override learnTab to init livre ──────────────────────────
+const _origLearnTab=window.learnTab;
+window.learnTab=function(tab,el){
+  document.querySelectorAll('.learn-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.learn-tab-panel').forEach(p=>p.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const panel=document.getElementById('ltp-'+tab);
+  if(panel)panel.classList.add('active');
+  if(tab==='licoes')renderLicoes();
+  if(tab==='flash')renderFlash();
+  if(tab==='exer')renderExer();
+  if(tab==='vocab')renderVocab();
+  if(tab==='livre')renderLivre();
+};
+
+// ── Hook _learnAddBubble to show vocab chips ─────────────────
+const _origLearnAddBubble=window._learnAddBubble;
+window._learnAddBubble=function(type,html,speak){
+  const bubs=document.getElementById('learn-bubs'); if(!bubs)return;
+  const div=document.createElement('div'); div.className='learn-bubble '+type;
+  if(type==='ai'){
+    div.innerHTML='<div class="lb-label">🎓 PROFESSOR AIVOX</div>'+html+'<div class="lb-actions"><button class="lb-btn" onclick="_learnSpeak(this)">🔊 Ouvir</button><button class="lb-btn" onclick="_learnSave(this)">📖 Salvar</button></div>';
+    // Auto-extract vocab chips
+    const words=_extractVocabFromAI(html.replace(/<[^>]*>/g,''),_learnLang);
+    if(words.length) setTimeout(()=>_showVocabChips(words,_learnLang,div),100);
+  }else{
+    div.innerHTML='<div style="font-size:10px;color:var(--muted);margin-bottom:3px;">VOCÊ</div>'+html;
+  }
+  bubs.appendChild(div); bubs.scrollTop=bubs.scrollHeight;
+  if(speak&&html&&_learnVoice)_speakTranslation(html.replace(/<[^>]*>/g,''));
+};
+
+// ── Init melhorias ────────────────────────────────────────────
+(function(){
+  const pl=document.getElementById('page-learn');
+  if(pl){
+    const obs2=new MutationObserver(()=>{
+      if(pl.classList.contains('active')){
+        renderProgressBar();
+        setTimeout(_syncProgressFirestore, 2000);
+      }
+    });
+    obs2.observe(pl,{attributeFilter:['class']});
   }
 })();
 

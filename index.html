@@ -1114,6 +1114,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div class="proc-ov" id="pov"><div class="proc-spin"></div><div class="proc-st" id="pst">Processando...</div></div>
       </div>
       <div class="met-bar"><div class="met-item">💬 <span id="mwrd">0</span> palavras</div><div class="met-item">⚡ <span id="mlat">—</span></div><div class="met-item">✅ <span id="macc">—</span></div></div>
+      <div id="sess-backend-warn" style="display:none;padding:6px 16px;background:rgba(255,140,0,.12);border-top:1px solid rgba(255,140,0,.25);font-size:11px;color:var(--orange);text-align:center;font-family:var(--mono);">⚠️ Backend sem resposta — verifique OPENAI_API_KEY no Render <span style="text-decoration:underline;cursor:pointer;" onclick="testBackendPing()">Testar agora</span></div>
       <div class="mic-area">
         <button class="micb idle" id="micbtn" onclick="togMic()">
           <div class="micol" id="mico" style="font-size:26px;">🎙️</div>
@@ -1821,7 +1822,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div style="display:flex;gap:9px;margin-bottom:10px;">
           <button class="btn btn-primary" style="flex:1;" onclick="saveBackendUrl()">💾 Salvar e testar</button>
           <button class="btn btn-ghost btn-sm" onclick="testBackendPing()">🔄 Pingar</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--orange);" onclick="wakeBackend(()=>testBackendPing())">⏰ Acordar</button>
         </div>
         <div id="backend-save-feedback" style="display:none;margin-bottom:10px;font-size:12px;font-family:var(--mono);"></div>
         <!-- Info box -->
@@ -1830,7 +1830,9 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div style="font-size:11px;color:var(--muted);line-height:1.6;">
             As chaves OpenAI e ElevenLabs ficam <strong style="color:var(--text);">somente no Railway</strong> como variáveis de ambiente — nunca chegam ao browser do cliente.<br><br>
             O frontend envia o áudio → backend traduz usando as chaves → retorna o resultado.<br><br>
-            <span style="color:var(--accent);">→ Veja o README.md do aivox-backend para instruções de deploy.</span>
+            <span style="color:var(--accent);">→ Veja o README.md do aivox-backend para instruções de deploy.</span><br><br>
+            <strong style="color:var(--red);">Se /api/ping funciona mas /api/translate retorna 502:</strong><br>
+            <span style="color:var(--muted);">Isso significa que a <strong style="color:var(--text);">OPENAI_API_KEY</strong> está ausente ou inválida nas variáveis de ambiente do Render. Acesse: Render Dashboard → seu serviço → Environment → adicione OPENAI_API_KEY.</span>
           </div>
         </div>
       </div>
@@ -1942,10 +1944,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
                   Auto-refresh: <span id="api-countdown" style="color:var(--accent);">5s</span>
                   <span id="api-monitor-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:4px;animation:blink 1.5s ease infinite;"></span>
                 </span>
-              </div>
-              <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px;" onclick="checkApiStatus(true)">🔄 Verificar APIs</button>
-                <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px;color:var(--orange);" onclick="wakeBackend(()=>checkApiStatus(false))">⏰ Acordar Render</button>
               </div>
               <div class="aps" id="api-status-list">
                 <div class="apr"><div class="aps-dot" id="dot-openai" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">OpenAI Whisper (STT)</div><div class="apl" id="lat-openai">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-openai">—</div><div class="apbadge" id="badge-openai" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
@@ -2208,6 +2206,12 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
       <!-- Interface principal -->
       <div id="sala-main">
+        <!-- Backend status notice for salas -->
+        <div id="sala-backend-notice" style="display:none;background:rgba(255,140,0,.1);border:1px solid rgba(255,140,0,.3);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--orange);">
+          ⚠️ <strong>Backend não respondeu.</strong> As salas precisam do servidor para funcionar.<br>
+          <span style="color:var(--muted);font-size:11px;">Verifique se o deploy está ativo no Render e se as variáveis de ambiente estão corretas.</span><br>
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px;font-size:11px;" onclick="initSalaPage()">🔄 Tentar novamente</button>
+        </div>
 
         <!-- CRIAR SALA (Pro+) -->
         <div id="sala-criar-section">
@@ -2221,7 +2225,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
                 <button class="btn btn-primary btn-full" onclick="criarSala()" id="sala-criar-btn">
                   👥 Criar sala agora
                 </button>
-                <div style="font-size:10px;color:var(--muted);margin-top:10px;text-align:center;">Se falhar, o servidor pode estar dormindo. <span style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="wakeBackend(()=>showToast('Backend acordou! Tente criar a sala.','success'))">Acordar backend</span></div>
               </div>
             </div>
             <div id="sala-apos-criar" style="display:none;">
@@ -2514,24 +2517,32 @@ function getBackendUrl(){
 // Compat: BACKEND_URL usado em algumas rotas antigas
 Object.defineProperty(window,'BACKEND_URL',{get:()=>getBackendUrl(),configurable:true});
 
-// ── Backend wake-up (Render.com free tier dorme após inatividade) ──
-let _backendWaking=false;
-function wakeBackend(onWake){
-  if(_backendWaking)return;
-  _backendWaking=true;
-  showToast('⏳ Acordando backend (Render)... aguarde ~30s','info');
+// ── Backend health check & diagnose ──────────────────────────────
+async function checkBackendHealth(){
   const url=getBackendUrl();
-  let attempts=0;
-  const tryWake=async()=>{
-    attempts++;
-    try{
-      const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(8000)});
-      if(r.ok){_backendWaking=false;showToast('✅ Backend online!','success');if(onWake)onWake();return;}
-    }catch(e){}
-    if(attempts<6){setTimeout(tryWake,6000);}
-    else{_backendWaking=false;showToast('❌ Backend não respondeu. Verifique o deploy no Render.','error');}
-  };
-  tryWake();
+  try{
+    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
+    if(r.ok){
+      // Also test translate endpoint health
+      try{
+        const r2=await fetch(url+'/api/translate',{
+          method:'POST',signal:AbortSignal.timeout(8000),
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({text:'test',from:'en',to:'pt'})
+        });
+        if(r2.ok) return {ok:true,msg:'Backend e tradução OK'};
+        if(r2.status===502||r2.status===500){
+          return {ok:false,ping:true,msg:'Backend ativo mas /api/translate falha ('+r2.status+'). Verifique OPENAI_API_KEY no Render.'};
+        }
+        return {ok:false,ping:true,msg:'Backend ativo. /api/translate retornou '+r2.status};
+      }catch(e2){
+        return {ok:false,ping:true,msg:'Backend ativo mas tradução sem resposta. Verifique variáveis de ambiente.'};
+      }
+    }
+    return {ok:false,msg:'Backend retornou '+r.status};
+  }catch(e){
+    return {ok:false,msg:'Backend inacessível: '+e.message};
+  }
 }
 
 let loginAttempts=0,loginLocked=false,lockTimer=null;
@@ -3249,24 +3260,46 @@ async function testBackendPing(){
   const dot=document.getElementById('backend-status-dot');
   const txt=document.getElementById('backend-status-text');
   if(!url){if(fb){fb.textContent='⚠️ URL não configurada';fb.style.cssText='display:block;font-size:12px;color:var(--orange);font-family:var(--mono);';} return;}
-  if(fb){fb.textContent='🔄 Testando conexão...';fb.style.cssText='display:block;font-size:12px;color:var(--muted);font-family:var(--mono);';}
+  if(fb){fb.textContent='🔄 Testando...';fb.style.cssText='display:block;font-size:12px;color:var(--muted);font-family:var(--mono);font-weight:700;'}
   try{
     const t0=Date.now();
-    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(5000)});
+    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
     const ms=Date.now()-t0;
     if(r.ok){
       if(dot)dot.style.background='var(--green)';
-      if(txt){txt.textContent='Online · '+ms+'ms';txt.style.color='var(--green)';}
-      if(fb){fb.textContent='✅ Backend respondeu em '+ms+'ms';fb.style.color='var(--green)';setTimeout(()=>{if(fb)fb.style.display='none';},3000);}
-      if(userRole==='admin')showToast('✅ Backend conectado: '+ms+'ms');
-      // Update monitor panel too (only if setStatus exists in admin panel)
-      try{if(typeof setStatus==='function')setStatus('dot-railway','badge-railway','lat-railway','ping-railway','ok',url.replace('https://','')+'  ·  '+ms+'ms',ms);}catch(_){}
+      if(txt){txt.textContent='Ping OK · '+ms+'ms';txt.style.color='var(--green)';}
+      if(fb)fb.textContent='🔄 Testando /api/translate...';
+      // Test translate endpoint too
+      try{
+        const t1=Date.now();
+        const r2=await fetch(url+'/api/translate',{
+          method:'POST',signal:AbortSignal.timeout(10000),
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({text:'hello',from:'en',to:'pt'})
+        });
+        const ms2=Date.now()-t1;
+        if(r2.ok){
+          if(dot)dot.style.background='var(--green)';
+          if(txt){txt.textContent='✅ Tudo OK · ping '+ms+'ms · translate '+ms2+'ms';txt.style.color='var(--green)';}
+          if(fb){fb.textContent='✅ Backend e OpenAI funcionando ('+ms2+'ms)';fb.style.color='var(--green)';setTimeout(()=>{if(fb)fb.style.display='none';},4000);}
+          if(userRole==='admin')showToast('✅ Backend+OpenAI OK: '+ms2+'ms','success');
+        } else {
+          const s=r2.status;
+          if(dot)dot.style.background='var(--orange)';
+          if(txt){txt.textContent='⚠️ Ping OK mas /translate retornou '+s;txt.style.color='var(--orange)';}
+          if(fb){fb.textContent='⚠️ /api/translate retornou '+s+'. Verifique OPENAI_API_KEY no painel do Render.';fb.style.cssText='display:block;font-size:11px;color:var(--orange);font-family:var(--mono);font-weight:700;';}
+          showToast('⚠️ Backend ativo mas OPENAI_API_KEY pode estar incorreta ('+s+')','error');
+        }
+      }catch(e2){
+        if(dot)dot.style.background='var(--orange)';
+        if(txt){txt.textContent='⚠️ Ping OK mas translate sem resposta';txt.style.color='var(--orange)';}
+        if(fb){fb.textContent='⚠️ /api/translate não respondeu. Verifique variáveis de ambiente no Render.';fb.style.cssText='display:block;font-size:11px;color:var(--orange);font-family:var(--mono);';}
+      }
     }else{throw new Error('HTTP '+r.status);}
   }catch(e){
-    if(e.message==='setStatus is not defined')return;
     if(dot)dot.style.background='var(--red)';
     if(txt){txt.textContent='Offline';txt.style.color='var(--red)';}
-    if(fb){fb.textContent='❌ Sem resposta: '+e.message;fb.style.color='var(--red)';}
+    if(fb){fb.textContent='❌ Backend não respondeu: '+e.message;fb.style.cssText='display:block;font-size:11px;color:var(--red);font-family:var(--mono);';}
     showToast('Backend offline: '+e.message,'error');
   }
 }
@@ -3597,10 +3630,10 @@ async function _processEscutaChunk(blob){
     fd.append('audio',blob,'chunk.webm');
     fd.append('from',from);fd.append('to',to);
     const t0=Date.now();
-    const r=await fetch(backendUrl+'/api/listen-stream',{method:'POST',headers,body:fd});
+    const r=await fetch(backendUrl+'/api/listen-stream',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
     if(!r.ok||!r.body){
       // Fallback para rota normal
-      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd});
+      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
       const d=await rd.json();
       if(d.original&&d.original.trim().length>1){
         _updateLiveEscutaLine(lineEl,d.original,d.translation);
@@ -3886,49 +3919,47 @@ async function _viagemTranslate(text){
   document.getElementById('sp2').classList.add('speaking');
   const wi2=animWF('wf2',true);wis.push(wi2);
 
-  // Idioma de destino da sessão ativa
-  const toLang=LO[lti]?.s||'PT';
-  // Idioma de origem: usa o idioma fonte da sessão (LO[lfi]), não o seletor de escuta ao vivo
+  // Idioma de origem da sessão
   const fromCode=LO[lfi]?.code||'PT-BR';
   const fromShort=fromCode.split('-')[0].toLowerCase();
-  const fromLang=_viagemLangMap[fromShort]?.split('-')[0]||fromShort||'pt';
+  // Idioma de destino da sessão
+  const toCode=LO[lti]?.code||'EN-US';
+  const toShort=toCode.split('-')[0].toLowerCase();
 
+  let trad=text;
   try{
-    // Tenta usar backend para tradução se disponível
-    const backendUrl=getBackendUrl();
-    if(backendUrl){
+    // Modo Viagem é OFFLINE — usa MyMemory (gratuito, sem chave)
+    const mmUrl=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromShort}|${toShort}`;
+    const r=await fetch(mmUrl,{signal:AbortSignal.timeout(8000)});
+    if(r.ok){
+      const d=await r.json();
+      if(d.responseStatus===200&&d.responseData?.translatedText){
+        trad=d.responseData.translatedText;
+      }
+    }
+  }catch(e){
+    // Fallback: tenta backend se MyMemory falhou
+    try{
+      const backendUrl=getBackendUrl();
       const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
       const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
       const res=await fetch(backendUrl+'/api/translate',{
-        method:'POST',headers,
-        signal:AbortSignal.timeout(12000),
-        body:JSON.stringify({text,from:fromLang,to:toLang.toLowerCase()})
+        method:'POST',headers,signal:AbortSignal.timeout(8000),
+        body:JSON.stringify({text,from:fromShort,to:toShort})
       });
-      if(res.ok){
-        const data=await res.json();
-        const trad=data.translation||text;
-        document.getElementById('tr2').textContent=trad;
-        // Adiciona bolha
-        const bubs=document.getElementById('bubs');
-        if(bubs){
-          const b=document.createElement('div');
-          b.className='bi';
-          b.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;">✈️ ${text}</div><div style="font-size:14px;font-weight:600;">${trad}</div>`;
-          bubs.insertBefore(b,document.getElementById('tind'));
-          b.scrollIntoView({behavior:'smooth'});
-        }
-      } else if(res.status===502||res.status===503||res.status===504){
-        document.getElementById('tr2').textContent='⚠️ Backend offline — reconhecimento local ativo: '+text;
-        showToast('⚠️ Backend dormindo (Render). Aguarde ~30s e tente novamente.','error');
-      } else {
-        document.getElementById('tr2').textContent='⚠️ Erro '+res.status+': '+text;
-      }
-    } else {
-      // Sem backend: mostra original com aviso
-      document.getElementById('tr2').textContent='⚠️ '+text+' (backend necessário para tradução)';
-    }
-  }catch(e){
-    document.getElementById('tr2').textContent='⚠️ Erro na tradução: '+e.message;
+      if(res.ok){const d=await res.json();trad=d.translation||text;}
+    }catch(e2){/* usa texto original */}
+  }
+
+  document.getElementById('tr2').textContent=trad;
+  // Adiciona bolha
+  const bubs=document.getElementById('bubs');
+  if(bubs){
+    const b=document.createElement('div');
+    b.className='bi';
+    b.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;">✈️ ${text}</div><div style="font-size:14px;font-weight:600;">${trad}</div>`;
+    bubs.insertBefore(b,document.getElementById('tind'));
+    b.scrollIntoView({behavior:'smooth'});
   }
   document.getElementById('sp2').classList.remove('speaking');
   animWF('wf2',false);
@@ -3946,10 +3977,14 @@ function stopViagemMode(){
   document.getElementById('sp2').classList.remove('speaking');
   const mb=document.getElementById('micbtn');
   if(mb)mb.className='micb idle';
-  document.getElementById('mico').textContent='🎙️';
-  document.getElementById('micl').textContent='Toque p/ falar';
-  document.getElementById('tr1').textContent='✈️ Modo Offline — toque no microfone';
-  document.getElementById('tr2').textContent='Aguardando resposta...';
+  const mico=document.getElementById('mico');
+  if(mico)mico.textContent='🎙️';
+  const micl=document.getElementById('micl');
+  if(micl)micl.textContent='Toque p/ falar';
+  const tr1=document.getElementById('tr1');
+  if(tr1)tr1.textContent='✈️ Modo Offline — toque no microfone';
+  const tr2=document.getElementById('tr2');
+  if(tr2)tr2.textContent='Aguardando resposta...';
   stopSess();
 }
 // ====== SESSÃO ATIVA — MIC REAL + BACKEND ======
@@ -4060,11 +4095,19 @@ async function _processSessAudio(){
 
     // Usa /api/listen — confiável e compatível com Render
     const r=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
-    if(r.status===502||r.status===503||r.status===504){
-      document.getElementById('tr1').textContent='⚠️ Backend offline';
-      document.getElementById('tr2').textContent='Acordando servidor... tente em ~30s';
-      wakeBackend(null);
+    if(!r.ok){
+      const status=r.status;
       _resetMicBtn();
+      if(status===502||status===503||status===504){
+        document.getElementById('tr1').textContent='⚠️ Backend retornou '+status;
+        document.getElementById('tr2').textContent='Verifique OPENAI_API_KEY no painel do Render';
+        const warn=document.getElementById('sess-backend-warn');
+        if(warn)warn.style.display='block';
+        showToast('Backend '+status+': verifique OPENAI_API_KEY no Render','error');
+      } else {
+        document.getElementById('tr1').textContent='Erro HTTP '+status+'. Tente novamente.';
+        document.getElementById('tr2').textContent='';
+      }
       return;
     }
     const d=await r.json();
@@ -4936,7 +4979,7 @@ function initUserChat(){
   const msgs=document.getElementById('chat-msgs');
   if(!msgs)return;
   if(!uid||!window.FB){
-    msgs.innerHTML='<div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div><div class="cmsg agent"><div class="cmsg-inner" style="background:var(--odim);border:1px solid rgba(255,140,0,.2);">⚠️ Modo offline — suas mensagens serão enviadas quando a conexão for restaurada. Você também pode nos contatar via WhatsApp.</div><div class="cmsg-meta">Sistema · agora</div></div>';
+    msgs.innerHTML='<div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX.</div><div class="cmsg-meta">AIVOX · agora</div></div><div class="cmsg agent"><div class="cmsg-inner" style="background:var(--odim);border:1px solid rgba(255,140,0,.3);color:var(--orange);">⚠️ Firebase offline — mensagens não disponíveis. Use o WhatsApp para suporte imediato.</div><div class="cmsg-meta">Sistema · agora</div></div>';
     return;
   }
   // Load existing messages and listen for new ones
@@ -5978,6 +6021,9 @@ function initSalaPage(){
   if(locked)  locked.style.display  = canCreate ? 'none'  : 'block';
   if(main)    main.style.display    = canCreate ? 'block' : 'none';
   if(criarSec)criarSec.style.display= canCreate ? 'block' : 'none';
+  // Esconde aviso de backend
+  const notice=document.getElementById('sala-backend-notice');
+  if(notice)notice.style.display='none';
   // Reseta input
   const inp = document.getElementById('sala-code-input');
   if(inp){inp.value='';inp.className='sala-code-input';inp.disabled=false;}
@@ -5985,6 +6031,14 @@ function initSalaPage(){
   if(fb)fb.textContent='';
   const btn = document.getElementById('sala-entrar-btn');
   if(btn)btn.disabled=true;
+  // Verifica backend silenciosamente se for criador
+  if(canCreate){
+    fetch(getBackendUrl()+'/api/ping',{signal:AbortSignal.timeout(5000)})
+      .then(r=>{if(!r.ok)throw new Error(r.status);})
+      .catch(()=>{
+        if(notice)notice.style.display='block';
+      });
+  }
 }
 
 // ── Criar sala ──────────────────────────────────────────────────
@@ -5995,16 +6049,22 @@ async function criarSala(){
     const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
     const r = await fetch(getBackendUrl()+'/api/rooms/create',{
       method:'POST',
-      signal:AbortSignal.timeout(12000),
+      signal:AbortSignal.timeout(15000),
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})}
     });
-    if(r.status===502||r.status===503||r.status===504){
+    if(!r.ok){
+      const status=r.status;
       if(btn){btn.disabled=false;btn.textContent='👥 Criar sala agora';}
-      wakeBackend(()=>showToast('Backend acordou! Tente criar a sala novamente.','success'));
+      if(status===502||status===503||status===504){
+        showToast('Backend indisponível ('+status+'). Verifique variáveis de ambiente no Render.','error');
+        const n=document.getElementById('sala-backend-notice');if(n)n.style.display='block';
+      } else {
+        showToast('Erro ao criar sala: HTTP '+status,'error');
+      }
       return;
     }
     const d = await _salaSafeJson(r);
-    if(!r.ok||d.error) throw new Error(d.error||'Erro ao criar sala');
+    if(d.error) throw new Error(d.error);
 
     _salaCode      = d.code;
     _salaIsCreator = true;
@@ -6143,19 +6203,20 @@ function _salaConectarSocket(code){
     reconnectionDelay:1000,
   });
 
-  let _connectErrShown=false;
+  let _salaConnErrCount=0;
   _salaSocket.on('connect_error',(err)=>{
-    if(!_connectErrShown){
-      _connectErrShown=true;
-      showToast('⚠️ Backend offline — acordando servidor (~30s)...','error');
-      wakeBackend(()=>{
-        showToast('✅ Backend acordou! Reconectando sala...','success');
-        _salaConectarSocket(code);
-      });
+    _salaConnErrCount++;
+    console.warn('Socket connect error:',err.message);
+    if(_salaConnErrCount===2){
+      showToast('⚠️ Não foi possível conectar à sala. Backend pode estar offline.','error');
+      const fb=document.getElementById('sala-code-feedback');
+      if(fb){fb.textContent='❌ Backend sem resposta.';fb.style.color='var(--red)';}
+      const n=document.getElementById('sala-backend-notice');if(n)n.style.display='block';
     }
   });
 
   _salaSocket.on('connect',()=>{
+    _salaConnErrCount=0;
     console.log('🔌 Socket conectado, entrando na sala',code);
     const u=window._fbUser;
     _salaMyLang=LO[lfi]?.code||'PT-BR';

@@ -416,7 +416,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-lang-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
 /* PROFESSOR CHAT */
-.learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;-webkit-overflow-scrolling:touch;}
+.learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
 .learn-bubble{border-radius:14px;padding:11px 14px;max-width:90%;font-size:14px;line-height:1.55;}
 .learn-bubble.user{background:var(--adim);border:1px solid rgba(0,229,255,.15);align-self:flex-end;color:var(--text);}
 .learn-bubble.ai{background:var(--card);border:1px solid var(--border);align-self:flex-start;color:var(--text);}
@@ -436,7 +436,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 /* LIÇÕES */
 .licoes-lang-bar{display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
 .licoes-lang-bar::-webkit-scrollbar{display:none;}
-.licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;}
+.licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;}
 .licao-cat{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;}
 .licao-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
 .licao-card:active{transform:scale(.98);}
@@ -477,7 +477,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .flash-empty .fe-icon{font-size:44px;margin-bottom:10px;}
 /* EXERCÍCIOS */
 .exer-score{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;}
-.exer-wrap{flex:1;overflow-y:auto;padding:14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;}
+.exer-wrap{flex:1;overflow-y:auto;padding:14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;}
 .exer-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:11px;}
 .exer-tipo{font-size:10px;font-family:var(--mono);color:var(--accent);font-weight:700;letter-spacing:2px;margin-bottom:7px;}
 .exer-pergunta{font-size:15px;font-weight:700;margin-bottom:12px;line-height:1.4;}
@@ -490,7 +490,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .exer-feedback.sh{display:block;}.exer-feedback.ok{background:var(--gdim);color:var(--green);}.exer-feedback.err{background:var(--rdim);color:var(--red);}
 /* VOCABULÁRIO */
 .vocab-search{padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.vocab-scroll{flex:1;overflow-y:auto;padding:10px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;}
+.vocab-scroll{flex:1;overflow-y:auto;padding:10px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;}
 .vocab-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
 .vocab-info{flex:1;}.vocab-word{font-size:15px;font-weight:800;}
 .vocab-trans{font-size:12px;color:var(--muted);margin-top:1px;}
@@ -991,8 +991,14 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 <!-- ====== 2FA ====== -->
 <div class="auth-page" id="page-2fa">
   <div class="auth-box">
-    <div class="auth-logo"><div class="auth-logo-icon" style="font-size:22px;">🔐</div><div class="auth-title">Verificação <span>2FA</span></div><div class="auth-sub">Código de 6 dígitos enviado ao seu e-mail</div></div>
+    <div class="auth-logo"><div class="auth-logo-icon" style="font-size:22px;">🔐</div><div class="auth-title">Verificação <span>2FA</span></div><div class="auth-sub" id="otp-sub">Código de 6 dígitos enviado ao seu e-mail</div></div>
     <div class="auth-form">
+      <!-- Fallback: mostra o código na tela se o email falhar -->
+      <div id="otp-fallback-box" style="display:none;background:rgba(255,208,0,.08);border:1px solid rgba(255,208,0,.3);border-radius:13px;padding:12px 16px;text-align:center;margin-bottom:4px;">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--yellow);letter-spacing:2px;margin-bottom:6px;">⚠️ EMAIL NÃO ENVIADO — USE ESTE CÓDIGO:</div>
+        <div id="otp-fallback-code" style="font-size:28px;font-weight:900;font-family:var(--mono);color:var(--yellow);letter-spacing:8px;"></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">Copie e insira nos campos acima</div>
+      </div>
       <div class="otp-grid"><input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpNext(this,0)"><input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpNext(this,1)"><input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpNext(this,2)"><input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpNext(this,3)"><input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpNext(this,4)"><input class="otp-box" maxlength="1" inputmode="numeric" oninput="otpNext(this,5)"></div>
       <div id="otp-err" style="display:none;font-size:12px;color:var(--red);text-align:center;">Código incorreto.</div>
       <button class="btn btn-primary btn-full" onclick="verify2FA()">Verificar →</button>
@@ -2627,6 +2633,11 @@ function generateOTP(){
 }
 async function sendOTPEmail(email, otp){
   console.log('[AIVOX 2FA] Enviando código para:', email);
+  // Esconde fallback enquanto tenta
+  const fb=document.getElementById('otp-fallback-box');
+  const fbCode=document.getElementById('otp-fallback-code');
+  const sub=document.getElementById('otp-sub');
+  if(fb) fb.style.display='none';
   try{
     const res = await fetch(getBackendUrl()+'/api/otp/enviar', {
       method: 'POST',
@@ -2639,13 +2650,18 @@ async function sendOTPEmail(email, otp){
     });
     if(res.ok){
       showToast('📧 Código enviado para '+email,'success');
+      if(sub) sub.textContent = 'Código enviado para '+email;
     } else {
-      // fallback: mostra na tela se falhar
-      showToast('⚠️ Erro ao enviar email. Código: '+otp,'error');
+      // Backend respondeu mas com erro — mostra código na tela
+      console.warn('[2FA] Backend retornou erro HTTP', res.status);
+      if(fb && fbCode){ fbCode.textContent=otp; fb.style.display='block'; }
+      if(sub) sub.textContent = 'E-mail indisponível — use o código abaixo';
     }
   }catch(e){
     console.error('Erro ao enviar OTP:', e.message);
-    showToast('⚠️ Sem conexão com servidor. Código: '+otp,'error');
+    // Sem conexão — mostra código na tela
+    if(fb && fbCode){ fbCode.textContent=otp; fb.style.display='block'; }
+    if(sub) sub.textContent = 'E-mail indisponível — use o código abaixo';
   }
 }
 function otpNext(el,idx){el.value=el.value.replace(/\D/,'');const b=document.querySelectorAll('.otp-box');if(el.value&&idx<5)b[idx+1].focus();const code=[...b].map(x=>x.value).join('');if(code.length===6)setTimeout(verify2FA,200);}

@@ -3998,15 +3998,21 @@ async function _viagemTranslate(text){
     const backendUrl=getBackendUrl();
     const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
     const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
-    const res=await fetch(backendUrl+'/api/translate',{
-      method:'POST',headers,signal:AbortSignal.timeout(6000),
+    // Usa /api/translate-free (sem auth) — específico para modo viagem offline
+    const res=await fetch(backendUrl+'/api/translate-free',{
+      method:'POST',headers,signal:AbortSignal.timeout(8000),
       body:JSON.stringify({text,from:fromShort,to:toShort})
     });
+    console.log('[AIVOX] /api/translate-free status:', res.status);
     if(res.ok){
       const d=await res.json();
+      console.log('[AIVOX] translation result:', d.translation);
       if(_isValidTrad(d.translation))trad=d.translation;
+    } else {
+      const errBody=await res.json().catch(()=>({}));
+      console.warn('[AIVOX] /api/translate error:', res.status, errBody.error||'');
     }
-  }catch(e){/* backend indisponível, tenta MyMemory */}
+  }catch(e){console.warn('[AIVOX] /api/translate exception:',e.message);}
 
   // Se backend falhou ou retornou inválido, usa MyMemory (offline)
   if(trad===text){

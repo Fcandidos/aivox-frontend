@@ -1845,14 +1845,14 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== CHAT SUPPORT ====== -->
-    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;height:100%;position:relative;">
+    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;height:100%;position:relative;min-height:0;">
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;"><button class="dcl" onclick="navApp('home')">‹</button><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Chat Suporte</div><div style="font-size:11px;color:var(--green);">● Equipe online</div></div><button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WhatsApp</button></div>
       <div class="chat-msgs scroll-area" id="chat-msgs"><div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div></div>
       <div class="chat-input-bar"><textarea class="chat-input" id="chat-input-field" placeholder="Digite sua mensagem..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendChatMsg()">➤</button></div>
     </div>
 
     <!-- ====== ADMIN ====== -->
-    <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;position:relative;height:100%;">
+    <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;position:relative;height:100%;min-height:0;">
       <div class="adh">
         <div class="adtop"><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:10px;align-items:center;"><div class="adba" style="font-size:11px;padding:8px 16px;border-radius:10px;">🛡️ Admin</div><button class="btn btn-danger" style="font-size:13px;padding:10px 20px;" onclick="doLogout()">Sair</button></div></div>
         <div class="atabs">
@@ -2045,7 +2045,11 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
                 <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:8px;text-align:center;" id="cycle-note">Aguardando próxima tradução...</div>
               </div>
 
-              <button class="btn btn-ghost btn-full" style="margin-top:10px;font-size:12px;" onclick="checkApiStatus(true)">🔄 Verificar agora</button>
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <button class="btn btn-ghost btn-full" style="font-size:12px;" onclick="checkApiStatus(true)">🔄 Verificar APIs</button>
+                <button class="btn btn-ghost btn-full" style="font-size:12px;color:var(--accent);" onclick="runFullDiagnose()">🩺 Diagnóstico</button>
+              </div>
+              <div id="api-diagnose-output" style="display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;"></div>
             </div>
             <!-- Custo por API -->
             <div>
@@ -2506,6 +2510,19 @@ auth.onAuthStateChanged(async(user)=>{
 window.auth=auth;
 </script>
 <script>
+// ── Global error catcher ────────────────────────────────────────
+window.addEventListener('unhandledrejection',e=>{
+  const msg=e.reason?.message||String(e.reason)||'Unknown';
+  // Ignore Chrome extension errors
+  if(msg.includes('message channel'))return;
+  console.error('[AIVOX] Unhandled rejection:',msg,e.reason);
+});
+window.addEventListener('error',e=>{
+  const msg=e.message||'Unknown';
+  if(msg.includes('message channel'))return;
+  console.error('[AIVOX] JS Error:',msg,'at',e.filename,':',e.lineno);
+});
+
 // ====== STATE ======
 let userPlan='trial',userRole='user',currentPage='landing';
 
@@ -2518,6 +2535,54 @@ function getBackendUrl(){
 Object.defineProperty(window,'BACKEND_URL',{get:()=>getBackendUrl(),configurable:true});
 
 // ── Backend health check & diagnose ──────────────────────────────
+// ── Diagnóstico completo do sistema ────────────────────────────
+async function runFullDiagnose(){
+  const url=getBackendUrl();
+  showToast('Executando diagnostico...','info');
+  const results=[];
+  try{
+    const t0=Date.now();
+    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(5000)});
+    const ms=Date.now()-t0;
+    results.push(r.ok?('OK Backend ping: '+ms+'ms'):('ERRO Backend ping: HTTP '+r.status));
+  }catch(e){results.push('ERRO Backend inacessivel: '+e.message);}
+  try{
+    const r=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(5000)});
+    if(r.ok){
+      const d=await r.json();
+      results.push(d.openai?'OK OPENAI_API_KEY configurada':'ERRO OPENAI_API_KEY AUSENTE - traducao/STT nao funcionara');
+      results.push(d.elevenlabs?'OK ELEVENLABS configurada':'AVS ELEVENLABS nao configurada (TTS desativado)');
+      results.push(d.firebase?'OK Firebase Admin configurado':'AVS Firebase Admin nao configurado (salas limitadas)');
+      results.push(d.mp?'OK MercadoPago configurado':'AVS MercadoPago nao configurado');
+      results.push('INFO Uptime: '+Math.round((d.uptime||0)/60)+'min | Node: '+(d.node||'?'));
+    } else {
+      results.push('AVS /api/diagnose nao disponivel - atualize o server.js');
+    }
+  }catch(e){results.push('AVS Diagnostico nao disponivel: '+e.message);}
+  try{
+    if(window.FB&&typeof db!=='undefined'&&window._fbUser){
+      const t0=Date.now();
+      await db.collection('users').doc(window._fbUser.uid).get();
+      results.push('OK Firebase Firestore: '+(Date.now()-t0)+'ms');
+    } else {
+      results.push('AVS Firebase cliente: nao conectado');
+    }
+  }catch(e){results.push('ERRO Firebase Firestore: '+e.message);}
+  console.log('AIVOX Diagnostico:\n'+results.join('\n'));
+  const diagEl=document.getElementById('api-diagnose-output');
+  if(diagEl){
+    diagEl.style.display='block';
+    diagEl.innerHTML='<div style="font-size:11px;font-family:var(--mono);line-height:1.9">'+
+      results.map(function(line){
+        const color=line.startsWith('OK')?'var(--green)':line.startsWith('ERRO')?'var(--red)':'var(--orange)';
+        return '<div style="color:'+color+'">'+line+'</div>';
+      }).join('')+
+    '</div>';
+  } else {
+    alert('AIVOX Diagnostico:\n\n'+results.join('\n'));
+  }
+}
+
 async function checkBackendHealth(){
   const url=getBackendUrl();
   try{
@@ -2594,8 +2659,11 @@ function enterApp(data){
   if(isAdmin){startPaymentListener();}
 }
 function navApp(name){
+  console.log('[AIVOX] navApp →',name);
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));
-  const pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');
+  const pg=document.getElementById('page-'+name);
+  if(!pg){console.warn('[AIVOX] Page not found: page-'+name);return;}
+  pg.classList.add('active');
   currentPage=name;
   document.querySelectorAll('.snav-item').forEach(e=>e.classList.remove('active'));
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');
@@ -2606,7 +2674,7 @@ function navApp(name){
   if(name==='history'){renderHist(histData);_histTab='sess';switchHistTab('sess');}
   if(name==='faq'){renderFaq('todos');setTimeout(()=>goSlide(0),100);}
   if(name==='admin'){renderUsers('todos');renderAdminLog();renderAdminChats();loadKPIs();checkApiStatus(false);}
-  if(name==='settings'&&userRole==='admin'){loadBackendUrl();}
+  if(name==='settings'&&userRole==='admin'){loadBackendUrl();setTimeout(()=>testBackendPing(),500);}
   if(name==='chat')initUserChat();
   if(name!=='admin')stopApiMonitor();
   if(name!=='escuta')stopEscuta();
@@ -3259,47 +3327,41 @@ async function testBackendPing(){
   const fb=document.getElementById('backend-save-feedback');
   const dot=document.getElementById('backend-status-dot');
   const txt=document.getElementById('backend-status-text');
-  if(!url){if(fb){fb.textContent='⚠️ URL não configurada';fb.style.cssText='display:block;font-size:12px;color:var(--orange);font-family:var(--mono);';} return;}
-  if(fb){fb.textContent='🔄 Testando...';fb.style.cssText='display:block;font-size:12px;color:var(--muted);font-family:var(--mono);font-weight:700;'}
+  if(!url){if(fb){fb.textContent='URL nao configurada';fb.style.cssText='display:block;font-size:12px;color:var(--orange);font-family:var(--mono)';} return;}
+  if(fb){fb.style.cssText='display:block;font-size:11px;font-family:var(--mono)';fb.textContent='Verificando...';}
   try{
     const t0=Date.now();
     const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
     const ms=Date.now()-t0;
-    if(r.ok){
-      if(dot)dot.style.background='var(--green)';
-      if(txt){txt.textContent='Ping OK · '+ms+'ms';txt.style.color='var(--green)';}
-      if(fb)fb.textContent='🔄 Testando /api/translate...';
-      // Test translate endpoint too
-      try{
-        const t1=Date.now();
-        const r2=await fetch(url+'/api/translate',{
-          method:'POST',signal:AbortSignal.timeout(10000),
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({text:'hello',from:'en',to:'pt'})
-        });
-        const ms2=Date.now()-t1;
-        if(r2.ok){
-          if(dot)dot.style.background='var(--green)';
-          if(txt){txt.textContent='✅ Tudo OK · ping '+ms+'ms · translate '+ms2+'ms';txt.style.color='var(--green)';}
-          if(fb){fb.textContent='✅ Backend e OpenAI funcionando ('+ms2+'ms)';fb.style.color='var(--green)';setTimeout(()=>{if(fb)fb.style.display='none';},4000);}
-          if(userRole==='admin')showToast('✅ Backend+OpenAI OK: '+ms2+'ms','success');
-        } else {
-          const s=r2.status;
-          if(dot)dot.style.background='var(--orange)';
-          if(txt){txt.textContent='⚠️ Ping OK mas /translate retornou '+s;txt.style.color='var(--orange)';}
-          if(fb){fb.textContent='⚠️ /api/translate retornou '+s+'. Verifique OPENAI_API_KEY no painel do Render.';fb.style.cssText='display:block;font-size:11px;color:var(--orange);font-family:var(--mono);font-weight:700;';}
-          showToast('⚠️ Backend ativo mas OPENAI_API_KEY pode estar incorreta ('+s+')','error');
-        }
-      }catch(e2){
-        if(dot)dot.style.background='var(--orange)';
-        if(txt){txt.textContent='⚠️ Ping OK mas translate sem resposta';txt.style.color='var(--orange)';}
-        if(fb){fb.textContent='⚠️ /api/translate não respondeu. Verifique variáveis de ambiente no Render.';fb.style.cssText='display:block;font-size:11px;color:var(--orange);font-family:var(--mono);';}
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    let diag=null;
+    try{const rd=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(5000)});if(rd.ok)diag=await rd.json();}catch(_){}
+    if(diag){
+      const allOk=diag.openai&&diag.firebase;
+      const statusColor=allOk?'var(--green)':(diag.openai?'var(--orange)':'var(--red)');
+      if(dot)dot.style.background=statusColor;
+      if(txt){txt.textContent=(allOk?'OK':'Problemas')+' '+ms+'ms | OpenAI:'+(diag.openai?'OK':'FALTA')+' Firebase:'+(diag.firebase?'OK':'nao config');txt.style.color=statusColor;}
+      const msgs=[];
+      if(!diag.openai)msgs.push('OPENAI_API_KEY ausente no Render');
+      if(!diag.firebase)msgs.push('FIREBASE_SERVICE_ACCOUNT nao configurado');
+      if(!diag.elevenlabs)msgs.push('ELEVENLABS_API_KEY nao configurada (TTS off)');
+      if(msgs.length===0)msgs.push('Todas as variaveis OK!');
+      if(fb){
+        fb.innerHTML='<b>Diagnostico ('+ms+'ms):</b><br>'+msgs.join('<br>');
+        fb.style.color=statusColor;
       }
-    }else{throw new Error('HTTP '+r.status);}
+      if(!diag.openai)showToast('OPENAI_API_KEY nao configurada no Render!','error');
+      else showToast('Backend OK: '+ms+'ms','success');
+    } else {
+      if(dot)dot.style.background='var(--green)';
+      if(txt){txt.textContent='Online '+ms+'ms';txt.style.color='var(--green)';}
+      if(fb){fb.textContent='Ping OK: '+ms+'ms (redeploy server.js p/ diagnostico completo)';fb.style.color='var(--muted)';}
+      showToast('Backend conectado: '+ms+'ms','success');
+    }
   }catch(e){
     if(dot)dot.style.background='var(--red)';
     if(txt){txt.textContent='Offline';txt.style.color='var(--red)';}
-    if(fb){fb.textContent='❌ Backend não respondeu: '+e.message;fb.style.cssText='display:block;font-size:11px;color:var(--red);font-family:var(--mono);';}
+    if(fb){fb.textContent='Sem resposta: '+e.message;fb.style.color='var(--red)';}
     showToast('Backend offline: '+e.message,'error');
   }
 }
@@ -3927,27 +3989,37 @@ async function _viagemTranslate(text){
   const toShort=toCode.split('-')[0].toLowerCase();
 
   let trad=text;
+  // Lista de respostas inválidas que MyMemory retorna quando limite é atingido
+  const _mmBadResponses=['GOOGLE TRANSLATE','PLEASE USE OFFICIAL','MYMEMORY','USE DEEPL','QUERY LENGTH'];
+  const _isValidTrad=(t)=>t&&t.trim().length>0&&!_mmBadResponses.some(b=>t.toUpperCase().includes(b));
+
   try{
-    // Modo Viagem é OFFLINE — usa MyMemory (gratuito, sem chave)
-    const mmUrl=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromShort}|${toShort}`;
-    const r=await fetch(mmUrl,{signal:AbortSignal.timeout(8000)});
-    if(r.ok){
-      const d=await r.json();
-      if(d.responseStatus===200&&d.responseData?.translatedText){
-        trad=d.responseData.translatedText;
-      }
+    // Tenta backend primeiro (mais preciso, se estiver disponível)
+    const backendUrl=getBackendUrl();
+    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
+    const res=await fetch(backendUrl+'/api/translate',{
+      method:'POST',headers,signal:AbortSignal.timeout(6000),
+      body:JSON.stringify({text,from:fromShort,to:toShort})
+    });
+    if(res.ok){
+      const d=await res.json();
+      if(_isValidTrad(d.translation))trad=d.translation;
     }
-  }catch(e){
-    // Fallback: tenta backend se MyMemory falhou
+  }catch(e){/* backend indisponível, tenta MyMemory */}
+
+  // Se backend falhou ou retornou inválido, usa MyMemory (offline)
+  if(trad===text){
     try{
-      const backendUrl=getBackendUrl();
-      const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
-      const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
-      const res=await fetch(backendUrl+'/api/translate',{
-        method:'POST',headers,signal:AbortSignal.timeout(8000),
-        body:JSON.stringify({text,from:fromShort,to:toShort})
-      });
-      if(res.ok){const d=await res.json();trad=d.translation||text;}
+      const mmUrl=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromShort}|${toShort}`;
+      const r=await fetch(mmUrl,{signal:AbortSignal.timeout(8000)});
+      if(r.ok){
+        const d=await r.json();
+        const mmTrad=d.responseData?.translatedText||'';
+        if(d.responseStatus===200&&_isValidTrad(mmTrad)){
+          trad=mmTrad;
+        }
+      }
     }catch(e2){/* usa texto original */}
   }
 
@@ -6197,10 +6269,11 @@ function _salaConectarSocket(code){
 
   const backendUrl=getBackendUrl();
   _salaSocket=io(backendUrl,{
-    transports:['websocket','polling'],
+    transports:['polling','websocket'], // polling primeiro: mais estável no Render free
     reconnection:true,
-    reconnectionAttempts:10,
-    reconnectionDelay:1000,
+    reconnectionAttempts:5,
+    reconnectionDelay:2000,
+    timeout:15000,
   });
 
   let _salaConnErrCount=0;

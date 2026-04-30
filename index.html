@@ -2608,11 +2608,11 @@ async function doLogin(){
   if(window.FB){
     try{
       const res=await window.FB.login(email,pass);
-      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;const otp2fa=generateOTP();sendOTPEmail(res.data.email||email,otp2fa);showAuth('2fa');return;}
+      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;sendOTPEmail(res.data.email||email);showAuth('2fa');return;}
       else{loginAttempts++;if(loginAttempts>=MAX_ATTEMPTS){lockLogin(30);return;}let msg=res.error||'E-mail ou senha incorretos.';if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential'))msg='E-mail ou senha incorretos. '+(MAX_ATTEMPTS-loginAttempts)+' tentativa(s) restante(s).';errEl.textContent=msg;errEl.classList.add('show');}
     }catch(e){errEl.textContent='Erro de conexão.';errEl.classList.add('show');}
   }else{
-    if(email==='admin@aivox.com'&&pass==='admin123'){userRole='admin';window._fbUser={uid:'demo-admin',email,name:'Admin Demo',plan:'pro',role:'admin'};const otp2fa=generateOTP();sendOTPEmail(email,otp2fa);showAuth('2fa');}
+    if(email==='admin@aivox.com'&&pass==='admin123'){userRole='admin';window._fbUser={uid:'demo-admin',email,name:'Admin Demo',plan:'pro',role:'admin'};sendOTPEmail(email);showAuth('2fa');}
     else if(email&&pass){userRole='user';userPlan='trial';window._fbUser={uid:'demo-user',email,name:email.split('@')[0],plan:'trial',role:'user',minutesUsed:0,minutesLimit:5};enterApp(window._fbUser);showToast('✅ Login realizado (demo)');}
     else{errEl.textContent='E-mail ou senha incorretos.';errEl.classList.add('show');}
   }
@@ -2700,69 +2700,74 @@ function doLogout(){
   try{if(typeof auth!=='undefined'&&auth)auth.signOut().catch(()=>{});}catch(e){}
 }
 
-// ====== 2FA ======
-// ====== 2FA OTP — código aleatório gerado a cada login ======
-let currentOTP = '';
-function generateOTP(){
-  // Gera OTP de 6 dígitos aleatório
-  currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  return currentOTP;
-}
-async function sendOTPEmail(email, otp){
-  console.log('[AIVOX 2FA] Enviando código para:', email);
-  // Esconde fallback enquanto tenta
-  const fb=document.getElementById('otp-fallback-box');
-  const fbCode=document.getElementById('otp-fallback-code');
+// ====== 2FA — OTP SERVIDOR-SIDE (seguro) ======
+// O código é gerado e validado no backend — nunca exposto no frontend
+async function sendOTPEmail(email){
   const sub=document.getElementById('otp-sub');
+  const fb=document.getElementById('otp-fallback-box');
   if(fb) fb.style.display='none';
   try{
-    const res = await fetch(getBackendUrl()+'/api/otp/enviar', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        email,
-        otp,
-        name: window._fbUser?.name || ''
-      })
+    const res=await fetch(getBackendUrl()+'/api/otp/gerar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, name:window._fbUser?.name||'', uid:window._fbUser?.uid||''})
     });
     if(res.ok){
       showToast('📧 Código enviado para '+email,'success');
-      if(sub) sub.textContent = 'Código enviado para '+email;
+      if(sub) sub.textContent='Código enviado para '+email;
     } else {
-      // Backend respondeu mas com erro — mostra código na tela
-      console.warn('[2FA] Backend retornou erro HTTP', res.status);
-      if(fb && fbCode){ fbCode.textContent=otp; fb.style.display='block'; }
-      if(sub) sub.textContent = 'E-mail indisponível — use o código abaixo';
+      const d=await res.json().catch(()=>({}));
+      showToast('⚠️ '+(d.error||'Erro ao enviar código'),'error');
+      if(sub) sub.textContent='Erro ao enviar — tente reenviar';
     }
   }catch(e){
-    console.error('Erro ao enviar OTP:', e.message);
-    // Sem conexão — mostra código na tela
-    if(fb && fbCode){ fbCode.textContent=otp; fb.style.display='block'; }
-    if(sub) sub.textContent = 'E-mail indisponível — use o código abaixo';
+    console.error('Erro OTP:', e.message);
+    showToast('⚠️ Sem conexão com servidor','error');
+    if(sub) sub.textContent='Sem conexão — verifique sua internet';
   }
 }
 function otpNext(el,idx){el.value=el.value.replace(/\D/,'');const b=document.querySelectorAll('.otp-box');if(el.value&&idx<5)b[idx+1].focus();const code=[...b].map(x=>x.value).join('');if(code.length===6)setTimeout(verify2FA,200);}
 async function verify2FA(){
   const b=document.querySelectorAll('.otp-box'),code=[...b].map(x=>x.value).join('');
-  if(code===currentOTP){
-    document.getElementById('otp-err').style.display='none';
-    b.forEach(x=>x.style.borderColor='var(--green)');
-    setTimeout(async()=>{
-      let u=window._fbUser||{uid:'admin',name:'Admin',plan:'pro',role:'admin'};
-      // Busca dados frescos do Firestore antes de entrar no app
-      if(u.uid&&window.FB){
-        try{const fresh=await window.FB.getUser(u.uid);if(fresh){u=fresh;window._fbUser=fresh;userPlan=fresh.plan||'trial';userRole=fresh.role||'user';}}catch(e){}
-      }
-      enterApp(u);
-      showToast('✅ Acesso verificado! Bem-vindo, '+(u.name?.split(' ')[0]||'')+'!','success');
-    },500);
-  }else{
-    document.getElementById('otp-err').style.display='block';
-    b.forEach(x=>{x.style.borderColor='var(--red)';x.value='';});
-    b[0].focus();
+  if(code.length<6)return;
+  // Desabilita boxes durante verificação
+  b.forEach(x=>x.disabled=true);
+  try{
+    const res=await fetch(getBackendUrl()+'/api/otp/verificar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({uid:window._fbUser?.uid||'', code})
+    });
+    const d=await res.json();
+    if(d.ok){
+      document.getElementById('otp-err').style.display='none';
+      b.forEach(x=>x.style.borderColor='var(--green)');
+      setTimeout(async()=>{
+        let u=window._fbUser||{uid:'admin',name:'Admin',plan:'pro',role:'admin'};
+        if(u.uid&&window.FB){
+          try{const fresh=await window.FB.getUser(u.uid);if(fresh){u=fresh;window._fbUser=fresh;userPlan=fresh.plan||'trial';userRole=fresh.role||'user';}}catch(e){}
+        }
+        enterApp(u);
+        showToast('✅ Acesso verificado! Bem-vindo, '+(u.name?.split(' ')[0]||'')+'!','success');
+      },500);
+    } else {
+      b.forEach(x=>{x.disabled=false;x.style.borderColor='var(--red)';x.value='';});
+      b[0].focus();
+      const errEl=document.getElementById('otp-err');
+      if(errEl){errEl.textContent=d.error||'Código incorreto.';errEl.style.display='block';}
+    }
+  }catch(e){
+    b.forEach(x=>{x.disabled=false;});
+    showToast('⚠️ Erro ao verificar código','error');
   }
 }
-function resendOTP(){const btn=document.getElementById('resend-btn');if(btn){btn.style.color='var(--muted)';btn.style.pointerEvents='none';}const newOtp=generateOTP();sendOTPEmail(window._fbUser?.email||'admin',newOtp);let c=30;const t=setInterval(()=>{c--;if(btn)btn.textContent='Reenviar ('+c+'s)';if(c<=0){clearInterval(t);if(btn){btn.textContent='Reenviar código';btn.style.color='var(--accent)';btn.style.pointerEvents='';}}},1000);}
+function resendOTP(){
+  const btn=document.getElementById('resend-btn');
+  if(btn){btn.style.color='var(--muted)';btn.style.pointerEvents='none';}
+  sendOTPEmail(window._fbUser?.email||'');
+  let c=30;
+  const t=setInterval(()=>{c--;if(btn)btn.textContent='Reenviar ('+c+'s)';if(c<=0){clearInterval(t);if(btn){btn.textContent='Reenviar código';btn.style.color='var(--accent)';btn.style.pointerEvents='';}}},1000);
+}
 function goToReset(){showAuth('reset');}
 async function doResetPassword(){
   const email=document.getElementById('reset-email').value.trim(),msg=document.getElementById('reset-msg'),btn=document.getElementById('reset-btn');
@@ -7278,49 +7283,23 @@ const _LICOES_TEMAS = {
 async function _carregarLicoesIA(lang, forceRefresh){
   const key = lang;
   if(!forceRefresh && _licoesCacheIA[key]) return _licoesCacheIA[key];
-  // Mostra skeleton loader
   const scroll = document.getElementById('licoes-scroll');
   if(scroll) scroll.innerHTML = _licoesSkeleton();
   try{
-    const temas = _LICOES_TEMAS[lang] || _LICOES_TEMAS['inglês'];
-    const prompt = `Crie um currículo de aprendizado de ${lang} para brasileiros. 
-Retorne APENAS JSON válido (sem markdown), com este formato exato:
-[
-  {"cat":"🟢 Iniciante","itens":[
-    {"id":"${lang.slice(0,2)}-tema1","icon":"emoji","nome":"Nome","desc":"desc curta","frases":[
-      {"orig":"frase no idioma","trans":"tradução em PT","pron":"pronúncia simplificada"}
-    ]}
-  ]},
-  {"cat":"🔵 Intermediário","itens":[...]},
-  {"cat":"🔴 Avançado","itens":[...]}
-]
-Regras:
-- Iniciante: 4 lições, 8 frases cada
-- Intermediário: 4 lições, 7 frases cada  
-- Avançado: 3 lições, 6 frases cada
-- Frases variadas e úteis do dia a dia
-- IDs únicos como "${lang.slice(0,2)}-cumprimentos"
-- Emojis relevantes para cada tema
-- Pronúncia em notação fácil para brasileiros`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
+    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const res = await fetch(getBackendUrl()+'/api/learn/licoes',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:3000,
-        messages:[{role:'user',content:prompt}]
-      })
+      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+      body:JSON.stringify({lang})
     });
+    if(!res.ok) throw new Error('Backend retornou '+res.status);
     const data = await res.json();
-    const txt = data.content?.[0]?.text || '';
-    const clean = txt.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(clean);
+    const parsed = data.licoes;
+    if(!parsed||!Array.isArray(parsed)) throw new Error('Resposta inválida');
     _licoesCacheIA[key] = parsed;
     return parsed;
   }catch(e){
-    console.error('IA licoes erro:',e);
-    // fallback ao estático
+    console.error('Lições IA erro:',e.message);
     return LICOES_DATA[lang] || [];
   }
 }
@@ -7770,26 +7749,21 @@ function renderLivre(){
 async function livreIASituacao(){
   const btn=event.target; btn.textContent='⏳ Gerando...'; btn.disabled=true;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const res=await fetch(getBackendUrl()+'/api/learn/situacao',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:300,
-        messages:[{role:'user',content:`Crie uma situação de conversa para praticar ${_livreLang} nível ${_livreNivel}. 
-Retorne APENAS JSON (sem markdown):
-{"id":"unico","icon":"emoji","nome":"Nome curto","desc":"Descrição 1 linha","personagem":"quem é o outro","lugar":"onde acontece"}
-Seja criativo e diferente do comum!`}]
-      })
+      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+      body:JSON.stringify({lang:_livreLang, nivel:_livreNivel})
     });
-    const data=await res.json();
-    const txt=data.content?.[0]?.text||'';
-    const s=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    if(!res.ok) throw new Error('Backend retornou '+res.status);
+    const s=await res.json();
+    if(!s.id) throw new Error('Situação inválida');
     _LIVRE_SITUACOES.unshift(s);
     renderLivre();
     livreIniciar(s.id);
   }catch(e){
     showToast('Erro ao gerar situação','error');
+    console.error('livreIASituacao:',e.message);
   }finally{btn.textContent='✨ Gerar situação aleatória com IA';btn.disabled=false;}
 }
 
@@ -7846,54 +7820,45 @@ async function livreRespostaIA(userMsg, isFirst){
   try{
     const langMap={'inglês':'English','espanhol':'Spanish','francês':'French','alemão':'German','italiano':'Italian','japonês':'Japanese'};
     const targetLang=langMap[_livreLang]||'English';
-    const sysPrompt=`You are playing the role of: ${_livreSit?.personagem||'a native speaker'}.
-Location: ${_livreSit?.lugar||'unknown'}.
-The user is a Brazilian learning ${targetLang} at ${_livreNivel} level.
-Rules:
-- ALWAYS respond in ${targetLang} (the target language)
-- Keep responses natural and conversational (2-4 sentences max)
-- Match the situation: ${_livreSit?.nome||'conversation'}
-- If the user makes grammar/vocabulary errors, gently correct at the end with: [Dica: ...]
-- Adapt difficulty to ${_livreNivel} level
-- Stay in character throughout
-- If initiating: start the conversation naturally as your character would`;
 
     const messages=[...(_livreHistory.slice(-8))];
     if(userMsg) messages.push({role:'user',content:userMsg});
     else messages.push({role:'user',content:`Start the conversation. You are ${_livreSit?.personagem} at ${_livreSit?.lugar}. Begin naturally.`});
 
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const res=await fetch(getBackendUrl()+'/api/learn/conversa',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:400,
-        system:sysPrompt,
-        messages
+        messages,
+        lang:_livreLang,
+        nivel:_livreNivel,
+        situacao:_livreSit
       })
     });
+
+    if(!res.ok) throw new Error('Backend retornou '+res.status);
     const data=await res.json();
+
     if(thinking)thinking.remove();
     const dot=document.getElementById('livre-status-dot');
     if(dot){dot.style.background='var(--green)';dot.style.boxShadow='0 0 6px var(--green)';}
 
-    const resp=data.content?.[0]?.text||'...';
-    // Separate correction hint if present
+    const resp=data.answer||'...';
     const dica=resp.match(/\[Dica:(.*?)\]/s);
     let mainResp=resp.replace(/\[Dica:.*?\]/s,'').trim();
 
-    _livreHistory.push({role:userMsg?'user':'user',content:userMsg||'(start)'});
+    _livreHistory.push({role:'user',content:userMsg||'(start)'});
     _livreHistory.push({role:'assistant',content:mainResp});
 
     let html=mainResp.replace(/\n/g,'<br>');
-    if(dica){
-      html+=`<div class="lb-correcao">💡 Dica: ${dica[1].trim()}</div>`;
-    }
+    if(dica) html+=`<div class="lb-correcao">💡 Dica: ${dica[1].trim()}</div>`;
     livreAddBubble('ai', html, true, true);
     addPts(1);
   }catch(e){
     if(thinking)thinking.remove();
     livreAddBubble('ai','⚠️ Erro de conexão. Tente novamente.',false,false);
+    console.error('livreRespostaIA:',e.message);
   }
 }
 

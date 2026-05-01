@@ -106,7 +106,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
 /* ====== PAGES ====== */
 .page{display:none;width:100%;flex-direction:column;}
-.page.active{display:flex;flex:1;min-height:0;flex-direction:column;}
+.page.active{display:flex;}
 .auth-page{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;
   /* fundo com gradiente radial duplo */
   background:radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,.14) 0%, transparent 60%),
@@ -405,15 +405,15 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .streak-label{font-size:11px;color:var(--muted);}.streak-sep{flex:1;}
 .streak-pts{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--accent);}
 /* TABS */
-.learn-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.learn-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
 .learn-tabs::-webkit-scrollbar{display:none;}
-.learn-tab{flex-shrink:0;padding:10px 12px;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;letter-spacing:.3px;}
+.learn-tab{flex:1;min-width:56px;padding:9px 4px;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;letter-spacing:.3px;}
 .learn-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .learn-tab-panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
 .learn-tab-panel.active{display:flex;}
 /* LANG STRIP */
 .learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
-.learn-lang-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;flex-shrink:0;}
+.learn-lang-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
 /* PROFESSOR CHAT */
 .learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
@@ -434,9 +434,9 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-thinking span:nth-child(2){animation-delay:.2s;}.learn-thinking span:nth-child(3){animation-delay:.4s;}
 @keyframes learnDot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
 /* LIÇÕES */
-.licoes-lang-bar{display:flex;gap:7px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;align-items:center;background:var(--surface);}
+.licoes-lang-bar{display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;align-items:center;}
 .licoes-lang-bar::-webkit-scrollbar{display:none;}
-.learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;background:var(--surface);}
+.learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
 .learn-lang-strip::-webkit-scrollbar{display:none;}
 .licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;}
 .licao-cat{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;}
@@ -619,7 +619,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .atabs::-webkit-scrollbar{display:none;}
 .atab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;border:1px solid transparent;}
 .atab.active{background:var(--adim);color:var(--accent);border-color:rgba(0,229,255,.2);}
-.atcont{flex:1;overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch;min-height:0;}
+.atcont{flex:1;overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch;}
 .atcont::-webkit-scrollbar{display:none;}
 .atpanel{display:none;}
 .atpanel.active{display:block;}
@@ -1094,7 +1094,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== ACTIVE SESSION ====== -->
-    <div class="page" id="page-active" style="overflow:hidden;flex:1;flex-direction:column;min-height:0;">
+    <div class="page" id="page-active" style="overflow:hidden;height:100%;flex-direction:column;">
       <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
         <button class="dcl" onclick="leaveActive()">‹</button>
         <div style="display:flex;align-items:center;gap:10px;flex:1;">
@@ -1114,7 +1114,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         <div class="proc-ov" id="pov"><div class="proc-spin"></div><div class="proc-st" id="pst">Processando...</div></div>
       </div>
       <div class="met-bar"><div class="met-item">💬 <span id="mwrd">0</span> palavras</div><div class="met-item">⚡ <span id="mlat">—</span></div><div class="met-item">✅ <span id="macc">—</span></div></div>
-      <div id="sess-backend-warn" style="display:none;padding:6px 16px;background:rgba(255,140,0,.12);border-top:1px solid rgba(255,140,0,.25);font-size:11px;color:var(--orange);text-align:center;font-family:var(--mono);">⚠️ Backend sem resposta — verifique OPENAI_API_KEY no Render <span style="text-decoration:underline;cursor:pointer;" onclick="testBackendPing()">Testar agora</span></div>
       <div class="mic-area">
         <button class="micb idle" id="micbtn" onclick="togMic()">
           <div class="micol" id="mico" style="font-size:26px;">🎙️</div>
@@ -1830,9 +1829,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           <div style="font-size:11px;color:var(--muted);line-height:1.6;">
             As chaves OpenAI e ElevenLabs ficam <strong style="color:var(--text);">somente no Railway</strong> como variáveis de ambiente — nunca chegam ao browser do cliente.<br><br>
             O frontend envia o áudio → backend traduz usando as chaves → retorna o resultado.<br><br>
-            <span style="color:var(--accent);">→ Veja o README.md do aivox-backend para instruções de deploy.</span><br><br>
-            <strong style="color:var(--red);">Se /api/ping funciona mas /api/translate retorna 502:</strong><br>
-            <span style="color:var(--muted);">Isso significa que a <strong style="color:var(--text);">OPENAI_API_KEY</strong> está ausente ou inválida nas variáveis de ambiente do Render. Acesse: Render Dashboard → seu serviço → Environment → adicione OPENAI_API_KEY.</span>
+            <span style="color:var(--accent);">→ Veja o README.md do aivox-backend para instruções de deploy.</span>
           </div>
         </div>
       </div>
@@ -1845,14 +1842,14 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== CHAT SUPPORT ====== -->
-    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
+    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;height:100%;position:relative;">
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;"><button class="dcl" onclick="navApp('home')">‹</button><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Chat Suporte</div><div style="font-size:11px;color:var(--green);">● Equipe online</div></div><button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WhatsApp</button></div>
       <div class="chat-msgs scroll-area" id="chat-msgs"><div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div></div>
       <div class="chat-input-bar"><textarea class="chat-input" id="chat-input-field" placeholder="Digite sua mensagem..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendChatMsg()">➤</button></div>
     </div>
 
     <!-- ====== ADMIN ====== -->
-    <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
+    <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;position:relative;height:100%;">
       <div class="adh">
         <div class="adtop"><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:10px;align-items:center;"><div class="adba" style="font-size:11px;padding:8px 16px;border-radius:10px;">🛡️ Admin</div><button class="btn btn-danger" style="font-size:13px;padding:10px 20px;" onclick="doLogout()">Sair</button></div></div>
         <div class="atabs">
@@ -2045,11 +2042,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
                 <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:8px;text-align:center;" id="cycle-note">Aguardando próxima tradução...</div>
               </div>
 
-              <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="btn btn-ghost btn-full" style="font-size:12px;" onclick="checkApiStatus(true)">🔄 Verificar APIs</button>
-                <button class="btn btn-ghost btn-full" style="font-size:12px;color:var(--accent);" onclick="runFullDiagnose()">🩺 Diagnóstico</button>
-              </div>
-              <div id="api-diagnose-output" style="display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;"></div>
+              <button class="btn btn-ghost btn-full" style="margin-top:10px;font-size:12px;" onclick="checkApiStatus(true)">🔄 Verificar agora</button>
             </div>
             <!-- Custo por API -->
             <div>
@@ -2210,12 +2203,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
       <!-- Interface principal -->
       <div id="sala-main">
-        <!-- Backend status notice for salas -->
-        <div id="sala-backend-notice" style="display:none;background:rgba(255,140,0,.1);border:1px solid rgba(255,140,0,.3);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--orange);">
-          ⚠️ <strong>Backend não respondeu.</strong> As salas precisam do servidor para funcionar.<br>
-          <span style="color:var(--muted);font-size:11px;">Verifique se o deploy está ativo no Render e se as variáveis de ambiente estão corretas.</span><br>
-          <button class="btn btn-ghost btn-sm" style="margin-top:6px;font-size:11px;" onclick="initSalaPage()">🔄 Tentar novamente</button>
-        </div>
 
         <!-- CRIAR SALA (Pro+) -->
         <div id="sala-criar-section">
@@ -2273,7 +2260,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== SALA ATIVA (tradução em tempo real) ====== -->
-    <div class="page" id="page-sala-ativa" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;">
+    <div class="page" id="page-sala-ativa" style="flex-direction:column;overflow:hidden;height:100%;">
 
       <!-- Header da sala -->
       <div class="sala-status-bar">
@@ -2482,7 +2469,7 @@ auth.onAuthStateChanged(async(user)=>{
   if(user){
     try{
       let data=await window.FB.getUser(user.uid);
-      if(!data){const _initRole=window._fbUser?.role||'user';const _initPlan=window._fbUser?.plan||'trial';await db.collection('users').doc(user.uid).set({uid:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,plan:_initPlan,minutesUsed:0,minutesLimit:_initPlan==='trial'?5:_initPlan==='pro'?200:600,status:'active',role:_initRole,createdAt:serverTimestamp(),lastLogin:serverTimestamp()});data=await window.FB.getUser(user.uid);}
+      if(!data){await db.collection('users').doc(user.uid).set({uid:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,plan:'trial',minutesUsed:0,minutesLimit:5,status:'active',role:'user',createdAt:serverTimestamp(),lastLogin:serverTimestamp()});data=await window.FB.getUser(user.uid);}
       if(data){
         window._fbUser=data;userPlan=data.plan||'trial';userRole=data.role||'user';
         const ap=['page-landing','page-login','page-register','page-reset','page-2fa'];
@@ -2500,18 +2487,7 @@ auth.onAuthStateChanged(async(user)=>{
         }
         else{updateSidebarUser(data);if(data.role!=='admin')setupPlan();}
       }
-    }catch(e){
-      if(e.code==='permission-denied'){
-        // Preserva role/plano do login original — NÃO sobrescreve admin com 'user'
-        const _eRole=window._fbUser?.role||'user';
-        const _ePlan=window._fbUser?.plan||'trial';
-        const _eName=window._fbUser?.name||user.email.split('@')[0];
-        window._fbUser={uid:user.uid,email:user.email,name:_eName,plan:_ePlan,role:_eRole,minutesUsed:window._fbUser?.minutesUsed||0,minutesLimit:window._fbUser?.minutesLimit||5};
-        const ap2=['page-landing','page-login','page-register','page-reset','page-2fa'];
-        // Só re-entra no app se ainda estiver em tela de auth
-        if(ap2.some(p=>document.getElementById(p)?.classList.contains('active')))enterApp(window._fbUser);
-      }
-    }
+    }catch(e){if(e.code==='permission-denied'){window._fbUser={uid:user.uid,email:user.email,name:user.email.split('@')[0],plan:'trial',role:'user',minutesUsed:0,minutesLimit:5};const ap2=['page-landing','page-login','page-register','page-reset','page-2fa'];if(ap2.some(p=>document.getElementById(p)?.classList.contains('active')))enterApp(window._fbUser);}}
   }else{
     // Ignora se logout manual já tratou a UI (currentPage já é 'landing')
     window._fbUser=null;
@@ -2521,19 +2497,6 @@ auth.onAuthStateChanged(async(user)=>{
 window.auth=auth;
 </script>
 <script>
-// ── Global error catcher ────────────────────────────────────────
-window.addEventListener('unhandledrejection',e=>{
-  const msg=e.reason?.message||String(e.reason)||'Unknown';
-  // Ignore Chrome extension errors
-  if(msg.includes('message channel'))return;
-  console.error('[AIVOX] Unhandled rejection:',msg,e.reason);
-});
-window.addEventListener('error',e=>{
-  const msg=e.message||'Unknown';
-  if(msg.includes('message channel'))return;
-  console.error('[AIVOX] JS Error:',msg,'at',e.filename,':',e.lineno);
-});
-
 // ====== STATE ======
 let userPlan='trial',userRole='user',currentPage='landing';
 
@@ -2544,82 +2507,6 @@ function getBackendUrl(){
 }
 // Compat: BACKEND_URL usado em algumas rotas antigas
 Object.defineProperty(window,'BACKEND_URL',{get:()=>getBackendUrl(),configurable:true});
-
-// ── Backend health check & diagnose ──────────────────────────────
-// ── Diagnóstico completo do sistema ────────────────────────────
-async function runFullDiagnose(){
-  const url=getBackendUrl();
-  showToast('Executando diagnostico...','info');
-  const results=[];
-  try{
-    const t0=Date.now();
-    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(5000)});
-    const ms=Date.now()-t0;
-    results.push(r.ok?('OK Backend ping: '+ms+'ms'):('ERRO Backend ping: HTTP '+r.status));
-  }catch(e){results.push('ERRO Backend inacessivel: '+e.message);}
-  try{
-    const r=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(5000)});
-    if(r.ok){
-      const d=await r.json();
-      results.push(d.openai?'OK OPENAI_API_KEY configurada':'ERRO OPENAI_API_KEY AUSENTE - traducao/STT nao funcionara');
-      results.push(d.elevenlabs?'OK ELEVENLABS configurada':'AVS ELEVENLABS nao configurada (TTS desativado)');
-      results.push(d.firebase?'OK Firebase Admin configurado':'AVS Firebase Admin nao configurado (salas limitadas)');
-      results.push(d.mp?'OK MercadoPago configurado':'AVS MercadoPago nao configurado');
-      results.push('INFO Uptime: '+Math.round((d.uptime||0)/60)+'min | Node: '+(d.node||'?'));
-    } else {
-      results.push('AVS /api/diagnose nao disponivel - atualize o server.js');
-    }
-  }catch(e){results.push('AVS Diagnostico nao disponivel: '+e.message);}
-  try{
-    if(window.FB&&typeof db!=='undefined'&&window._fbUser){
-      const t0=Date.now();
-      await db.collection('users').doc(window._fbUser.uid).get();
-      results.push('OK Firebase Firestore: '+(Date.now()-t0)+'ms');
-    } else {
-      results.push('AVS Firebase cliente: nao conectado');
-    }
-  }catch(e){results.push('ERRO Firebase Firestore: '+e.message);}
-  console.log('AIVOX Diagnostico:\n'+results.join('\n'));
-  const diagEl=document.getElementById('api-diagnose-output');
-  if(diagEl){
-    diagEl.style.display='block';
-    diagEl.innerHTML='<div style="font-size:11px;font-family:var(--mono);line-height:1.9">'+
-      results.map(function(line){
-        const color=line.startsWith('OK')?'var(--green)':line.startsWith('ERRO')?'var(--red)':'var(--orange)';
-        return '<div style="color:'+color+'">'+line+'</div>';
-      }).join('')+
-    '</div>';
-  } else {
-    alert('AIVOX Diagnostico:\n\n'+results.join('\n'));
-  }
-}
-
-async function checkBackendHealth(){
-  const url=getBackendUrl();
-  try{
-    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
-    if(r.ok){
-      // Also test translate endpoint health
-      try{
-        const r2=await fetch(url+'/api/translate',{
-          method:'POST',signal:AbortSignal.timeout(8000),
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({text:'test',from:'en',to:'pt'})
-        });
-        if(r2.ok) return {ok:true,msg:'Backend e tradução OK'};
-        if(r2.status===502||r2.status===500){
-          return {ok:false,ping:true,msg:'Backend ativo mas /api/translate falha ('+r2.status+'). Verifique OPENAI_API_KEY no Render.'};
-        }
-        return {ok:false,ping:true,msg:'Backend ativo. /api/translate retornou '+r2.status};
-      }catch(e2){
-        return {ok:false,ping:true,msg:'Backend ativo mas tradução sem resposta. Verifique variáveis de ambiente.'};
-      }
-    }
-    return {ok:false,msg:'Backend retornou '+r.status};
-  }catch(e){
-    return {ok:false,msg:'Backend inacessível: '+e.message};
-  }
-}
 
 let loginAttempts=0,loginLocked=false,lockTimer=null;
 const MAX_ATTEMPTS=5;
@@ -2670,11 +2557,8 @@ function enterApp(data){
   if(isAdmin){startPaymentListener();}
 }
 function navApp(name){
-  console.log('[AIVOX] navApp →',name);
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));
-  const pg=document.getElementById('page-'+name);
-  if(!pg){console.warn('[AIVOX] Page not found: page-'+name);return;}
-  pg.classList.add('active');
+  const pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');
   currentPage=name;
   document.querySelectorAll('.snav-item').forEach(e=>e.classList.remove('active'));
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');
@@ -2685,7 +2569,7 @@ function navApp(name){
   if(name==='history'){renderHist(histData);_histTab='sess';switchHistTab('sess');}
   if(name==='faq'){renderFaq('todos');setTimeout(()=>goSlide(0),100);}
   if(name==='admin'){renderUsers('todos');renderAdminLog();renderAdminChats();loadKPIs();checkApiStatus(false);}
-  if(name==='settings'&&userRole==='admin'){loadBackendUrl();setTimeout(()=>testBackendPing(),500);}
+  if(name==='settings'&&userRole==='admin'){loadBackendUrl();}
   if(name==='chat')initUserChat();
   if(name!=='admin')stopApiMonitor();
   if(name!=='escuta')stopEscuta();
@@ -2724,11 +2608,11 @@ async function doLogin(){
   if(window.FB){
     try{
       const res=await window.FB.login(email,pass);
-      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;enterApp(res.data);return;}
+      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;const otp2fa=generateOTP();sendOTPEmail(res.data.email||email,otp2fa);showAuth('2fa');return;}
       else{loginAttempts++;if(loginAttempts>=MAX_ATTEMPTS){lockLogin(30);return;}let msg=res.error||'E-mail ou senha incorretos.';if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential'))msg='E-mail ou senha incorretos. '+(MAX_ATTEMPTS-loginAttempts)+' tentativa(s) restante(s).';errEl.textContent=msg;errEl.classList.add('show');}
     }catch(e){errEl.textContent='Erro de conexão.';errEl.classList.add('show');}
   }else{
-    if(email==='admin@aivox.com'&&pass==='admin123'){userRole='admin';window._fbUser={uid:'demo-admin',email,name:'Admin Demo',plan:'pro',role:'admin'};sendOTPEmail(email);showAuth('2fa');}
+    if(email==='admin@aivox.com'&&pass==='admin123'){userRole='admin';window._fbUser={uid:'demo-admin',email,name:'Admin Demo',plan:'pro',role:'admin'};const otp2fa=generateOTP();sendOTPEmail(email,otp2fa);showAuth('2fa');}
     else if(email&&pass){userRole='user';userPlan='trial';window._fbUser={uid:'demo-user',email,name:email.split('@')[0],plan:'trial',role:'user',minutesUsed:0,minutesLimit:5};enterApp(window._fbUser);showToast('✅ Login realizado (demo)');}
     else{errEl.textContent='E-mail ou senha incorretos.';errEl.classList.add('show');}
   }
@@ -2816,74 +2700,69 @@ function doLogout(){
   try{if(typeof auth!=='undefined'&&auth)auth.signOut().catch(()=>{});}catch(e){}
 }
 
-// ====== 2FA — OTP SERVIDOR-SIDE (seguro) ======
-// O código é gerado e validado no backend — nunca exposto no frontend
-async function sendOTPEmail(email){
-  const sub=document.getElementById('otp-sub');
+// ====== 2FA ======
+// ====== 2FA OTP — código aleatório gerado a cada login ======
+let currentOTP = '';
+function generateOTP(){
+  // Gera OTP de 6 dígitos aleatório
+  currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  return currentOTP;
+}
+async function sendOTPEmail(email, otp){
+  console.log('[AIVOX 2FA] Enviando código para:', email);
+  // Esconde fallback enquanto tenta
   const fb=document.getElementById('otp-fallback-box');
+  const fbCode=document.getElementById('otp-fallback-code');
+  const sub=document.getElementById('otp-sub');
   if(fb) fb.style.display='none';
   try{
-    const res=await fetch(getBackendUrl()+'/api/otp/gerar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, name:window._fbUser?.name||'', uid:window._fbUser?.uid||''})
+    const res = await fetch(getBackendUrl()+'/api/otp/enviar', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        email,
+        otp,
+        name: window._fbUser?.name || ''
+      })
     });
     if(res.ok){
       showToast('📧 Código enviado para '+email,'success');
-      if(sub) sub.textContent='Código enviado para '+email;
+      if(sub) sub.textContent = 'Código enviado para '+email;
     } else {
-      const d=await res.json().catch(()=>({}));
-      showToast('⚠️ '+(d.error||'Erro ao enviar código'),'error');
-      if(sub) sub.textContent='Erro ao enviar — tente reenviar';
+      // Backend respondeu mas com erro — mostra código na tela
+      console.warn('[2FA] Backend retornou erro HTTP', res.status);
+      if(fb && fbCode){ fbCode.textContent=otp; fb.style.display='block'; }
+      if(sub) sub.textContent = 'E-mail indisponível — use o código abaixo';
     }
   }catch(e){
-    console.error('Erro OTP:', e.message);
-    showToast('⚠️ Sem conexão com servidor','error');
-    if(sub) sub.textContent='Sem conexão — verifique sua internet';
+    console.error('Erro ao enviar OTP:', e.message);
+    // Sem conexão — mostra código na tela
+    if(fb && fbCode){ fbCode.textContent=otp; fb.style.display='block'; }
+    if(sub) sub.textContent = 'E-mail indisponível — use o código abaixo';
   }
 }
 function otpNext(el,idx){el.value=el.value.replace(/\D/,'');const b=document.querySelectorAll('.otp-box');if(el.value&&idx<5)b[idx+1].focus();const code=[...b].map(x=>x.value).join('');if(code.length===6)setTimeout(verify2FA,200);}
 async function verify2FA(){
   const b=document.querySelectorAll('.otp-box'),code=[...b].map(x=>x.value).join('');
-  if(code.length<6)return;
-  // Desabilita boxes durante verificação
-  b.forEach(x=>x.disabled=true);
-  try{
-    const res=await fetch(getBackendUrl()+'/api/otp/verificar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({uid:window._fbUser?.uid||'', code})
-    });
-    const d=await res.json();
-    if(d.ok){
-      document.getElementById('otp-err').style.display='none';
-      b.forEach(x=>x.style.borderColor='var(--green)');
-      setTimeout(async()=>{
-        let u=window._fbUser||{uid:'admin',name:'Admin',plan:'pro',role:'admin'};
-        if(u.uid&&window.FB){
-          try{const fresh=await window.FB.getUser(u.uid);if(fresh){u=fresh;window._fbUser=fresh;userPlan=fresh.plan||'trial';userRole=fresh.role||'user';}}catch(e){}
-        }
-        enterApp(u);
-        showToast('✅ Acesso verificado! Bem-vindo, '+(u.name?.split(' ')[0]||'')+'!','success');
-      },500);
-    } else {
-      b.forEach(x=>{x.disabled=false;x.style.borderColor='var(--red)';x.value='';});
-      b[0].focus();
-      const errEl=document.getElementById('otp-err');
-      if(errEl){errEl.textContent=d.error||'Código incorreto.';errEl.style.display='block';}
-    }
-  }catch(e){
-    b.forEach(x=>{x.disabled=false;});
-    showToast('⚠️ Erro ao verificar código','error');
+  if(code===currentOTP){
+    document.getElementById('otp-err').style.display='none';
+    b.forEach(x=>x.style.borderColor='var(--green)');
+    setTimeout(async()=>{
+      let u=window._fbUser||{uid:'admin',name:'Admin',plan:'pro',role:'admin'};
+      // Busca dados frescos do Firestore antes de entrar no app
+      if(u.uid&&window.FB){
+        try{const fresh=await window.FB.getUser(u.uid);if(fresh){u=fresh;window._fbUser=fresh;userPlan=fresh.plan||'trial';userRole=fresh.role||'user';}}catch(e){}
+      }
+      enterApp(u);
+      showToast('✅ Acesso verificado! Bem-vindo, '+(u.name?.split(' ')[0]||'')+'!','success');
+    },500);
+  }else{
+    document.getElementById('otp-err').style.display='block';
+    b.forEach(x=>{x.style.borderColor='var(--red)';x.value='';});
+    b[0].focus();
   }
 }
-function resendOTP(){
-  const btn=document.getElementById('resend-btn');
-  if(btn){btn.style.color='var(--muted)';btn.style.pointerEvents='none';}
-  sendOTPEmail(window._fbUser?.email||'');
-  let c=30;
-  const t=setInterval(()=>{c--;if(btn)btn.textContent='Reenviar ('+c+'s)';if(c<=0){clearInterval(t);if(btn){btn.textContent='Reenviar código';btn.style.color='var(--accent)';btn.style.pointerEvents='';}}},1000);
-}
+function resendOTP(){const btn=document.getElementById('resend-btn');if(btn){btn.style.color='var(--muted)';btn.style.pointerEvents='none';}const newOtp=generateOTP();sendOTPEmail(window._fbUser?.email||'admin',newOtp);let c=30;const t=setInterval(()=>{c--;if(btn)btn.textContent='Reenviar ('+c+'s)';if(c<=0){clearInterval(t);if(btn){btn.textContent='Reenviar código';btn.style.color='var(--accent)';btn.style.pointerEvents='';}}},1000);}
 function goToReset(){showAuth('reset');}
 async function doResetPassword(){
   const email=document.getElementById('reset-email').value.trim(),msg=document.getElementById('reset-msg'),btn=document.getElementById('reset-btn');
@@ -3338,41 +3217,25 @@ async function testBackendPing(){
   const fb=document.getElementById('backend-save-feedback');
   const dot=document.getElementById('backend-status-dot');
   const txt=document.getElementById('backend-status-text');
-  if(!url){if(fb){fb.textContent='URL nao configurada';fb.style.cssText='display:block;font-size:12px;color:var(--orange);font-family:var(--mono)';} return;}
-  if(fb){fb.style.cssText='display:block;font-size:11px;font-family:var(--mono)';fb.textContent='Verificando...';}
+  if(!url){if(fb){fb.textContent='⚠️ URL não configurada';fb.style.cssText='display:block;font-size:12px;color:var(--orange);font-family:var(--mono);';} return;}
+  if(fb){fb.textContent='🔄 Testando conexão...';fb.style.cssText='display:block;font-size:12px;color:var(--muted);font-family:var(--mono);';}
   try{
     const t0=Date.now();
-    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
+    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(5000)});
     const ms=Date.now()-t0;
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    let diag=null;
-    try{const rd=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(5000)});if(rd.ok)diag=await rd.json();}catch(_){}
-    if(diag){
-      const allOk=diag.openai&&diag.firebase;
-      const statusColor=allOk?'var(--green)':(diag.openai?'var(--orange)':'var(--red)');
-      if(dot)dot.style.background=statusColor;
-      if(txt){txt.textContent=(allOk?'OK':'Problemas')+' '+ms+'ms | OpenAI:'+(diag.openai?'OK':'FALTA')+' Firebase:'+(diag.firebase?'OK':'nao config');txt.style.color=statusColor;}
-      const msgs=[];
-      if(!diag.openai)msgs.push('OPENAI_API_KEY ausente no Render');
-      if(!diag.firebase)msgs.push('FIREBASE_SERVICE_ACCOUNT nao configurado');
-      if(!diag.elevenlabs)msgs.push('ELEVENLABS_API_KEY nao configurada (TTS off)');
-      if(msgs.length===0)msgs.push('Todas as variaveis OK!');
-      if(fb){
-        fb.innerHTML='<b>Diagnostico ('+ms+'ms):</b><br>'+msgs.join('<br>');
-        fb.style.color=statusColor;
-      }
-      if(!diag.openai)showToast('OPENAI_API_KEY nao configurada no Render!','error');
-      else showToast('Backend OK: '+ms+'ms','success');
-    } else {
+    if(r.ok){
       if(dot)dot.style.background='var(--green)';
-      if(txt){txt.textContent='Online '+ms+'ms';txt.style.color='var(--green)';}
-      if(fb){fb.textContent='Ping OK: '+ms+'ms (redeploy server.js p/ diagnostico completo)';fb.style.color='var(--muted)';}
-      showToast('Backend conectado: '+ms+'ms','success');
-    }
+      if(txt){txt.textContent='Online · '+ms+'ms';txt.style.color='var(--green)';}
+      if(fb){fb.textContent='✅ Backend respondeu em '+ms+'ms';fb.style.color='var(--green)';setTimeout(()=>{if(fb)fb.style.display='none';},3000);}
+      if(userRole==='admin')showToast('✅ Backend conectado: '+ms+'ms');
+      // Update monitor panel too (only if setStatus exists in admin panel)
+      try{if(typeof setStatus==='function')setStatus('dot-railway','badge-railway','lat-railway','ping-railway','ok',url.replace('https://','')+'  ·  '+ms+'ms',ms);}catch(_){}
+    }else{throw new Error('HTTP '+r.status);}
   }catch(e){
+    if(e.message==='setStatus is not defined')return;
     if(dot)dot.style.background='var(--red)';
     if(txt){txt.textContent='Offline';txt.style.color='var(--red)';}
-    if(fb){fb.textContent='Sem resposta: '+e.message;fb.style.color='var(--red)';}
+    if(fb){fb.textContent='❌ Sem resposta: '+e.message;fb.style.color='var(--red)';}
     showToast('Backend offline: '+e.message,'error');
   }
 }
@@ -3703,10 +3566,10 @@ async function _processEscutaChunk(blob){
     fd.append('audio',blob,'chunk.webm');
     fd.append('from',from);fd.append('to',to);
     const t0=Date.now();
-    const r=await fetch(backendUrl+'/api/listen-stream',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
+    const r=await fetch(backendUrl+'/api/listen-stream',{method:'POST',headers,body:fd});
     if(!r.ok||!r.body){
       // Fallback para rota normal
-      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
+      const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd});
       const d=await rd.json();
       if(d.original&&d.original.trim().length>1){
         _updateLiveEscutaLine(lineEl,d.original,d.translation);
@@ -3992,63 +3855,40 @@ async function _viagemTranslate(text){
   document.getElementById('sp2').classList.add('speaking');
   const wi2=animWF('wf2',true);wis.push(wi2);
 
-  // Idioma de origem da sessão
-  const fromCode=LO[lfi]?.code||'PT-BR';
-  const fromShort=fromCode.split('-')[0].toLowerCase();
-  // Idioma de destino da sessão
-  const toCode=LO[lti]?.code||'EN-US';
-  const toShort=toCode.split('-')[0].toLowerCase();
-
-  let trad=text;
-  // Lista de respostas inválidas que MyMemory retorna quando limite é atingido
-  const _mmBadResponses=['GOOGLE TRANSLATE','PLEASE USE OFFICIAL','MYMEMORY','USE DEEPL','QUERY LENGTH'];
-  const _isValidTrad=(t)=>t&&t.trim().length>0&&!_mmBadResponses.some(b=>t.toUpperCase().includes(b));
+  // Detecta idioma de destino
+  const toLang=LO[lti]?.s||'PT';
+  const fromLang=_viagemLangMap[document.getElementById('escuta-lang-from')?.value||'en']?.split('-')[0]||'en';
 
   try{
-    // Tenta backend primeiro (mais preciso, se estiver disponível)
+    // Tenta usar backend para tradução se disponível
     const backendUrl=getBackendUrl();
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
-    // Usa /api/translate-free (sem auth) — específico para modo viagem offline
-    const res=await fetch(backendUrl+'/api/translate-free',{
-      method:'POST',headers,signal:AbortSignal.timeout(8000),
-      body:JSON.stringify({text,from:fromShort,to:toShort})
-    });
-    console.log('[AIVOX] /api/translate-free status:', res.status);
-    if(res.ok){
-      const d=await res.json();
-      console.log('[AIVOX] translation result:', d.translation);
-      if(_isValidTrad(d.translation))trad=d.translation;
-    } else {
-      const errBody=await res.json().catch(()=>({}));
-      console.warn('[AIVOX] /api/translate error:', res.status, errBody.error||'');
-    }
-  }catch(e){console.warn('[AIVOX] /api/translate exception:',e.message);}
-
-  // Se backend falhou ou retornou inválido, usa MyMemory (offline)
-  if(trad===text){
-    try{
-      const mmUrl=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromShort}|${toShort}`;
-      const r=await fetch(mmUrl,{signal:AbortSignal.timeout(8000)});
-      if(r.ok){
-        const d=await r.json();
-        const mmTrad=d.responseData?.translatedText||'';
-        if(d.responseStatus===200&&_isValidTrad(mmTrad)){
-          trad=mmTrad;
+    if(backendUrl){
+      const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+      const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
+      const res=await fetch(backendUrl+'/api/translate',{
+        method:'POST',headers,
+        body:JSON.stringify({text,from:fromLang,to:toLang.toLowerCase()})
+      });
+      if(res.ok){
+        const data=await res.json();
+        const trad=data.translation||text;
+        document.getElementById('tr2').textContent=trad;
+        // Adiciona bolha
+        const bubs=document.getElementById('bubs');
+        if(bubs){
+          const b=document.createElement('div');
+          b.className='bi';
+          b.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;">✈️ ${text}</div><div style="font-size:14px;font-weight:600;">${trad}</div>`;
+          bubs.insertBefore(b,document.getElementById('tind'));
+          b.scrollIntoView({behavior:'smooth'});
         }
       }
-    }catch(e2){/* usa texto original */}
-  }
-
-  document.getElementById('tr2').textContent=trad;
-  // Adiciona bolha
-  const bubs=document.getElementById('bubs');
-  if(bubs){
-    const b=document.createElement('div');
-    b.className='bi';
-    b.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;">✈️ ${text}</div><div style="font-size:14px;font-weight:600;">${trad}</div>`;
-    bubs.insertBefore(b,document.getElementById('tind'));
-    b.scrollIntoView({behavior:'smooth'});
+    } else {
+      // Sem backend: mostra original com aviso
+      document.getElementById('tr2').textContent='⚠️ '+text+' (backend necessário para tradução)';
+    }
+  }catch(e){
+    document.getElementById('tr2').textContent='⚠️ Erro na tradução: '+e.message;
   }
   document.getElementById('sp2').classList.remove('speaking');
   animWF('wf2',false);
@@ -4065,15 +3905,9 @@ function stopViagemMode(){
   document.getElementById('sp1').classList.remove('speaking');
   document.getElementById('sp2').classList.remove('speaking');
   const mb=document.getElementById('micbtn');
-  if(mb)mb.className='micb idle';
-  const mico=document.getElementById('mico');
-  if(mico)mico.textContent='🎙️';
-  const micl=document.getElementById('micl');
-  if(micl)micl.textContent='Toque p/ falar';
-  const tr1=document.getElementById('tr1');
-  if(tr1)tr1.textContent='✈️ Modo Offline — toque no microfone';
-  const tr2=document.getElementById('tr2');
-  if(tr2)tr2.textContent='Aguardando resposta...';
+  if(mb)mb.className='micb';
+  document.getElementById('mico').textContent='🎙';
+  document.getElementById('micl').textContent='Toque p/ falar';
   stopSess();
 }
 // ====== SESSÃO ATIVA — MIC REAL + BACKEND ======
@@ -4183,22 +4017,7 @@ async function _processSessAudio(){
     const t0=Date.now();
 
     // Usa /api/listen — confiável e compatível com Render
-    const r=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
-    if(!r.ok){
-      const status=r.status;
-      _resetMicBtn();
-      if(status===502||status===503||status===504){
-        document.getElementById('tr1').textContent='⚠️ Backend retornou '+status;
-        document.getElementById('tr2').textContent='Verifique OPENAI_API_KEY no painel do Render';
-        const warn=document.getElementById('sess-backend-warn');
-        if(warn)warn.style.display='block';
-        showToast('Backend '+status+': verifique OPENAI_API_KEY no Render','error');
-      } else {
-        document.getElementById('tr1').textContent='Erro HTTP '+status+'. Tente novamente.';
-        document.getElementById('tr2').textContent='';
-      }
-      return;
-    }
+    const r=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd});
     const d=await r.json();
     const latMs=Date.now()-t0;
     if(!d.original||d.original.trim().length<2){
@@ -5065,14 +4884,10 @@ let chatUnsubscribe=null;
 
 function initUserChat(){
   const uid=window._fbUser?.uid;
-  const msgs=document.getElementById('chat-msgs');
-  if(!msgs)return;
-  if(!uid||!window.FB){
-    msgs.innerHTML='<div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX.</div><div class="cmsg-meta">AIVOX · agora</div></div><div class="cmsg agent"><div class="cmsg-inner" style="background:var(--odim);border:1px solid rgba(255,140,0,.3);color:var(--orange);">⚠️ Firebase offline — mensagens não disponíveis. Use o WhatsApp para suporte imediato.</div><div class="cmsg-meta">Sistema · agora</div></div>';
-    return;
-  }
+  if(!uid||!window.FB)return;
   // Load existing messages and listen for new ones
   if(chatUnsubscribe)chatUnsubscribe();
+  const msgs=document.getElementById('chat-msgs');
   // Clear existing messages except the welcome one
   msgs.innerHTML='<div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div>';
   try{
@@ -5326,52 +5141,29 @@ function acceptTermsAndCheck(){
 let _paymentListenerUnsub=null;
 function startPaymentListener(){
   if(!window.FB||!db||_paymentListenerUnsub)return;
+  // Only for admin
   if(window._fbUser?.role!=='admin')return;
   try{
-    // Sem orderBy para não exigir índice composto no Firestore
     _paymentListenerUnsub=db.collection('payments')
       .where('status','==','pending')
+      .orderBy('createdAt','desc')
       .limit(20)
       .onSnapshot(snap=>{
         snap.docChanges().forEach(change=>{
           if(change.type==='added'){
             const p=change.doc.data();
+            // Only notify for recent (last 5 min)
             const age=Date.now()-(p.createdAt?.toMillis?.()||0);
             if(age<5*60*1000){
               showToast('💰 Novo pagamento: '+p.plan?.toUpperCase()+' · R$'+(p.amount||0),'success');
+              // Update badge
               const badge=document.getElementById('payment-notify-badge');
               if(badge){const n=parseInt(badge.textContent||'0')+1;badge.textContent=n;badge.style.display=n>0?'inline':'none';}
             }
           }
         });
-      },(e)=>{
-        // Se falhar (índice, permissão), escuta na coleção logs como fallback
-        console.warn('Payment listener (payments):', e.message);
-        _paymentListenerUnsub=null;
-        _startPaymentListenerFallback();
-      });
+      },(e)=>{console.warn('Payment listener:',e);});
   }catch(e){console.warn('startPaymentListener:',e);}
-}
-function _startPaymentListenerFallback(){
-  // Fallback: escuta logs de pagamento aprovados sem índice composto
-  try{
-    _paymentListenerUnsub=db.collection('logs')
-      .where('type','==','payment')
-      .limit(10)
-      .onSnapshot(snap=>{
-        snap.docChanges().forEach(change=>{
-          if(change.type==='added'){
-            const p=change.doc.data();
-            const age=Date.now()-(p.createdAt?.toMillis?.()||0);
-            if(age<5*60*1000&&p.payment_status==='pago'){
-              showToast('💰 Pagamento confirmado: '+p.plan?.toUpperCase(),'success');
-              const badge=document.getElementById('payment-notify-badge');
-              if(badge){const n=parseInt(badge.textContent||'0')+1;badge.textContent=n;badge.style.display=n>0?'inline':'none';}
-            }
-          }
-        });
-      },(e)=>{console.warn('Payment listener fallback:',e.message);});
-  }catch(e){}
 }
 function stopPaymentListener(){if(_paymentListenerUnsub){_paymentListenerUnsub();_paymentListenerUnsub=null;}}
 
@@ -6110,9 +5902,6 @@ function initSalaPage(){
   if(locked)  locked.style.display  = canCreate ? 'none'  : 'block';
   if(main)    main.style.display    = canCreate ? 'block' : 'none';
   if(criarSec)criarSec.style.display= canCreate ? 'block' : 'none';
-  // Esconde aviso de backend
-  const notice=document.getElementById('sala-backend-notice');
-  if(notice)notice.style.display='none';
   // Reseta input
   const inp = document.getElementById('sala-code-input');
   if(inp){inp.value='';inp.className='sala-code-input';inp.disabled=false;}
@@ -6120,14 +5909,6 @@ function initSalaPage(){
   if(fb)fb.textContent='';
   const btn = document.getElementById('sala-entrar-btn');
   if(btn)btn.disabled=true;
-  // Verifica backend silenciosamente se for criador
-  if(canCreate){
-    fetch(getBackendUrl()+'/api/ping',{signal:AbortSignal.timeout(5000)})
-      .then(r=>{if(!r.ok)throw new Error(r.status);})
-      .catch(()=>{
-        if(notice)notice.style.display='block';
-      });
-  }
 }
 
 // ── Criar sala ──────────────────────────────────────────────────
@@ -6138,22 +5919,10 @@ async function criarSala(){
     const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
     const r = await fetch(getBackendUrl()+'/api/rooms/create',{
       method:'POST',
-      signal:AbortSignal.timeout(15000),
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})}
     });
-    if(!r.ok){
-      const status=r.status;
-      if(btn){btn.disabled=false;btn.textContent='👥 Criar sala agora';}
-      if(status===502||status===503||status===504){
-        showToast('Backend indisponível ('+status+'). Verifique variáveis de ambiente no Render.','error');
-        const n=document.getElementById('sala-backend-notice');if(n)n.style.display='block';
-      } else {
-        showToast('Erro ao criar sala: HTTP '+status,'error');
-      }
-      return;
-    }
     const d = await _salaSafeJson(r);
-    if(d.error) throw new Error(d.error);
+    if(!r.ok||d.error) throw new Error(d.error||'Erro ao criar sala');
 
     _salaCode      = d.code;
     _salaIsCreator = true;
@@ -6286,27 +6055,13 @@ function _salaConectarSocket(code){
 
   const backendUrl=getBackendUrl();
   _salaSocket=io(backendUrl,{
-    transports:['polling','websocket'], // polling primeiro: mais estável no Render free
+    transports:['websocket','polling'],
     reconnection:true,
-    reconnectionAttempts:5,
-    reconnectionDelay:2000,
-    timeout:15000,
-  });
-
-  let _salaConnErrCount=0;
-  _salaSocket.on('connect_error',(err)=>{
-    _salaConnErrCount++;
-    console.warn('Socket connect error:',err.message);
-    if(_salaConnErrCount===2){
-      showToast('⚠️ Não foi possível conectar à sala. Backend pode estar offline.','error');
-      const fb=document.getElementById('sala-code-feedback');
-      if(fb){fb.textContent='❌ Backend sem resposta.';fb.style.color='var(--red)';}
-      const n=document.getElementById('sala-backend-notice');if(n)n.style.display='block';
-    }
+    reconnectionAttempts:10,
+    reconnectionDelay:1000,
   });
 
   _salaSocket.on('connect',()=>{
-    _salaConnErrCount=0;
     console.log('🔌 Socket conectado, entrando na sala',code);
     const u=window._fbUser;
     _salaMyLang=LO[lfi]?.code||'PT-BR';
@@ -7523,23 +7278,49 @@ const _LICOES_TEMAS = {
 async function _carregarLicoesIA(lang, forceRefresh){
   const key = lang;
   if(!forceRefresh && _licoesCacheIA[key]) return _licoesCacheIA[key];
+  // Mostra skeleton loader
   const scroll = document.getElementById('licoes-scroll');
   if(scroll) scroll.innerHTML = _licoesSkeleton();
   try{
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const res = await fetch(getBackendUrl()+'/api/learn/licoes',{
+    const temas = _LICOES_TEMAS[lang] || _LICOES_TEMAS['inglês'];
+    const prompt = `Crie um currículo de aprendizado de ${lang} para brasileiros. 
+Retorne APENAS JSON válido (sem markdown), com este formato exato:
+[
+  {"cat":"🟢 Iniciante","itens":[
+    {"id":"${lang.slice(0,2)}-tema1","icon":"emoji","nome":"Nome","desc":"desc curta","frases":[
+      {"orig":"frase no idioma","trans":"tradução em PT","pron":"pronúncia simplificada"}
+    ]}
+  ]},
+  {"cat":"🔵 Intermediário","itens":[...]},
+  {"cat":"🔴 Avançado","itens":[...]}
+]
+Regras:
+- Iniciante: 4 lições, 8 frases cada
+- Intermediário: 4 lições, 7 frases cada  
+- Avançado: 3 lições, 6 frases cada
+- Frases variadas e úteis do dia a dia
+- IDs únicos como "${lang.slice(0,2)}-cumprimentos"
+- Emojis relevantes para cada tema
+- Pronúncia em notação fácil para brasileiros`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({lang})
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:3000,
+        messages:[{role:'user',content:prompt}]
+      })
     });
-    if(!res.ok) throw new Error('Backend retornou '+res.status);
     const data = await res.json();
-    const parsed = data.licoes;
-    if(!parsed||!Array.isArray(parsed)) throw new Error('Resposta inválida');
+    const txt = data.content?.[0]?.text || '';
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
     _licoesCacheIA[key] = parsed;
     return parsed;
   }catch(e){
-    console.error('Lições IA erro:',e.message);
+    console.error('IA licoes erro:',e);
+    // fallback ao estático
     return LICOES_DATA[lang] || [];
   }
 }
@@ -7989,21 +7770,26 @@ function renderLivre(){
 async function livreIASituacao(){
   const btn=event.target; btn.textContent='⏳ Gerando...'; btn.disabled=true;
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const res=await fetch(getBackendUrl()+'/api/learn/situacao',{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({lang:_livreLang, nivel:_livreNivel})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages:[{role:'user',content:`Crie uma situação de conversa para praticar ${_livreLang} nível ${_livreNivel}. 
+Retorne APENAS JSON (sem markdown):
+{"id":"unico","icon":"emoji","nome":"Nome curto","desc":"Descrição 1 linha","personagem":"quem é o outro","lugar":"onde acontece"}
+Seja criativo e diferente do comum!`}]
+      })
     });
-    if(!res.ok) throw new Error('Backend retornou '+res.status);
-    const s=await res.json();
-    if(!s.id) throw new Error('Situação inválida');
+    const data=await res.json();
+    const txt=data.content?.[0]?.text||'';
+    const s=JSON.parse(txt.replace(/```json|```/g,'').trim());
     _LIVRE_SITUACOES.unshift(s);
     renderLivre();
     livreIniciar(s.id);
   }catch(e){
     showToast('Erro ao gerar situação','error');
-    console.error('livreIASituacao:',e.message);
   }finally{btn.textContent='✨ Gerar situação aleatória com IA';btn.disabled=false;}
 }
 
@@ -8060,45 +7846,54 @@ async function livreRespostaIA(userMsg, isFirst){
   try{
     const langMap={'inglês':'English','espanhol':'Spanish','francês':'French','alemão':'German','italiano':'Italian','japonês':'Japanese'};
     const targetLang=langMap[_livreLang]||'English';
+    const sysPrompt=`You are playing the role of: ${_livreSit?.personagem||'a native speaker'}.
+Location: ${_livreSit?.lugar||'unknown'}.
+The user is a Brazilian learning ${targetLang} at ${_livreNivel} level.
+Rules:
+- ALWAYS respond in ${targetLang} (the target language)
+- Keep responses natural and conversational (2-4 sentences max)
+- Match the situation: ${_livreSit?.nome||'conversation'}
+- If the user makes grammar/vocabulary errors, gently correct at the end with: [Dica: ...]
+- Adapt difficulty to ${_livreNivel} level
+- Stay in character throughout
+- If initiating: start the conversation naturally as your character would`;
 
     const messages=[...(_livreHistory.slice(-8))];
     if(userMsg) messages.push({role:'user',content:userMsg});
     else messages.push({role:'user',content:`Start the conversation. You are ${_livreSit?.personagem} at ${_livreSit?.lugar}. Begin naturally.`});
 
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
-    const res=await fetch(getBackendUrl()+'/api/learn/conversa',{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        messages,
-        lang:_livreLang,
-        nivel:_livreNivel,
-        situacao:_livreSit
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        system:sysPrompt,
+        messages
       })
     });
-
-    if(!res.ok) throw new Error('Backend retornou '+res.status);
     const data=await res.json();
-
     if(thinking)thinking.remove();
     const dot=document.getElementById('livre-status-dot');
     if(dot){dot.style.background='var(--green)';dot.style.boxShadow='0 0 6px var(--green)';}
 
-    const resp=data.answer||'...';
+    const resp=data.content?.[0]?.text||'...';
+    // Separate correction hint if present
     const dica=resp.match(/\[Dica:(.*?)\]/s);
     let mainResp=resp.replace(/\[Dica:.*?\]/s,'').trim();
 
-    _livreHistory.push({role:'user',content:userMsg||'(start)'});
+    _livreHistory.push({role:userMsg?'user':'user',content:userMsg||'(start)'});
     _livreHistory.push({role:'assistant',content:mainResp});
 
     let html=mainResp.replace(/\n/g,'<br>');
-    if(dica) html+=`<div class="lb-correcao">💡 Dica: ${dica[1].trim()}</div>`;
+    if(dica){
+      html+=`<div class="lb-correcao">💡 Dica: ${dica[1].trim()}</div>`;
+    }
     livreAddBubble('ai', html, true, true);
     addPts(1);
   }catch(e){
     if(thinking)thinking.remove();
     livreAddBubble('ai','⚠️ Erro de conexão. Tente novamente.',false,false);
-    console.error('livreRespostaIA:',e.message);
   }
 }
 

@@ -2668,6 +2668,13 @@ function enterApp(data){
   if(!isAdmin){setTimeout(()=>checkTrialExpiry(),2000);}
   if(!isAdmin){setTimeout(()=>checkShowOnboarding(),1500);}
   if(isAdmin){startPaymentListener();}
+  // Keep backend alive (Render free tier hiberna após 15min)
+  if(!window._keepAliveInterval){
+    window._keepAliveInterval=setInterval(()=>{
+      const url=getBackendUrl();
+      if(url)fetch(url+'/api/ping').catch(()=>{});
+    },9*60*1000);
+  }
 }
 function navApp(name){
   console.log('[AIVOX] navApp →',name);
@@ -2728,9 +2735,8 @@ async function doLogin(){
       else{loginAttempts++;if(loginAttempts>=MAX_ATTEMPTS){lockLogin(30);return;}let msg=res.error||'E-mail ou senha incorretos.';if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential'))msg='E-mail ou senha incorretos. '+(MAX_ATTEMPTS-loginAttempts)+' tentativa(s) restante(s).';errEl.textContent=msg;errEl.classList.add('show');}
     }catch(e){errEl.textContent='Erro de conexão.';errEl.classList.add('show');}
   }else{
-    if(email==='admin@aivox.com'&&pass==='admin123'){userRole='admin';window._fbUser={uid:'demo-admin',email,name:'Admin Demo',plan:'pro',role:'admin'};sendOTPEmail(email);showAuth('2fa');}
-    else if(email&&pass){userRole='user';userPlan='trial';window._fbUser={uid:'demo-user',email,name:email.split('@')[0],plan:'trial',role:'user',minutesUsed:0,minutesLimit:5};enterApp(window._fbUser);showToast('✅ Login realizado (demo)');}
-    else{errEl.textContent='E-mail ou senha incorretos.';errEl.classList.add('show');}
+    errEl.textContent='Erro ao conectar com o servidor de autenticação. Recarregue a página.';
+    errEl.classList.add('show');
   }
 }
 function checkRegPwStrength(val){const bar=document.getElementById('reg-pw-bar'),lbl=document.getElementById('reg-pw-label');if(!bar)return;let score=0;if(val.length>=8)score++;if(/[A-Z]/.test(val))score++;if(/[0-9]/.test(val))score++;if(/[^A-Za-z0-9]/.test(val))score++;const colors=['#ff4466','#ff8c00','#ffd000','#00ff88'],labels=['Muito fraca','Fraca','Boa','Forte 💪'],widths=['25%','50%','75%','100%'];bar.style.width=score>0?widths[score-1]:'0%';bar.style.background=score>0?colors[score-1]:'transparent';if(lbl){lbl.textContent=score>0?labels[score-1]:'';lbl.style.color=score>0?colors[score-1]:'var(--muted)';}}
@@ -2759,7 +2765,8 @@ async function doRegister(){
     }
     else{let msg=res.error||'Erro ao criar conta.';if(msg.includes('email-already-in-use'))msg='E-mail já cadastrado.';if(msg.includes('weak-password'))msg='Senha muito fraca.';errEl.textContent=msg;errEl.classList.add('show');}
   }else{
-    setTimeout(()=>{btn.style.opacity='';btn.style.pointerEvents='';btnTxt.textContent='Criar conta grátis';window._fbUser={email,name,plan:'trial',minutesUsed:0,minutesLimit:5,role:'user'};userPlan='trial';userRole='user';showToast('🎉 Conta criada (demo)!');if(pendingPayPlan){const pl=pendingPayPlan;pendingPayPlan=null;openPayment(pl);}else{enterApp(window._fbUser);}},1200);
+    btn.style.opacity='';btn.style.pointerEvents='';btnTxt.textContent='Criar conta grátis';
+    errEl.textContent='Erro ao conectar com o servidor. Recarregue a página.';errEl.classList.add('show');
   }
 }
 
@@ -2894,6 +2901,14 @@ async function doResetPassword(){
   if(!window.FB){resetBtn();msg.textContent='Firebase não carregado.';msg.style.cssText='display:block;background:var(--rdim);color:var(--red);border-radius:10px;padding:10px 12px;font-size:12px;';return;}
   try{await auth.sendPasswordResetEmail(email);msg.textContent='✅ Link enviado! Verifique seu e-mail.';msg.style.cssText='display:block;background:var(--gdim);color:var(--green);border:1px solid rgba(0,255,136,.2);border-radius:10px;padding:10px 12px;font-size:12px;';resetBtn();document.getElementById('reset-email').value='';}
   catch(e){let txt='Erro ao enviar.';if(e.code==='auth/user-not-found')txt='E-mail não encontrado.';if(e.code==='auth/too-many-requests')txt='Muitas tentativas.';msg.textContent='❌ '+txt;msg.style.cssText='display:block;background:var(--rdim);color:var(--red);border:1px solid rgba(255,68,102,.25);border-radius:10px;padding:10px 12px;font-size:12px;';resetBtn();}
+}
+
+// ====== AUTH TOKEN HELPER ======
+async function getAuthToken(){
+  const user=auth?.currentUser;
+  if(!user)return null;
+  try{return await user.getIdToken(true);}
+  catch(e){return null;}
 }
 
 // ====== PROFILE PAGE ======
@@ -3181,7 +3196,7 @@ async function confirmTopup(){
   btn.style.opacity='.6';btn.style.pointerEvents='none';
   txt.textContent='Gerando PIX...';
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
     const res=await fetch(getBackendUrl()+'/api/pix/topup',{method:'POST',headers,body:JSON.stringify({pack:_selectedTopupPack})});
     const data=await res.json();
@@ -3695,7 +3710,7 @@ async function _processEscutaChunk(blob){
   if(curr)curr.textContent='🎙️ Ouvindo...';
 
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers=token?{Authorization:'Bearer '+token}:{};
 
     // ── ETAPA 1: Transcrição (Whisper) ──────────────────────────
@@ -3829,7 +3844,7 @@ async function _speakTranslation(text){
   if(!backendUrl)return;
   (async()=>{
     try{
-      const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+      const token=await getAuthToken();
       const r=await fetch(backendUrl+'/api/speak',{
         method:'POST',
         headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
@@ -4007,7 +4022,7 @@ async function _viagemTranslate(text){
   try{
     // Tenta backend primeiro (mais preciso, se estiver disponível)
     const backendUrl=getBackendUrl();
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
     // Usa /api/translate-free (sem auth) — específico para modo viagem offline
     const res=await fetch(backendUrl+'/api/translate-free',{
@@ -4165,7 +4180,7 @@ async function _processSessAudio(){
     return;
   }
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers=token?{Authorization:'Bearer '+token}:{};
     const fd=new FormData();
     fd.append('audio',blob,'sess.webm');
@@ -5174,7 +5189,7 @@ async function confirmPay(){
   const lbl=document.getElementById('pix-label');
   if(lbl)lbl.textContent='Gerando QR Code...';
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
     const res=await fetch(getBackendUrl()+'/api/pix/criar',{method:'POST',headers,body:JSON.stringify({plan:_currentPayPlan||'basic'})});
     const data=await res.json();
@@ -5423,7 +5438,7 @@ async function adminTestPix(uid){
   if(!uid){showToast('UID inválido','error');return;}
   if(!confirm('Gerar PIX de R$1,00 para teste de produção?'))return;
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers={'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})};
     // Temporariamente seta o uid do alvo como external_reference
     const res=await fetch(getBackendUrl()+'/api/pix/criar',{method:'POST',headers,body:JSON.stringify({plan:'test1real',targetUid:uid})});
@@ -5910,7 +5925,7 @@ async function _vcProcessAudio(){
   try{
     const backendUrl=getBackendUrl();
 
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const fd=new FormData();
     fd.append('audio',blob,'voice_sample.webm');
     fd.append('name',(window._fbUser?.name||'User')+' Voice');
@@ -5968,7 +5983,7 @@ async function handleVoiceFileUpload(input){
   try{
     const backendUrl=getBackendUrl();
 
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const fd=new FormData();
     fd.append('audio',file,file.name);
     fd.append('name',(window._fbUser?.name||'User')+' Voice');
@@ -6017,7 +6032,7 @@ async function deleteClonedVoice(){
   const backendUrl=getBackendUrl();
   try{
     if(backendUrl&&window._fbUser?.voice_id){
-      const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+      const token=await getAuthToken();
       await fetch(backendUrl+'/api/voice/delete',{
         method:'DELETE',
         headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
@@ -6135,7 +6150,7 @@ async function criarSala(){
   const btn = document.getElementById('sala-criar-btn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Criando...';}
   try{
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token = await getAuthToken();
     const r = await fetch(getBackendUrl()+'/api/rooms/create',{
       method:'POST',
       signal:AbortSignal.timeout(15000),
@@ -6196,7 +6211,7 @@ function copiarCodigoSala(){
 async function encerrarSala(){
   if(!_salaCode||!confirm('Encerrar a sala?'))return;
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     await fetch(getBackendUrl()+'/api/rooms/'+_salaCode,{
       method:'DELETE',
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})}
@@ -6585,7 +6600,7 @@ async function _salaProcessAudio(){
   const to  =LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
 
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers=token?{Authorization:'Bearer '+token}:{};
     const fd=new FormData();
     fd.append('audio',blob,'sala.webm');
@@ -6739,7 +6754,7 @@ async function _rtStartRealtime(){
   }
 
   try{
-    const token   = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token   = await getAuthToken();
     const from    = LO[lfi]?.code?.split('-')[0].toLowerCase()||'pt';
     const to      = LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
     const voiceId = window._fbUser?.voice_id||'';
@@ -7020,7 +7035,7 @@ async function _salaVADProcessAudio(){
   const from=LO[lfi]?.code?.split('-')[0].toLowerCase()||'pt';
   const to  =LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const headers=token?{Authorization:'Bearer '+token}:{};
     const fd=new FormData();
     fd.append('audio',blob,'sala-vad.webm');
@@ -7346,7 +7361,7 @@ async function learnAsk(question){
   const backendUrl=getBackendUrl();
   if(!backendUrl){if(thinking)thinking.remove();showToast('Backend não configurado','error');return;}
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const r=await fetch(backendUrl+'/api/learn',{method:'POST',
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
       body:JSON.stringify({question,lang:_learnLang,history:_learnHistory.slice(-6)})});
@@ -7526,7 +7541,7 @@ async function _carregarLicoesIA(lang, forceRefresh){
   const scroll = document.getElementById('licoes-scroll');
   if(scroll) scroll.innerHTML = _licoesSkeleton();
   try{
-    const token = await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token = await getAuthToken();
     const res = await fetch(getBackendUrl()+'/api/learn/licoes',{
       method:'POST',
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
@@ -7989,7 +8004,7 @@ function renderLivre(){
 async function livreIASituacao(){
   const btn=event.target; btn.textContent='⏳ Gerando...'; btn.disabled=true;
   try{
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
     const res=await fetch(getBackendUrl()+'/api/learn/situacao',{
       method:'POST',
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
@@ -8065,10 +8080,11 @@ async function livreRespostaIA(userMsg, isFirst){
     if(userMsg) messages.push({role:'user',content:userMsg});
     else messages.push({role:'user',content:`Start the conversation. You are ${_livreSit?.personagem} at ${_livreSit?.lugar}. Begin naturally.`});
 
-    const token=await auth?.currentUser?.getIdToken?.().catch(()=>null);
+    const token=await getAuthToken();
+    if(!token){if(thinking)thinking.remove();livreAddBubble('ai','⚠️ Sessão expirada. Faça logout e login novamente.',false,false);return;}
     const res=await fetch(getBackendUrl()+'/api/learn/conversa',{
       method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({
         messages,
         lang:_livreLang,

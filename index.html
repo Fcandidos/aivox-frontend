@@ -106,7 +106,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
 /* ====== PAGES ====== */
 .page{display:none;width:100%;flex-direction:column;}
-.page.active{display:flex;flex:1;min-height:0;}
+.page.active{display:flex;flex:1;min-height:0;flex-direction:column;}
 .auth-page{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;
   /* fundo com gradiente radial duplo */
   background:radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,.14) 0%, transparent 60%),
@@ -619,7 +619,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .atabs::-webkit-scrollbar{display:none;}
 .atab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;border:1px solid transparent;}
 .atab.active{background:var(--adim);color:var(--accent);border-color:rgba(0,229,255,.2);}
-.atcont{flex:1;overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch;}
+.atcont{flex:1;overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch;min-height:0;}
 .atcont::-webkit-scrollbar{display:none;}
 .atpanel{display:none;}
 .atpanel.active{display:block;}
@@ -2482,7 +2482,7 @@ auth.onAuthStateChanged(async(user)=>{
   if(user){
     try{
       let data=await window.FB.getUser(user.uid);
-      if(!data){await db.collection('users').doc(user.uid).set({uid:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,plan:'trial',minutesUsed:0,minutesLimit:5,status:'active',role:'user',createdAt:serverTimestamp(),lastLogin:serverTimestamp()});data=await window.FB.getUser(user.uid);}
+      if(!data){const _initRole=window._fbUser?.role||'user';const _initPlan=window._fbUser?.plan||'trial';await db.collection('users').doc(user.uid).set({uid:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,plan:_initPlan,minutesUsed:0,minutesLimit:_initPlan==='trial'?5:_initPlan==='pro'?200:600,status:'active',role:_initRole,createdAt:serverTimestamp(),lastLogin:serverTimestamp()});data=await window.FB.getUser(user.uid);}
       if(data){
         window._fbUser=data;userPlan=data.plan||'trial';userRole=data.role||'user';
         const ap=['page-landing','page-login','page-register','page-reset','page-2fa'];
@@ -2500,7 +2500,18 @@ auth.onAuthStateChanged(async(user)=>{
         }
         else{updateSidebarUser(data);if(data.role!=='admin')setupPlan();}
       }
-    }catch(e){if(e.code==='permission-denied'){window._fbUser={uid:user.uid,email:user.email,name:user.email.split('@')[0],plan:'trial',role:'user',minutesUsed:0,minutesLimit:5};const ap2=['page-landing','page-login','page-register','page-reset','page-2fa'];if(ap2.some(p=>document.getElementById(p)?.classList.contains('active')))enterApp(window._fbUser);}}
+    }catch(e){
+      if(e.code==='permission-denied'){
+        // Preserva role/plano do login original — NÃO sobrescreve admin com 'user'
+        const _eRole=window._fbUser?.role||'user';
+        const _ePlan=window._fbUser?.plan||'trial';
+        const _eName=window._fbUser?.name||user.email.split('@')[0];
+        window._fbUser={uid:user.uid,email:user.email,name:_eName,plan:_ePlan,role:_eRole,minutesUsed:window._fbUser?.minutesUsed||0,minutesLimit:window._fbUser?.minutesLimit||5};
+        const ap2=['page-landing','page-login','page-register','page-reset','page-2fa'];
+        // Só re-entra no app se ainda estiver em tela de auth
+        if(ap2.some(p=>document.getElementById(p)?.classList.contains('active')))enterApp(window._fbUser);
+      }
+    }
   }else{
     // Ignora se logout manual já tratou a UI (currentPage já é 'landing')
     window._fbUser=null;

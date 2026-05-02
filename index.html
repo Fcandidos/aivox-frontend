@@ -107,6 +107,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 /* ====== PAGES ====== */
 .page{display:none;width:100%;flex-direction:column;}
 .page.active{display:flex;flex:1;min-height:0;flex-direction:column;}
+/* Safety: páginas ativas nunca ficam invisíveis por falta de background */
+#page-admin.active,#page-chat.active,#page-sala.active,#page-settings.active{background:var(--bg);color:var(--text);}
 .auth-page{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;
   /* fundo com gradiente radial duplo */
   background:radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,.14) 0%, transparent 60%),
@@ -5370,30 +5372,31 @@ let _paymentListenerUnsub=null;
 function startPaymentListener(){
   if(!window.FB||!db||_paymentListenerUnsub)return;
   if(window._fbUser?.role!=='admin')return;
+  // BUGFIX: envolve em try/catch robusto para não quebrar o painel admin
+  // se a coleção 'payments' não existir ou as Firestore Rules bloquearem
   try{
-    // Sem orderBy para não exigir índice composto no Firestore
-    _paymentListenerUnsub=db.collection('payments')
-      .where('status','==','pending')
-      .limit(20)
+    _paymentListenerUnsub=db.collection('logs')
+      .where('type','==','payment')
+      .where('payment_status','==','pago')
+      .limit(10)
       .onSnapshot(snap=>{
         snap.docChanges().forEach(change=>{
           if(change.type==='added'){
             const p=change.doc.data();
             const age=Date.now()-(p.createdAt?.toMillis?.()||0);
             if(age<5*60*1000){
-              showToast('💰 Novo pagamento: '+p.plan?.toUpperCase()+' · R$'+(p.amount||0),'success');
+              showToast('💰 Pagamento confirmado: '+(p.plan||'').toUpperCase()+' · R$'+(p.payment_amount||p.amount||0),'success');
               const badge=document.getElementById('payment-notify-badge');
               if(badge){const n=parseInt(badge.textContent||'0')+1;badge.textContent=n;badge.style.display=n>0?'inline':'none';}
             }
           }
         });
       },(e)=>{
-        // Se falhar (índice, permissão), escuta na coleção logs como fallback
-        console.warn('Payment listener (payments):', e.message);
+        // Silencia o erro — não bloqueia o painel admin
+        console.warn('Payment listener (logs):', e.message);
         _paymentListenerUnsub=null;
-        _startPaymentListenerFallback();
       });
-  }catch(e){console.warn('startPaymentListener:',e);}
+  }catch(e){console.warn('startPaymentListener erro:',e);}
 }
 function _startPaymentListenerFallback(){
   // Fallback: escuta logs de pagamento aprovados sem índice composto
@@ -6146,13 +6149,15 @@ const SALA_RTC_CONFIG = {
 function initSalaPage(){
   const u = window._fbUser;
   if(!u) return;
-  const canCreate = SALA_PLANS.includes(u.plan||'trial');
+  const canCreate = u.role==='admin' || SALA_PLANS.includes(u.plan||'trial'); // admin sempre pode criar sala
   const locked    = document.getElementById('sala-locked-msg');
   const main      = document.getElementById('sala-main');
   const criarSec  = document.getElementById('sala-criar-section');
-  if(locked)  locked.style.display  = canCreate ? 'none'  : 'block';
-  if(main)    main.style.display    = canCreate ? 'block' : 'none';
-  if(criarSec)criarSec.style.display= canCreate ? 'block' : 'none';
+  // BUGFIX: sala-main sempre visível (tem seção para entrar em sala + criar)
+  // sala-locked-msg mostra aviso de upgrade mas não esconde o main
+  if(locked)  locked.style.display  = canCreate ? 'none'  : 'none'; // esconde o bloco de lock pois main já avisa
+  if(main)    main.style.display    = 'block'; // sempre visível
+  if(criarSec)criarSec.style.display= canCreate ? 'block' : 'none'; // só esconde o botão criar se não tiver plano
   // Esconde aviso de backend
   const notice=document.getElementById('sala-backend-notice');
   if(notice)notice.style.display='none';

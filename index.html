@@ -217,21 +217,13 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .empty-state{flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;display:none;}
 /* ====== MOBILE CHAT & ADMIN FIX ====== */
 @media(max-width:767px){
-  #page-chat{height:100%;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
-  #page-chat.active{display:flex!important;}
-  #page-chat .chat-msgs{flex:1!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding:12px!important;}
-  #page-chat .chat-input-bar{flex-shrink:0!important;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))!important;}
-  #page-admin{height:100%;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
-  #page-admin.active{display:flex!important;}
-  #page-admin .adh{flex-shrink:0!important;}
-  #page-admin .atcont{flex:1!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;}
-  /* API tab: stack vertically on mobile */
-  .api-two-col{grid-template-columns:1fr!important;}
-  /* Sistema tab mobile */
-  #tab-sistema{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;}
-  /* Neon charts: status list + charts stacked */
-  #api-status-list{margin-bottom:12px!important;}
-  #neon-charts{margin-top:8px!important;}
+  #page-chat{height:100% !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
+  #page-chat .chat-msgs{flex:1 !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;min-height:0 !important;}
+  #page-chat .chat-input-bar{flex-shrink:0 !important;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
+  #page-admin{height:100% !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
+  #page-admin .adh{flex-shrink:0 !important;}
+  #page-admin .atcont{flex:1 !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
+  #tab-sistema{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
 }
 .empty-state.sh{display:flex;}
 .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
@@ -1979,19 +1971,10 @@ input, textarea, select {
     </div>
 
     <!-- ====== CHAT SUPPORT ====== -->
-    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;display:none;">
-      <div style="padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;padding-top:calc(14px + env(safe-area-inset-top,0px));">
-        <button class="dcl" onclick="navApp('home')">‹</button>
-        <div style="flex:1;"><div style="font-size:15px;font-weight:700;">Chat Suporte</div><div style="font-size:11px;color:var(--green);">● Equipe online</div></div>
-        <button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WhatsApp</button>
-      </div>
-      <div class="chat-msgs scroll-area" id="chat-msgs" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:0;">
-        <div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div>
-      </div>
-      <div class="chat-input-bar" style="flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));">
-        <textarea class="chat-input" id="chat-input-field" placeholder="Digite sua mensagem..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
-        <button class="chat-send" onclick="sendChatMsg()">➤</button>
-      </div>
+    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
+      <div style="padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;padding-top:calc(14px + env(safe-area-inset-top,0px));"><button class="dcl" onclick="navApp('home')">‹</button><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Chat Suporte</div><div style="font-size:11px;color:var(--green);">● Equipe online</div></div><button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WhatsApp</button></div>
+      <div class="chat-msgs scroll-area" id="chat-msgs" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;"><div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div></div>
+      <div class="chat-input-bar" style="flex-shrink:0;"><textarea class="chat-input" id="chat-input-field" placeholder="Digite sua mensagem..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendChatMsg()">➤</button></div>
     </div>
 
     <!-- ====== ADMIN ====== -->
@@ -2079,7 +2062,7 @@ input, textarea, select {
         <!-- APIs -->
         <div class="atpanel" id="tab-api">
           <div class="api-two-col">
-            <!-- Status das APIs + Gráficos (coluna esquerda) -->
+            <!-- Status das APIs -->
             <div>
               <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
                 <span>Status das APIs</span>
@@ -2094,55 +2077,7 @@ input, textarea, select {
                 <div class="apr"><div class="aps-dot" id="dot-eleven" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">ElevenLabs (TTS/clone)</div><div class="apl" id="lat-eleven">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-eleven">—</div><div class="apbadge" id="badge-eleven" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot ok" id="dot-firebase"></div><div style="flex:1;"><div class="apn">Firebase Auth</div><div class="apl" id="lat-firebase">Conectado ao projeto aivox-4bcbe</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--green);" id="ping-firebase">—</div><div class="apbadge ok" id="badge-firebase">Online</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-railway" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Railway (backend)</div><div class="apl" id="lat-railway">Não configurado</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-railway">—</div><div class="apbadge" id="badge-railway" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
-              </div><!-- end .aps -->
-              <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="btn btn-ghost btn-full" style="font-size:12px;" onclick="checkApiStatus(true)">🔄 Verificar APIs</button>
-                <button class="btn btn-ghost btn-full" style="font-size:12px;color:var(--accent);" onclick="runFullDiagnose()">🩺 Diagnóstico</button>
               </div>
-              <div id="api-diagnose-output" style="display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;"></div>
-            </div><!-- end left col -->
-
-            <!-- Gráficos de latência (coluna direita) -->
-            <div>
-              <div class="section-label">Latência em tempo real</div>
-              <!-- Neon latency charts -->
-              <div style="display:flex;flex-direction:column;gap:8px;" id="neon-charts">
-                <div class="neon-chart-wrap" data-api="firebase" data-color="#00e5ff">
-                  <span style="font-size:9px;font-family:var(--mono);color:#00e5ff;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Firebase</span>
-                  <div style="position:relative;">
-                    <canvas id="neon-canvas-firebase" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
-                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#00e5ff;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-firebase">—</span>
-                  </div>
-                </div>
-                <div class="neon-chart-wrap" data-api="openai" data-color="#00ff88">
-                  <span style="font-size:9px;font-family:var(--mono);color:#00ff88;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">OpenAI Whisper</span>
-                  <div style="position:relative;">
-                    <canvas id="neon-canvas-openai" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
-                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#00ff88;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-openai">—</span>
-                  </div>
-                </div>
-                <div class="neon-chart-wrap" data-api="gpt" data-color="#c084fc">
-                  <span style="font-size:9px;font-family:var(--mono);color:#c084fc;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">GPT-4o Mini</span>
-                  <div style="position:relative;">
-                    <canvas id="neon-canvas-gpt" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
-                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#c084fc;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-gpt">—</span>
-                  </div>
-                </div>
-                <div class="neon-chart-wrap" data-api="eleven" data-color="#ff8c00">
-                  <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">ElevenLabs TTS</span>
-                  <div style="position:relative;">
-                    <canvas id="neon-canvas-eleven" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
-                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ff8c00;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-eleven">—</span>
-                  </div>
-                </div>
-                <div class="neon-chart-wrap" data-api="railway" data-color="#ffd000">
-                  <span style="font-size:9px;font-family:var(--mono);color:#ffd000;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Backend (Render)</span>
-                  <div style="position:relative;">
-                    <canvas id="neon-canvas-railway" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
-                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ffd000;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-railway">—</span>
-                  </div>
-                </div>
-              </div><!-- end neon-charts -->
 
               <!-- CICLO COMPLETO — linha neon + breakdown de barras -->
               <div style="margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;" id="cycle-panel">
@@ -2196,12 +2131,56 @@ input, textarea, select {
                   </div>
                 </div>
                 <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:8px;text-align:center;" id="cycle-note">Aguardando próxima tradução...</div>
-              </div><!-- end cycle-panel -->
+              </div>
 
-              <div style="height:10px;"></div>
-            </div><!-- end right col (charts) -->
-            <!-- Custo por API -->
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <button class="btn btn-ghost btn-full" style="font-size:12px;" onclick="checkApiStatus(true)">🔄 Verificar APIs</button>
+                <button class="btn btn-ghost btn-full" style="font-size:12px;color:var(--accent);" onclick="runFullDiagnose()">🩺 Diagnóstico</button>
+              </div>
+              <div id="api-diagnose-output" style="display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;"></div>
+            </div>
+            <!-- Gráficos + Custo por API -->
             <div>
+              <div class="section-label">Latência em tempo real</div>
+              <!-- Neon latency charts -->
+              <div style="display:flex;flex-direction:column;gap:8px;" id="neon-charts">
+                <div class="neon-chart-wrap" data-api="firebase" data-color="#00e5ff">
+                  <span style="font-size:9px;font-family:var(--mono);color:#00e5ff;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Firebase</span>
+                  <div style="position:relative;">
+                    <canvas id="neon-canvas-firebase" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
+                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#00e5ff;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-firebase">—</span>
+                  </div>
+                </div>
+                <div class="neon-chart-wrap" data-api="openai" data-color="#00ff88">
+                  <span style="font-size:9px;font-family:var(--mono);color:#00ff88;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">OpenAI Whisper</span>
+                  <div style="position:relative;">
+                    <canvas id="neon-canvas-openai" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
+                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#00ff88;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-openai">—</span>
+                  </div>
+                </div>
+                <div class="neon-chart-wrap" data-api="gpt" data-color="#c084fc">
+                  <span style="font-size:9px;font-family:var(--mono);color:#c084fc;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">GPT-4o Mini</span>
+                  <div style="position:relative;">
+                    <canvas id="neon-canvas-gpt" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
+                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#c084fc;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-gpt">—</span>
+                  </div>
+                </div>
+                <div class="neon-chart-wrap" data-api="eleven" data-color="#ff8c00">
+                  <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">ElevenLabs TTS</span>
+                  <div style="position:relative;">
+                    <canvas id="neon-canvas-eleven" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
+                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ff8c00;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-eleven">—</span>
+                  </div>
+                </div>
+                <div class="neon-chart-wrap" data-api="railway" data-color="#ffd000">
+                  <span style="font-size:9px;font-family:var(--mono);color:#ffd000;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Backend (Render)</span>
+                  <div style="position:relative;">
+                    <canvas id="neon-canvas-railway" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
+                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ffd000;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-railway">—</span>
+                  </div>
+                </div>
+              </div>
+              <div style="height:10px;"></div>
               <div class="section-label">Custo por API <span style="font-size:9px;color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-family:var(--font);">(tabela de referência)</span></div>
               <div class="act">
                 <div class="acr"><div class="aci">🤖</div><div><div class="acn">OpenAI Whisper</div><div class="acd">Entrada de áudio</div></div><div class="acc"><div class="acv">$40/1M</div><div class="acu">tokens áudio</div></div></div>
@@ -2725,36 +2704,36 @@ async function runFullDiagnose(){
   showToast('Executando diagnóstico completo...','info');
   const results=[];
   const _ts=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const ok=(msg)=>{results.push('OK '+msg);console.log('%c[AIVOX DIAG ✅] '+_ts()+' — '+msg,'color:#00ff88;font-weight:bold;');};
-  const err=(msg)=>{results.push('ERRO '+msg);console.error('[AIVOX DIAG ❌] '+_ts()+' — '+msg);};
-  const info=(msg)=>{results.push('INFO '+msg);console.info('%c[AIVOX DIAG ℹ️] '+_ts()+' — '+msg,'color:#00e5ff;');};
-  const warn=(msg)=>{results.push('AVS '+msg);console.warn('[AIVOX DIAG ⚠️] '+_ts()+' — '+msg);};
+  const ok =(msg)=>{results.push('OK '+msg);  console.log('%c[AIVOX ✅] '+msg,'color:#00ff88;font-weight:bold;');};
+  const err=(msg)=>{results.push('ERRO '+msg);console.error('[AIVOX ❌] '+msg);};
+  const info=(msg)=>{results.push('INFO '+msg);console.info('%c[AIVOX ℹ️] '+msg,'color:#00e5ff;');};
+  const warn=(msg)=>{results.push('AVS '+msg); console.warn('[AIVOX ⚠️] '+msg);};
 
-  console.group('%c🩺 AIVOX — DIAGNÓSTICO COMPLETO — '+_ts(),'color:#00e5ff;font-size:14px;font-weight:bold;');
-  console.log('Backend URL:', url);
-
-  // ── 1. VERSÃO ──
-  info('AIVOX Frontend — diagnóstico em '+new Date().toLocaleString('pt-BR'));
+  console.group('%c🩺 AIVOX DIAGNÓSTICO — '+_ts(),'color:#00e5ff;font-size:14px;font-weight:bold;');
+  console.log('Backend URL:', url||'NÃO CONFIGURADA');
   console.log('User Agent:', navigator.userAgent);
   console.log('Viewport:', window.innerWidth+'×'+window.innerHeight);
 
+  // ── 1. VERSÃO ──
+  info('AIVOX Frontend — diagnóstico em '+new Date().toLocaleString('pt-BR'));
+
   // ── 2. AUTH ──
-  console.group('🔐 Auth / Firebase');
+  console.group('🔐 Auth');
   try{
     const u=auth.currentUser;
     if(u){
       ok('Auth: usuário logado — '+u.email);
       const token=await u.getIdToken();
       ok('Auth: token JWT OK ('+token.length+' chars)');
-      console.log('Token (primeiros 80 chars):', token.substring(0,80)+'...');
+      console.log('Token prefixo:', token.substring(0,60)+'...');
       const fbUser=window._fbUser;
       if(fbUser){
         ok('Perfil: '+fbUser.name+' | role:'+fbUser.role+' | plan:'+fbUser.plan);
         ok('Minutos: '+fbUser.minutesUsed+'/'+(fbUser.minutesLimit||5)+' usados');
-        console.log('window._fbUser completo:', JSON.parse(JSON.stringify(fbUser)));
-      } else { warn('window._fbUser: não carregado — onAuthStateChanged ainda não executou?'); }
+        console.log('window._fbUser:', JSON.parse(JSON.stringify(fbUser)));
+      } else { warn('window._fbUser: não carregado — onAuthStateChanged pendente?'); }
     } else { err('Auth: nenhum usuário logado'); }
-  }catch(e){ err('Auth: '+e.message); console.error('Auth exception:', e); }
+  }catch(e){ err('Auth: '+e.message); console.error(e); }
   console.groupEnd();
 
   // ── 3. FIRESTORE ──
@@ -2762,93 +2741,79 @@ async function runFullDiagnose(){
   try{
     const t0=Date.now();
     const snap=await db.collection('users').doc(window._fbUser?.uid||'_ping').get();
-    const ms=Date.now()-t0;
-    ok('Firestore: conectado em '+ms+'ms');
-    console.log('Firestore latência:', ms+'ms');
-    if(snap.exists) console.log('Dados do usuário no Firestore:', snap.data());
-    else console.warn('Documento do usuário não encontrado ou sem permissão de leitura');
+    const fbMs=Date.now()-t0;
+    ok('Firestore: conectado em '+fbMs+'ms');
+    console.log('Latência Firestore:', fbMs+'ms');
+    if(snap.exists) console.log('Dados Firestore:', snap.data());
+    else console.warn('Documento não encontrado ou sem permissão');
   }catch(e){
-    if(e.code==='permission-denied'){ warn('Firestore: permission-denied — verifique as Firestore Rules'); console.error('Firestore Rules bloqueando leitura:', e); }
-    else { err('Firestore: '+e.message); console.error('Firestore exception:', e); }
+    if(e.code==='permission-denied'){ warn('Firestore: permission-denied — verifique Rules'); console.error('Firestore Rules erro:', e); }
+    else { err('Firestore: '+e.message); console.error(e); }
   }
   console.groupEnd();
 
   // ── 4. PÁGINAS DOM ──
-  console.group('📄 DOM / Páginas');
+  console.group('📄 DOM');
   const pages=['page-home','page-admin','page-settings','page-sala','page-chat','page-learn','page-profile'];
   const missing=pages.filter(p=>!document.getElementById(p));
   missing.length===0 ? ok('DOM: todas as '+pages.length+' páginas presentes') : err('DOM: páginas ausentes → '+missing.join(', '));
+  pages.forEach(p=>console.log(p+':', document.getElementById(p)?'✅':'❌ AUSENTE'));
   const activePg=document.querySelector('.page.active');
   info('Página ativa: '+(activePg?.id||'nenhuma'));
-  pages.forEach(p=>{const el=document.getElementById(p);console.log('Página '+p+':', el?'✅ existe':'❌ não encontrada');});
   console.groupEnd();
 
   // ── 5. LAYOUT ──
-  console.group('📐 Layout');
   const shell=document.getElementById('app-shell');
   const sr=shell?.getBoundingClientRect();
   if(sr&&sr.height>0){ ok('Layout: app-shell '+Math.round(sr.width)+'×'+Math.round(sr.height)+'px — OK'); console.log('app-shell rect:', sr); }
-  else { err('Layout: app-shell altura=0 — bug das telas pretas ativo'); }
-  const bnav=document.querySelector('.bnav');
-  console.log('Bottom nav (mobile):', bnav ? (getComputedStyle(bnav).display==='none'?'oculto (desktop)':'visível (mobile)') : 'não encontrado');
-  console.groupEnd();
+  else err('Layout: app-shell altura=0 — bug de tela preta!');
 
   // ── 6. BACKEND PING ──
-  console.group('🌐 Backend (Render/Railway)');
-  console.log('URL configurada:', url||'NÃO CONFIGURADA');
+  console.group('🌐 Backend');
   try{
     const t0=Date.now();
     const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
     const ms=Date.now()-t0;
-    if(r.ok){
-      ok('Backend ping: '+ms+'ms — '+url);
-      let pingData={};
-      try{ pingData=await r.json(); }catch(_){}
-      console.log('Ping response:', pingData);
-    } else {
-      err('Backend: HTTP '+r.status);
-      console.error('Backend ping HTTP status:', r.status, r.statusText);
-    }
-  }catch(e){ err('Backend inacessível: '+e.message.slice(0,60)); console.error('Backend ping exception:', e); }
+    if(r.ok){ ok('Backend ping: '+ms+'ms — '+url); let d={};try{d=await r.json();}catch(_){}console.log('Ping response:', d); }
+    else { err('Backend: HTTP '+r.status); console.error('Status:', r.status, r.statusText); }
+  }catch(e){ err('Backend inacessível: '+e.message.slice(0,60)); console.error(e); }
   console.groupEnd();
 
-  // ── 7. CHAVES API (via /api/diagnose) ──
+  // ── 7. CHAVES API ──
   console.group('🔑 Chaves de API — /api/diagnose');
   try{
     const t0=Date.now();
     const r=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(6000)});
     const ms=Date.now()-t0;
-    console.log('/api/diagnose status:', r.status, 'em', ms+'ms');
+    console.log('/api/diagnose HTTP:', r.status, 'em', ms+'ms');
     if(r.ok){
       const d=await r.json();
-      console.log('/api/diagnose resposta completa:', JSON.stringify(d, null, 2));
+      console.log('Resposta /api/diagnose:', JSON.stringify(d,null,2));
       d.openai     ? ok('OpenAI: configurada ✓')     : err('OpenAI: AUSENTE — transcrição/tradução quebrada');
-      d.anthropic  ? ok('Anthropic: configurada ✓')  : err('Anthropic: AUSENTE — professor IA não funciona → verifique ANTHROPIC_API_KEY no Render');
+      d.anthropic  ? ok('Anthropic: configurada ✓')  : err('Anthropic: AUSENTE — ANTHROPIC_API_KEY não configurada no Render!');
       d.elevenlabs ? ok('ElevenLabs: configurada ✓') : warn('ElevenLabs: não configurada (TTS off)');
-      d.firebase   ? ok('Firebase Admin SDK: OK ✓')  : err('Firebase Admin: AUSENTE — webhooks de pagamento não funcionarão');
+      d.firebase   ? ok('Firebase Admin SDK: OK ✓')  : err('Firebase Admin: AUSENTE — webhooks/PIX falharão');
       d.mp         ? ok('MercadoPago: configurado ✓'): warn('MercadoPago: não configurado — PIX indisponível');
       info('Uptime: '+Math.round((d.uptime||0)/60)+'min | Node: '+(d.node||'?'));
       if(!d.anthropic){
-        console.error('%c[PROBLEMA CRÍTICO] ANTHROPIC_API_KEY não configurada no Render!','color:#ff4466;font-size:13px;font-weight:bold;');
-        console.error('Para corrigir: Render Dashboard → seu serviço → Environment → Add ANTHROPIC_API_KEY');
-        console.error('Isso faz o endpoint /api/learn/conversa retornar "..." (fallback de erro)');
+        console.error('%c⚠️ ANTHROPIC_API_KEY ausente! Isso causa o "..." no modo aprendizagem.','color:#ff4466;font-size:13px;font-weight:bold;');
+        console.error('Solução: Render Dashboard → seu serviço → Environment → adicionar ANTHROPIC_API_KEY');
       }
     } else {
       const txt=await r.text().catch(()=>'');
-      warn('/api/diagnose indisponível (HTTP '+r.status+') — atualize o server.js');
-      console.warn('/api/diagnose body:', txt.slice(0,300));
+      warn('/api/diagnose HTTP '+r.status+' — atualize o server.js');
+      console.warn('Body:', txt.slice(0,300));
     }
-  }catch(e){ err('Diagnose API: '+e.message.slice(0,60)); console.error('/api/diagnose exception:', e); }
+  }catch(e){ err('Diagnose API: '+e.message.slice(0,60)); console.error(e); }
   console.groupEnd();
 
-  // ── 8. TESTE REAL IA PROFESSOR (Anthropic) ──
-  console.group('🎓 Modo Aprendizagem — teste real da IA Professor');
+  // ── 8. TESTE REAL IA PROFESSOR ──
+  console.group('🎓 Modo Aprendizagem — IA Professor');
   try{
     const token=await auth.currentUser?.getIdToken();
     if(token){
-      console.log('Token obtido, fazendo POST para /api/learn/conversa...');
-      const payload={messages:[{role:'user',content:'Hi, just testing. Reply: OK'}],lang:'inglês',nivel:'iniciante',situacao:{personagem:'teacher',lugar:'classroom'}};
-      console.log('Payload enviado:', JSON.stringify(payload));
+      const payload={messages:[{role:'user',content:'Hi, say only: OK'}],lang:'inglês',nivel:'iniciante',situacao:{personagem:'teacher',lugar:'classroom'}};
+      console.log('Payload enviado:', payload);
       const t0=Date.now();
       const r=await fetch(url+'/api/learn/conversa',{
         method:'POST',
@@ -2857,71 +2822,31 @@ async function runFullDiagnose(){
         signal:AbortSignal.timeout(15000)
       });
       const ms=Date.now()-t0;
-      console.log('Resposta HTTP:', r.status, r.statusText, 'em', ms+'ms');
-      const responseText=await r.text();
-      console.log('Resposta bruta (/api/learn/conversa):', responseText.slice(0,500));
-      let d={};
-      try{ d=JSON.parse(responseText); }catch(pe){ console.error('Resposta não é JSON válido:', pe.message); }
+      console.log('HTTP:', r.status, 'em', ms+'ms');
+      const rawTxt=await r.text();
+      console.log('Resposta bruta:', rawTxt.slice(0,500));
+      let d={};try{d=JSON.parse(rawTxt);}catch(pe){console.error('JSON inválido:', pe.message);}
       console.log('Resposta parseada:', d);
       if(r.ok){
         if(d.answer&&d.answer!=='...'){
           ok('IA Professor: respondeu em '+ms+'ms | model: '+(d.model||'?'));
-          console.log('%c✅ IA Professor funcionando! Resposta: '+d.answer.substring(0,100),'color:#00ff88;font-weight:bold;');
+          console.log('%c✅ Professor OK: '+d.answer.substring(0,100),'color:#00ff88;font-weight:bold;');
         } else {
-          err('IA Professor: retornou "..." — ANTHROPIC_API_KEY não configurada ou inválida no Render');
-          console.error('%c❌ Professor IA retornou fallback "..." — isso significa que o Anthropic falhou internamente.','color:#ff4466;font-weight:bold;');
-          console.error('Soluções:\n1. Verifique ANTHROPIC_API_KEY no Render Environment\n2. Verifique se a chave tem créditos\n3. Faça redeploy do server.js após adicionar a chave');
-          console.log('d.answer recebido:', JSON.stringify(d.answer));
-          console.log('d.model recebido:', d.model);
+          err('IA Professor: retornou "..." — ANTHROPIC_API_KEY ausente ou inválida no Render');
+          console.error('%c❌ Professor retornou fallback! Verifique ANTHROPIC_API_KEY no Render.','color:#ff4466;font-weight:bold;');
         }
-      } else {
-        err('IA Professor: HTTP '+r.status+' em '+ms+'ms');
-        console.error('Resposta de erro:', responseText.slice(0,300));
-      }
-    } else {
-      warn('Sem token de auth — não foi possível testar a IA Professor');
-      console.warn('auth.currentUser:', auth.currentUser);
-    }
+      } else { err('IA Professor: HTTP '+r.status+' em '+ms+'ms'); }
+    } else { warn('Sem token de auth — login necessário para testar IA'); }
   }catch(e){
     err('IA Professor: '+e.message.slice(0,60));
-    console.error('Exceção ao testar IA Professor:', e);
-    if(e.name==='AbortError') console.error('TIMEOUT: a rota /api/learn/conversa demorou mais de 15s para responder');
+    console.error('Exceção:', e);
+    if(e.name==='AbortError') console.error('TIMEOUT: /api/learn/conversa >15s sem resposta');
   }
   console.groupEnd();
-
-  // ── 9. TESTE ROTA /api/translate ──
-  console.group('🌐 Rota /api/translate — sanidade');
-  try{
-    const token=await auth.currentUser?.getIdToken();
-    if(token){
-      const t0=Date.now();
-      const r=await fetch(url+'/api/translate',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({text:'hello',from:'en',to:'pt'}),
-        signal:AbortSignal.timeout(10000)
-      });
-      const ms=Date.now()-t0;
-      const txt=await r.text();
-      console.log('/api/translate status:', r.status, 'em', ms+'ms');
-      console.log('/api/translate resposta:', txt.slice(0,300));
-      if(r.ok) ok('Rota /api/translate: respondeu em '+ms+'ms');
-      else warn('Rota /api/translate: HTTP '+r.status+' (pode ser normal se audio necessário)');
-    }
-  }catch(e){ console.warn('/api/translate não testável:', e.message); }
-  console.groupEnd();
+  console.groupEnd(); // fecha grupo principal
 
   // ── RENDER RESULTADO ──
   const erros=results.filter(r=>r.startsWith('ERRO')).length;
-  const avisos=results.filter(r=>r.startsWith('AVS')).length;
-  console.groupEnd(); // fecha grupo principal
-
-  if(erros>0){
-    console.error('%c🚨 DIAGNÓSTICO CONCLUÍDO — '+erros+' ERRO(S) encontrado(s)','color:#ff4466;font-size:14px;font-weight:bold;');
-  } else {
-    console.log('%c✅ DIAGNÓSTICO CONCLUÍDO — Tudo OK!','color:#00ff88;font-size:14px;font-weight:bold;');
-  }
-
   if(diagEl){
     diagEl.style.display='block';
     diagEl.innerHTML='<div style="font-size:11px;font-family:var(--mono);line-height:2;padding:4px 0;">'+
@@ -2929,7 +2854,7 @@ async function runFullDiagnose(){
         const c=line.startsWith('OK')?'var(--green)':line.startsWith('ERRO')?'var(--red)':line.startsWith('AVS')?'var(--orange)':'var(--accent)';
         return '<div style="color:'+c+'">'+line+'</div>';
       }).join('')+
-      (erros>0?'<div style="color:var(--orange);margin-top:8px;font-size:10px;">💡 Abra o F12 → Console para logs detalhados de cada erro</div>':'')+
+      (erros>0?'<div style="color:var(--orange);margin-top:8px;font-size:10px;">💡 F12 → Console para logs detalhados de cada erro</div>':'')+
     '</div>';
   }
   showToast(erros===0?'✅ Diagnóstico OK — tudo funcionando':'⚠️ Diagnóstico: '+erros+' erro(s) — veja F12 Console','info');
@@ -8526,36 +8451,33 @@ async function livreRespostaIA(userMsg, isFirst){
 
     const token=await getAuthToken();
     if(!token){if(thinking)thinking.remove();livreAddBubble('ai','⚠️ Sessão expirada. Faça logout e login novamente.',false,false);return;}
-
-    const _learnPayload={messages,lang:_livreLang,nivel:_livreNivel,situacao:_livreSit};
-    console.group('%c🎓 [LEARN] Enviando para IA Professor — '+new Date().toLocaleTimeString('pt-BR'),'color:#c084fc;font-weight:bold;');
-    console.log('Backend URL:', getBackendUrl()+'/api/learn/conversa');
-    console.log('Payload:', JSON.stringify(_learnPayload, null, 2));
-    console.log('Token presente:', !!token, '('+token.length+' chars)');
-
-    const _learnT0=Date.now();
+    const _lPayload={messages,lang:_livreLang,nivel:_livreNivel,situacao:_livreSit};
+    console.group('%c🎓 [LEARN] Chamando IA Professor — '+new Date().toLocaleTimeString('pt-BR'),'color:#c084fc;font-weight:bold;');
+    console.log('URL:', getBackendUrl()+'/api/learn/conversa');
+    console.log('Payload:', JSON.stringify(_lPayload,null,2));
+    const _lT0=Date.now();
     const res=await fetch(getBackendUrl()+'/api/learn/conversa',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify(_learnPayload)
+      body:JSON.stringify(_lPayload)
     });
-
-    const _learnMs=Date.now()-_learnT0;
-    console.log('Resposta HTTP:', res.status, res.statusText, 'em', _learnMs+'ms');
-
+    const _lMs=Date.now()-_lT0;
+    console.log('HTTP:', res.status, 'em', _lMs+'ms');
     if(!res.ok){
       const errTxt=await res.text().catch(()=>'');
-      console.error('[LEARN] Erro HTTP '+res.status+':', errTxt.slice(0,400));
+      console.error('[LEARN] Erro:', errTxt.slice(0,300));
       console.groupEnd();
       throw new Error('Backend retornou '+res.status);
     }
-    const data=await res.json();
-    console.log('[LEARN] Resposta JSON completa:', JSON.stringify(data, null, 2));
-    if(data.answer==='...'){
-      console.error('%c[LEARN] ⚠️ Professor retornou "..." — ANTHROPIC_API_KEY provavelmente não configurada no Render!','color:#ff4466;font-weight:bold;');
-      console.error('Solução: Render Dashboard → Environment → adicionar ANTHROPIC_API_KEY');
+    const rawData=await res.text();
+    console.log('[LEARN] Resposta bruta:', rawData.slice(0,500));
+    let data={};
+    try{data=JSON.parse(rawData);}catch(pe){console.error('[LEARN] JSON inválido:',pe.message);throw new Error('Resposta inválida');}
+    console.log('[LEARN] Resposta parseada:', data);
+    if(data.answer==='...'||!data.answer){
+      console.error('%c[LEARN] ❌ Professor retornou "..." — verifique ANTHROPIC_API_KEY no Render!','color:#ff4466;font-weight:bold;');
     } else {
-      console.log('%c[LEARN] ✅ Professor respondeu! Model: '+data.model+' | '+_learnMs+'ms','color:#00ff88;');
+      console.log('%c[LEARN] ✅ Resposta: '+data.answer.substring(0,80),'color:#00ff88;');
     }
     console.groupEnd();
 
@@ -8577,10 +8499,9 @@ async function livreRespostaIA(userMsg, isFirst){
   }catch(e){
     if(thinking)thinking.remove();
     livreAddBubble('ai','⚠️ Erro de conexão. Tente novamente.',false,false);
-    console.error('%c[LEARN] ❌ Exceção ao chamar IA Professor:','color:#ff4466;font-weight:bold;', e.message);
+    console.error('%c[LEARN] ❌ Exceção livreRespostaIA:','color:#ff4466;font-weight:bold;', e.message);
     console.error('[LEARN] Stack:', e.stack);
-    if(e.name==='AbortError') console.error('[LEARN] TIMEOUT — o servidor demorou demais para responder');
-    console.groupEnd();
+    if(typeof console.groupEnd==='function') try{console.groupEnd();}catch(_){}
   }
 }
 

@@ -1583,6 +1583,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
         </div>
 
         </div><!-- /.learn-page -->
+    </div><!-- /#page-learn FIX -->
 
 
     <!-- ====== PROFILE / PLANO ====== -->
@@ -2677,44 +2678,26 @@ function hideAllAuth(){['page-landing','page-login','page-register','page-reset'
 function showLanding(){hideAllAuth();document.getElementById('app-shell').style.display='none';document.getElementById('page-landing').classList.add('active');currentPage='landing';}
 function showAuth(mode){hideAllAuth();document.getElementById('app-shell').style.display='none';const m={login:'page-login',register:'page-register',reset:'page-reset','2fa':'page-2fa'};if(m[mode])document.getElementById(m[mode]).classList.add('active');currentPage=mode;}
 function enterApp(data){
-  console.log('🧪 [v6-TEST] enterApp START — role:'+data?.role+' plan:'+data?.plan);
-  
-  try{hideAllAuth();}catch(e){console.error('❌ hideAllAuth falhou:',e);}
-  try{document.getElementById('app-shell').style.display='flex';}catch(e){console.error('❌ app-shell falhou:',e);}
-  try{updateSidebarUser(data);}catch(e){console.error('❌ updateSidebarUser falhou:',e);}
-  try{loadUserLanguages(data);}catch(e){console.error('❌ loadUserLanguages falhou:',e);}
-  
-  // ── v6-TEST: SEM VERIFICAÇÃO DE PERMISSÃO ──
-  // Mostra TUDO para todos — teste puro de renderização
-  try{
-    const snav_admin = document.getElementById('snav-admin');
-    const snav_settings = document.getElementById('snav-settings');
-    const settings_api = document.getElementById('settings-api-section');
-    if(snav_admin) snav_admin.style.display='flex';
-    if(snav_settings) snav_settings.style.display='flex';
-    if(settings_api) settings_api.style.display='block';
-    console.log('🧪 snav-admin:',snav_admin?'OK':'❌ NÃO ENCONTRADO');
-    console.log('🧪 snav-settings:',snav_settings?'OK':'❌ NÃO ENCONTRADO');
-  }catch(e){console.error('❌ sidebar elements falhou:',e);}
-  
-  try{
-    document.querySelector('.sidebar-user').onclick=()=>navApp('admin');
-    document.getElementById('sb-av-top').onclick=()=>navApp('admin');
-  }catch(e){console.error('❌ sidebar click falhou:',e);}
-  
-  // Vai direto para admin SEM checar role
-  console.log('🧪 Chamando navApp(admin)...');
-  try{navApp('admin');}catch(e){console.error('❌ navApp(admin) falhou:',e);}
-  
-  // Keep backend alive
+  hideAllAuth();document.getElementById('app-shell').style.display='flex';
+  updateSidebarUser(data);
+  loadUserLanguages(data);
+  const isAdmin=data.role==='admin';
+  document.getElementById('snav-admin').style.display=isAdmin?'flex':'none';
+  document.getElementById('snav-settings').style.display=isAdmin?'flex':'none';
+  document.getElementById('settings-api-section').style.display=isAdmin?'block':'none';
+  document.querySelector('.sidebar-user').onclick=()=>navApp(isAdmin?'settings':'profile');
+  document.getElementById('sb-av-top').onclick=()=>navApp(isAdmin?'settings':'profile');
+  if(isAdmin){navApp('admin');}else{navApp('home');}
+  if(!isAdmin)setupPlan();setTimeout(checkMinutesAlert,1500);loadPrecos();
+  if(!isAdmin){setTimeout(()=>checkTrialExpiry(),2000);}
+  if(!isAdmin){setTimeout(()=>checkShowOnboarding(),1500);}
+  if(isAdmin){startPaymentListener();}
   if(!window._keepAliveInterval){
     window._keepAliveInterval=setInterval(()=>{
       const url=getBackendUrl();
       if(url)fetch(url+'/api/ping').catch(()=>{});
     },9*60*1000);
   }
-  
-  console.log('🧪 [v6-TEST] enterApp CONCLUÍDO');
 }
 function navApp(name){
   console.log('[AIVOX] navApp →',name);

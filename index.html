@@ -2576,49 +2576,108 @@ Object.defineProperty(window,'BACKEND_URL',{get:()=>getBackendUrl(),configurable
 // ── Diagnóstico completo do sistema ────────────────────────────
 async function runFullDiagnose(){
   const url=getBackendUrl();
-  showToast('Executando diagnostico...','info');
+  const diagEl=document.getElementById('api-diagnose-output');
+  showToast('Executando diagnóstico completo...','info');
   const results=[];
+  const ok=(msg)=>results.push('OK '+msg);
+  const err=(msg)=>results.push('ERRO '+msg);
+  const info=(msg)=>results.push('INFO '+msg);
+  const warn=(msg)=>results.push('AVS '+msg);
+
+  // ── 1. VERSÃO ──
+  info('AIVOX Frontend — diagnóstico em '+new Date().toLocaleString('pt-BR'));
+
+  // ── 2. AUTH ──
+  try{
+    const u=auth.currentUser;
+    if(u){
+      ok('Auth: usuário logado — '+u.email);
+      const token=await u.getIdToken();
+      ok('Auth: token JWT OK ('+token.length+' chars)');
+      const fbUser=window._fbUser;
+      if(fbUser){
+        ok('Perfil: '+fbUser.name+' | role:'+fbUser.role+' | plan:'+fbUser.plan);
+        ok('Minutos: '+fbUser.minutesUsed+'/'+(fbUser.minutesLimit||5)+' usados');
+      } else { warn('window._fbUser: não carregado'); }
+    } else { err('Auth: nenhum usuário logado'); }
+  }catch(e){ err('Auth: '+e.message); }
+
+  // ── 3. FIRESTORE ──
   try{
     const t0=Date.now();
-    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(5000)});
-    const ms=Date.now()-t0;
-    results.push(r.ok?('OK Backend ping: '+ms+'ms'):('ERRO Backend ping: HTTP '+r.status));
-  }catch(e){results.push('ERRO Backend inacessivel: '+e.message);}
+    await db.collection('users').doc(window._fbUser?.uid||'_ping').get();
+    ok('Firestore: conectado em '+(Date.now()-t0)+'ms');
+  }catch(e){
+    if(e.code==='permission-denied') warn('Firestore: permission-denied — verifique as Firestore Rules');
+    else err('Firestore: '+e.message);
+  }
+
+  // ── 4. PÁGINAS DOM ──
+  const pages=['page-home','page-admin','page-settings','page-sala','page-chat','page-learn','page-profile'];
+  const missing=pages.filter(p=>!document.getElementById(p));
+  missing.length===0 ? ok('DOM: todas as '+pages.length+' páginas presentes') : err('DOM: páginas ausentes → '+missing.join(', '));
+  const activePg=document.querySelector('.page.active');
+  info('Página ativa: '+(activePg?.id||'nenhuma'));
+
+  // ── 5. LAYOUT ──
+  const shell=document.getElementById('app-shell');
+  const sr=shell?.getBoundingClientRect();
+  if(sr&&sr.height>0) ok('Layout: app-shell '+Math.round(sr.width)+'×'+Math.round(sr.height)+'px — OK');
+  else err('Layout: app-shell altura=0 — bug das telas pretas ativo');
+
+  // ── 6. BACKEND PING ──
   try{
-    const r=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(5000)});
+    const t0=Date.now();
+    const r=await fetch(url+'/api/ping',{signal:AbortSignal.timeout(6000)});
+    const ms=Date.now()-t0;
+    r.ok ? ok('Backend ping: '+ms+'ms — '+url) : err('Backend: HTTP '+r.status);
+  }catch(e){ err('Backend inacessível: '+e.message.slice(0,60)); }
+
+  // ── 7. CHAVES API ──
+  try{
+    const r=await fetch(url+'/api/diagnose',{signal:AbortSignal.timeout(6000)});
     if(r.ok){
       const d=await r.json();
-      results.push(d.openai?'OK OPENAI_API_KEY configurada':'ERRO OPENAI_API_KEY AUSENTE - traducao/STT nao funcionara');
-      results.push(d.elevenlabs?'OK ELEVENLABS configurada':'AVS ELEVENLABS nao configurada (TTS desativado)');
-      results.push(d.firebase?'OK Firebase Admin configurado':'AVS Firebase Admin nao configurado (salas limitadas)');
-      results.push(d.mp?'OK MercadoPago configurado':'AVS MercadoPago nao configurado');
-      results.push('INFO Uptime: '+Math.round((d.uptime||0)/60)+'min | Node: '+(d.node||'?'));
-    } else {
-      results.push('AVS /api/diagnose nao disponivel - atualize o server.js');
-    }
-  }catch(e){results.push('AVS Diagnostico nao disponivel: '+e.message);}
+      d.openai     ? ok('OpenAI: configurada ✓')     : err('OpenAI: AUSENTE — transcrição/tradução quebrada');
+      d.anthropic  ? ok('Anthropic: configurada ✓')  : err('Anthropic: AUSENTE — professor IA não funciona');
+      d.elevenlabs ? ok('ElevenLabs: configurada ✓') : warn('ElevenLabs: não configurada (TTS off)');
+      d.firebase   ? ok('Firebase Admin SDK: OK ✓')  : err('Firebase Admin: AUSENTE');
+      d.mp         ? ok('MercadoPago: configurado ✓'): warn('MercadoPago: não configurado');
+      info('Uptime: '+Math.round((d.uptime||0)/60)+'min | Node: '+(d.node||'?'));
+    } else { warn('/api/diagnose indisponível — atualize o server.js'); }
+  }catch(e){ err('Diagnose API: '+e.message.slice(0,60)); }
+
+  // ── 8. TESTE REAL IA ──
   try{
-    if(window.FB&&typeof db!=='undefined'&&window._fbUser){
+    const token=await auth.currentUser?.getIdToken();
+    if(token){
       const t0=Date.now();
-      await db.collection('users').doc(window._fbUser.uid).get();
-      results.push('OK Firebase Firestore: '+(Date.now()-t0)+'ms');
-    } else {
-      results.push('AVS Firebase cliente: nao conectado');
+      const r=await fetch(url+'/api/learn/conversa',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({messages:[{role:'user',content:'Hi'}],lang:'inglês',nivel:'iniciante',situacao:{personagem:'teacher',lugar:'classroom'}}),
+        signal:AbortSignal.timeout(12000)
+      });
+      const ms=Date.now()-t0;
+      if(r.ok){
+        const d=await r.json();
+        d.answer&&d.answer!=='...' ? ok('IA Professor: respondeu em '+ms+'ms (model:'+d.model+')') : err('IA Professor: retornou "..." — verifique ANTHROPIC_API_KEY no Render');
+      } else { err('IA Professor: HTTP '+r.status+' em '+ms+'ms'); }
     }
-  }catch(e){results.push('ERRO Firebase Firestore: '+e.message);}
-  console.log('AIVOX Diagnostico:\n'+results.join('\n'));
-  const diagEl=document.getElementById('api-diagnose-output');
+  }catch(e){ err('IA Professor: '+e.message.slice(0,60)); }
+
+  // ── RENDER RESULTADO ──
+  const erros=results.filter(r=>r.startsWith('ERRO')).length;
   if(diagEl){
     diagEl.style.display='block';
-    diagEl.innerHTML='<div style="font-size:11px;font-family:var(--mono);line-height:1.9">'+
-      results.map(function(line){
-        const color=line.startsWith('OK')?'var(--green)':line.startsWith('ERRO')?'var(--red)':'var(--orange)';
-        return '<div style="color:'+color+'">'+line+'</div>';
+    diagEl.innerHTML='<div style="font-size:11px;font-family:var(--mono);line-height:2;padding:4px 0;">'+
+      results.map(line=>{
+        const c=line.startsWith('OK')?'var(--green)':line.startsWith('ERRO')?'var(--red)':line.startsWith('AVS')?'var(--orange)':'var(--accent)';
+        return '<div style="color:'+c+'">'+line+'</div>';
       }).join('')+
     '</div>';
-  } else {
-    alert('AIVOX Diagnostico:\n\n'+results.join('\n'));
   }
+  showToast(erros===0?'✅ Diagnóstico OK — tudo funcionando':'⚠️ Diagnóstico: '+erros+' erro(s) encontrado(s)','info');
 }
 
 async function checkBackendHealth(){
@@ -5029,8 +5088,6 @@ async function checkApiStatus(showToasts=true){
     }
   };
 
-  console.log('🔑 [API CHECK] Iniciando verificação...');
-  console.log('🔑 [API CHECK] backend URL:', getBackendUrl());
   if(showToasts)showToast('🔄 Verificando APIs...','info');
 
   // 1. Firebase latency — real measurement
@@ -5067,8 +5124,7 @@ async function checkApiStatus(showToasts=true){
   // 2. Check API keys via backend /api/check-keys
   const uid=window._fbUser?.uid;
   const backendUrlForKeys=getBackendUrl();
-  console.log('🔑 [API CHECK] backend URL:', backendUrlForKeys);
-  console.log('🔑 [API CHECK] uid:', uid);
+
   
   if(backendUrlForKeys){
     try{
@@ -5078,7 +5134,6 @@ async function checkApiStatus(showToasts=true){
         signal:AbortSignal.timeout(8000)
       });
       const keysMs=Math.round(performance.now()-t1);
-      console.log('🔑 [API CHECK] resposta status:', resp.status, resp.statusText);
       
       if(resp.ok){
         const data=await resp.json();
@@ -5091,19 +5146,15 @@ async function checkApiStatus(showToasts=true){
         }else{
           setStatus('dot-openai','badge-openai','lat-openai','ping-openai','err','❌ Chave inválida ou ausente no Render',undefined);
           setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','err','❌ Chave inválida ou ausente no Render',undefined);
-          console.warn('🔑 OpenAI erro:', data.openai_error);
         }
         if(data.elevenlabs){
           setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','ok','Chave OK no Render ✓',keysMs);
           updateNeonChart('eleven',keysMs);
         }else{
           setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','err','❌ Chave inválida ou ausente no Render',undefined);
-          console.warn('🔑 ElevenLabs erro:', data.elevenlabs_error);
         }
         if(data.anthropic){
-          console.log('🔑 Anthropic: ✅ OK');
         }else{
-          console.warn('🔑 Anthropic erro:', data.anthropic_error);
         }
         if(showToasts)showToast('✓ Status verificado!','success');
       }else{

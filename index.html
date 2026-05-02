@@ -11,7 +11,7 @@
 <link rel="manifest" href="/aivox-frontend/manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="/aivox-frontend/icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="/aivox-frontend/icon-192.png">
-<title>AIVOX v5</title>
+<title>AIVOX v5.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ====== RESET & ROOT ====== */
@@ -1029,6 +1029,9 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 </div>
 
 <!-- ====== APP SHELL ====== -->
+<!-- AIVOX v5.1 — deploy verificado -->
+<div id="_deploy_check" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#00e5ff;color:#000;font-size:11px;font-weight:800;text-align:center;padding:4px;font-family:monospace;">✅ AIVOX v5.1 carregado</div>
+<script>setTimeout(()=>{const el=document.getElementById('_deploy_check');if(el)el.remove();},4000);</script>
 <div class="app-shell" id="app-shell" style="display:none;">
 
   <nav class="sidebar" id="sidebar">
@@ -2705,6 +2708,12 @@ function navApp(name){
   const pg=document.getElementById('page-'+name);
   if(!pg){console.warn('[AIVOX] Page not found: page-'+name);return;}
   pg.classList.add('active');
+  // Debug: log computed visibility of the page
+  setTimeout(()=>{
+    const rect=pg.getBoundingClientRect();
+    const style=window.getComputedStyle(pg);
+    console.log('[AIVOX] page-'+name+' rect:',Math.round(rect.width)+'x'+Math.round(rect.height),'display:'+style.display,'visibility:'+style.visibility,'opacity:'+style.opacity);
+  },100);
   currentPage=name;
   document.querySelectorAll('.snav-item').forEach(e=>e.classList.remove('active'));
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');

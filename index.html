@@ -1155,7 +1155,7 @@ input, textarea, select {
 <div class="app-shell" id="app-shell" style="display:none;height:100vh;width:100%;overflow:hidden;">
 
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div style="display:flex;flex-direction:column;gap:1px;"><div class="sidebar-brand">AI<span>VOX</span></div><div style="font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.5px;">v5.2</div></div></div>
+    <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div style="display:flex;flex-direction:column;gap:1px;"><div class="sidebar-brand">AI<span>VOX</span></div><div style="font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7);">v5.2</div></div></div>
     <div class="sidebar-nav">
       <div class="snav-item active" id="snav-home" onclick="navApp('home')"><span class="sni">🏠</span> Início</div>
       <div class="snav-item" id="snav-active" onclick="goActive()"><span class="sni">🎙️</span> Sessão ativa</div>
@@ -1173,7 +1173,7 @@ input, textarea, select {
         <div class="sidebar-av" id="sb-avatar">R</div>
         <div><div class="sidebar-uname" id="sb-name">Usuário</div><div class="sidebar-uplan" id="sb-plan">TRIAL</div></div>
       </div>
-      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.5px;">AIVOX v5.2 · build 2026-05-02</div>
+      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-02</div>
     </div>
   </nav>
 
@@ -3647,7 +3647,7 @@ async function testBackendPing(){
       if(!diag.openai)msgs.push('OPENAI_API_KEY ausente no Render');
       if(!diag.firebase)msgs.push('FIREBASE_SERVICE_ACCOUNT nao configurado');
       if(!diag.elevenlabs)msgs.push('ELEVENLABS_API_KEY nao configurada (TTS off)');
-      if(!diag.anthropic)msgs.push('⚠️ ANTHROPIC_API_KEY ausente — IA Professor retornará "..." (erro 500 em /api/learn)');
+      if(!diag.anthropic)msgs.push('⚠️ ANTHROPIC_API_KEY ausente — IA Professor retornará erro 500');
       if(msgs.length===0)msgs.push('Todas as variaveis OK!');
       if(fb){
         fb.innerHTML='<b>Diagnostico ('+ms+'ms):</b><br>'+msgs.join('<br>');
@@ -5140,10 +5140,10 @@ function stopApiMonitor(){
 
 // ====== NEON LATENCY CHARTS ======
 const _neonData = {
-  firebase: [], openai: [], gpt: [], eleven: [], railway: [], cycle: []
+  firebase: [], openai: [], gpt: [], eleven: [], railway: [], cycle: [], anthropic: []
 };
 const _neonColors = {
-  firebase: '#00e5ff', openai: '#00ff88', gpt: '#c084fc', eleven: '#ff8c00', railway: '#ffd000', cycle: '#ffffff'
+  firebase: '#00e5ff', openai: '#00ff88', gpt: '#c084fc', eleven: '#ff8c00', railway: '#ffd000', cycle: '#ffffff', anthropic: '#ff6b35'
 };
 const NEON_MAX_POINTS = 30;
 

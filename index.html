@@ -1030,7 +1030,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
 <!-- ====== APP SHELL ====== -->
 <!-- AIVOX v5.1 — deploy verificado -->
-<div id="_deploy_check" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#00e5ff;color:#000;font-size:11px;font-weight:800;text-align:center;padding:4px;font-family:monospace;">✅ AIVOX v5.1 carregado</div>
+<div id="_deploy_check" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#00e5ff;color:#000;font-size:11px;font-weight:800;text-align:center;padding:4px;font-family:monospace;">🧪 AIVOX v6-TEST carregado</div>
 <script>setTimeout(()=>{const el=document.getElementById('_deploy_check');if(el)el.remove();},4000);</script>
 <div class="app-shell" id="app-shell" style="display:none;">
 
@@ -2674,33 +2674,44 @@ function hideAllAuth(){['page-landing','page-login','page-register','page-reset'
 function showLanding(){hideAllAuth();document.getElementById('app-shell').style.display='none';document.getElementById('page-landing').classList.add('active');currentPage='landing';}
 function showAuth(mode){hideAllAuth();document.getElementById('app-shell').style.display='none';const m={login:'page-login',register:'page-register',reset:'page-reset','2fa':'page-2fa'};if(m[mode])document.getElementById(m[mode]).classList.add('active');currentPage=mode;}
 function enterApp(data){
-  hideAllAuth();document.getElementById('app-shell').style.display='flex';
-  updateSidebarUser(data);
+  console.log('🧪 [v6-TEST] enterApp START — role:'+data?.role+' plan:'+data?.plan);
   
-  // Carregar idiomas salvos do usuário
-  loadUserLanguages(data);
+  try{hideAllAuth();}catch(e){console.error('❌ hideAllAuth falhou:',e);}
+  try{document.getElementById('app-shell').style.display='flex';}catch(e){console.error('❌ app-shell falhou:',e);}
+  try{updateSidebarUser(data);}catch(e){console.error('❌ updateSidebarUser falhou:',e);}
+  try{loadUserLanguages(data);}catch(e){console.error('❌ loadUserLanguages falhou:',e);}
   
-  const isAdmin=data.role==='admin';
-  // Admin-only elements
-  document.getElementById('snav-admin').style.display=isAdmin?'flex':'none';
-  document.getElementById('snav-settings').style.display=isAdmin?'flex':'none';
-  document.getElementById('settings-api-section').style.display=isAdmin?'block':'none';
-  // Sidebar footer click: admin vai p/ settings, user vai p/ chat
-  document.querySelector('.sidebar-user').onclick=()=>navApp(isAdmin?'settings':'profile');
-  document.getElementById('sb-av-top').onclick=()=>navApp(isAdmin?'settings':'profile');
-  if(isAdmin){navApp('admin');}
-  else{navApp('home');}
-  if(!isAdmin)setupPlan();setTimeout(checkMinutesAlert,1500);loadPrecos();
-  if(!isAdmin){setTimeout(()=>checkTrialExpiry(),2000);}
-  if(!isAdmin){setTimeout(()=>checkShowOnboarding(),1500);}
-  if(isAdmin){startPaymentListener();}
-  // Keep backend alive (Render free tier hiberna após 15min)
+  // ── v6-TEST: SEM VERIFICAÇÃO DE PERMISSÃO ──
+  // Mostra TUDO para todos — teste puro de renderização
+  try{
+    const snav_admin = document.getElementById('snav-admin');
+    const snav_settings = document.getElementById('snav-settings');
+    const settings_api = document.getElementById('settings-api-section');
+    if(snav_admin) snav_admin.style.display='flex';
+    if(snav_settings) snav_settings.style.display='flex';
+    if(settings_api) settings_api.style.display='block';
+    console.log('🧪 snav-admin:',snav_admin?'OK':'❌ NÃO ENCONTRADO');
+    console.log('🧪 snav-settings:',snav_settings?'OK':'❌ NÃO ENCONTRADO');
+  }catch(e){console.error('❌ sidebar elements falhou:',e);}
+  
+  try{
+    document.querySelector('.sidebar-user').onclick=()=>navApp('admin');
+    document.getElementById('sb-av-top').onclick=()=>navApp('admin');
+  }catch(e){console.error('❌ sidebar click falhou:',e);}
+  
+  // Vai direto para admin SEM checar role
+  console.log('🧪 Chamando navApp(admin)...');
+  try{navApp('admin');}catch(e){console.error('❌ navApp(admin) falhou:',e);}
+  
+  // Keep backend alive
   if(!window._keepAliveInterval){
     window._keepAliveInterval=setInterval(()=>{
       const url=getBackendUrl();
       if(url)fetch(url+'/api/ping').catch(()=>{});
     },9*60*1000);
   }
+  
+  console.log('🧪 [v6-TEST] enterApp CONCLUÍDO');
 }
 function navApp(name){
   console.log('[AIVOX] navApp →',name);

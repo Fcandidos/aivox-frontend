@@ -5029,6 +5029,8 @@ async function checkApiStatus(showToasts=true){
     }
   };
 
+  console.log('🔑 [API CHECK] Iniciando verificação...');
+  console.log('🔑 [API CHECK] backend URL:', getBackendUrl());
   if(showToasts)showToast('🔄 Verificando APIs...','info');
 
   // 1. Firebase latency — real measurement
@@ -5062,29 +5064,87 @@ async function checkApiStatus(showToasts=true){
     }
   }
 
-  // 2. Check API keys in Firestore
+  // 2. Check API keys via backend /api/check-keys
   const uid=window._fbUser?.uid;
-  if(uid&&window.FB){
+  const backendUrlForKeys=getBackendUrl();
+  console.log('🔑 [API CHECK] backend URL:', backendUrlForKeys);
+  console.log('🔑 [API CHECK] uid:', uid);
+  
+  if(backendUrlForKeys){
+    try{
+      const t1=performance.now();
+      // /api/diagnose é público — não precisa de token
+      const resp=await fetch(backendUrlForKeys+'/api/diagnose',{
+        signal:AbortSignal.timeout(8000)
+      });
+      const keysMs=Math.round(performance.now()-t1);
+      console.log('🔑 [API CHECK] resposta status:', resp.status, resp.statusText);
+      
+      if(resp.ok){
+        const data=await resp.json();
+        console.log('🔑 [API CHECK] dados:', JSON.stringify(data));
+        
+        if(data.openai){
+          setStatus('dot-openai','badge-openai','lat-openai','ping-openai','ok','Chave OK no Render ✓',keysMs);
+          setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','ok','Chave OK no Render ✓',keysMs);
+          updateNeonChart('openai',keysMs);updateNeonChart('gpt',keysMs);
+        }else{
+          setStatus('dot-openai','badge-openai','lat-openai','ping-openai','err','❌ Chave inválida ou ausente no Render',undefined);
+          setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','err','❌ Chave inválida ou ausente no Render',undefined);
+          console.warn('🔑 OpenAI erro:', data.openai_error);
+        }
+        if(data.elevenlabs){
+          setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','ok','Chave OK no Render ✓',keysMs);
+          updateNeonChart('eleven',keysMs);
+        }else{
+          setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','err','❌ Chave inválida ou ausente no Render',undefined);
+          console.warn('🔑 ElevenLabs erro:', data.elevenlabs_error);
+        }
+        if(data.anthropic){
+          console.log('🔑 Anthropic: ✅ OK');
+        }else{
+          console.warn('🔑 Anthropic erro:', data.anthropic_error);
+        }
+        if(showToasts)showToast('✓ Status verificado!','success');
+      }else{
+        const errText=await resp.text().catch(()=>'');
+        console.error('🔑 [API CHECK] erro HTTP:', resp.status, errText.slice(0,200));
+        // Fallback: marca como não verificável
+        ['openai','gpt','eleven'].forEach(s=>{
+          setStatus('dot-'+s,'badge-'+s,'lat-'+s,'ping-'+s,'warn','Backend não respondeu ('+resp.status+')',undefined);
+        });
+      }
+    }catch(e){
+      console.error('🔑 [API CHECK] exceção:', e.message);
+      ['openai','gpt','eleven'].forEach(s=>{
+        setStatus('dot-'+s,'badge-'+s,'lat-'+s,'ping-'+s,'warn','Erro: '+e.message.slice(0,40),undefined);
+      });
+      if(showToasts)showToast('Erro ao verificar APIs: '+e.message,'error');
+    }
+  }else if(uid&&window.FB){
+    // Fallback antigo via Firestore se não tiver backend configurado
     try{
       const t1=performance.now();
       const keys=await window.FB.getApiKeys(uid);
       const keysMs=Math.round(performance.now()-t1);
+      console.log('🔑 [API CHECK] fallback Firestore keys:', Object.keys(keys||{}));
       if(keys.openai_api_key){
-        setStatus('dot-openai','badge-openai','lat-openai','ping-openai','ok','Chave configurada ✓',keysMs);
-        setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','ok','Chave configurada ✓',keysMs);
-        updateNeonChart('openai', keysMs);
-        updateNeonChart('gpt', keysMs);
+        setStatus('dot-openai','badge-openai','lat-openai','ping-openai','ok','Chave no Firestore ✓',keysMs);
+        setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','ok','Chave no Firestore ✓',keysMs);
       }else{
-        setStatus('dot-openai','badge-openai','lat-openai','ping-openai','err','Chave não configurada',undefined);
-        setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','err','Chave não configurada',undefined);
+        setStatus('dot-openai','badge-openai','lat-openai','ping-openai','err','Chave não encontrada',undefined);
+        setStatus('dot-gpt','badge-gpt','lat-gpt','ping-gpt','err','Chave não encontrada',undefined);
       }
       if(keys.elevenlabs_api_key){
-        setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','ok','Chave configurada ✓',keysMs);
-        updateNeonChart('eleven', keysMs);
+        setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','ok','Chave no Firestore ✓',keysMs);
+      }else{
+        setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','err','Chave não encontrada',undefined);
       }
-      else{setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','err','Chave não configurada',undefined);}
       if(showToasts)showToast('✓ Status verificado!','success');
-    }catch(e){if(showToasts)showToast('Erro: '+e.message,'error');}
+    }catch(e){
+      console.error('🔑 [API CHECK] Firestore erro:', e.message);
+      if(showToasts)showToast('Erro: '+e.message,'error');
+    }
   }else{
     // No user — show as unconfigured
     ['openai','gpt','eleven'].forEach(s=>{

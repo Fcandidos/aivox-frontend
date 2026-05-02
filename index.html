@@ -105,8 +105,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 @media(min-width:1100px){.bnav{display:none !important;}}
 
 /* ====== PAGES ====== */
-.page{display:none!important;width:100%;flex-direction:column;}
-.page.active{display:flex!important;flex:1;min-height:0;flex-direction:column;background:var(--bg);}
+.page{display:none;width:100%;flex-direction:column;}
+.page.active{display:flex;flex:1;min-height:0;flex-direction:column;background:var(--bg);}
+/* Garante que páginas com inline style de flex também ficam ocultas quando não-ativas */
+.page:not(.active){display:none!important;}
 .auth-page{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;
   /* fundo com gradiente radial duplo */
   background:radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,.14) 0%, transparent 60%),
@@ -1097,7 +1099,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== ACTIVE SESSION ====== -->
-    <div class="page" id="page-active" style="display:flex;overflow:hidden;flex:1;flex-direction:column;min-height:0;background:var(--bg);">
+    <div class="page" id="page-active" style="overflow:hidden;flex:1;flex-direction:column;min-height:0;">
       <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
         <button class="dcl" onclick="leaveActive()">‹</button>
         <div style="display:flex;align-items:center;gap:10px;flex:1;">
@@ -1402,7 +1404,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== APRENDIZAGEM ====== -->
-    <div class="page content-area" id="page-learn" style="display:flex;padding:0;flex-direction:column;height:100%;overflow:hidden;background:var(--bg);">
+    <div class="page content-area" id="page-learn" style="padding:0;flex-direction:column;height:100%;overflow:hidden;">
       <div class="learn-page" style="flex:1;min-height:0;">
         <!-- Header -->
         <div class="learn-header">
@@ -1848,14 +1850,14 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== CHAT SUPPORT ====== -->
-    <div class="page" id="page-chat" style="display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;background:var(--bg);">
+    <div class="page" id="page-chat" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;"><button class="dcl" onclick="navApp('home')">‹</button><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Chat Suporte</div><div style="font-size:11px;color:var(--green);">● Equipe online</div></div><button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WhatsApp</button></div>
       <div class="chat-msgs scroll-area" id="chat-msgs"><div class="cmsg agent"><div class="cmsg-inner">Olá! 👋 Sou da equipe AIVOX. Como posso ajudar?</div><div class="cmsg-meta">AIVOX · agora</div></div></div>
       <div class="chat-input-bar"><textarea class="chat-input" id="chat-input-field" placeholder="Digite sua mensagem..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendChatMsg()">➤</button></div>
     </div>
 
     <!-- ====== ADMIN ====== -->
-    <div class="page" id="page-admin" style="display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;background:var(--bg);">
+    <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
       <div class="adh">
         <div class="adtop"><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:10px;align-items:center;"><div class="adba" style="font-size:11px;padding:8px 16px;border-radius:10px;">🛡️ Admin</div><button class="btn btn-danger" style="font-size:13px;padding:10px 20px;" onclick="doLogout()">Sair</button></div></div>
         <div class="atabs">
@@ -2276,7 +2278,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     </div>
 
     <!-- ====== SALA ATIVA (tradução em tempo real) ====== -->
-    <div class="page" id="page-sala-ativa" style="display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;background:var(--bg);">
+    <div class="page" id="page-sala-ativa" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;">
 
       <!-- Header da sala -->
       <div class="sala-status-bar">
@@ -2706,12 +2708,17 @@ function navApp(name){
   const pg=document.getElementById('page-'+name);
   if(!pg){console.warn('[AIVOX] Page not found: page-'+name);return;}
   pg.classList.add('active');
-  // Debug: log computed visibility of the page
+  // Debug: log computed visibility + list ALL active pages
   setTimeout(()=>{
     const rect=pg.getBoundingClientRect();
     const style=window.getComputedStyle(pg);
-    console.log('[AIVOX] page-'+name+' rect:',Math.round(rect.width)+'x'+Math.round(rect.height),'display:'+style.display,'visibility:'+style.visibility,'opacity:'+style.opacity);
-  },100);
+    const allActive=Array.from(document.querySelectorAll('.page.active')).map(p=>p.id);
+    const allVisible=Array.from(document.querySelectorAll('.page')).filter(p=>{
+      const s=window.getComputedStyle(p);
+      return s.display!=='none';
+    }).map(p=>p.id);
+    console.log('[AIVOX] page-'+name+' | size:'+Math.round(rect.width)+'x'+Math.round(rect.height)+' | display:'+style.display+' | .active pages:'+allActive.join(',')+' | visible pages:'+allVisible.join(','));
+  },200);
   currentPage=name;
   document.querySelectorAll('.snav-item').forEach(e=>e.classList.remove('active'));
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');

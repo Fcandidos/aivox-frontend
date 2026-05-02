@@ -49,7 +49,7 @@ html{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-beh
 body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--text);overflow-x:hidden;}
 
 /* ====== DESKTOP APP SHELL ====== */
-.app-shell{display:flex;min-height:100vh;width:100%;}
+.app-shell{display:flex;min-height:100vh;height:100vh;width:100%;overflow:hidden;}
 
 /* SIDEBAR */
 .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform;}
@@ -69,7 +69,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .sidebar-uplan{font-size:10px;color:var(--muted);font-family:var(--mono);}
 
 /* MAIN AREA */
-.main-area{flex:1;margin-left:var(--sidebar-w);min-width:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.main-area{flex:1;margin-left:var(--sidebar-w);min-width:0;display:flex;flex-direction:column;height:100%;overflow:hidden;}
 
 /* TOPBAR */
 .topbar{height:58px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;position:relative;top:0;z-index:50;flex-shrink:0;padding-top:env(safe-area-inset-top,0px);}
@@ -89,7 +89,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
   .sidebar.open{transform:translateX(0);}
   .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
   .sidebar-overlay.open{display:block;}
-  .main-area{margin-left:0;height:100vh;overflow:hidden;}
+  .main-area{margin-left:0;height:100%;overflow:hidden;}
   .topbar{padding:env(safe-area-inset-top,0px) 16px 0 16px;height:calc(58px + env(safe-area-inset-top,0px));}
   .topbar-title{font-size:16px;}
   .content-area{padding:16px 14px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
@@ -1030,9 +1030,9 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
 <!-- ====== APP SHELL ====== -->
 <!-- AIVOX v5.1 — deploy verificado -->
-<div id="_deploy_check" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#00e5ff;color:#000;font-size:11px;font-weight:800;text-align:center;padding:4px;font-family:monospace;">🧪 AIVOX v6-TEST carregado</div>
+<div id="_deploy_check" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#00e5ff;color:#000;font-size:11px;font-weight:800;text-align:center;padding:4px;font-family:monospace;">🧪 AIVOX v7-FIX carregado</div>
 <script>setTimeout(()=>{const el=document.getElementById('_deploy_check');if(el)el.remove();},4000);</script>
-<div class="app-shell" id="app-shell" style="display:none;">
+<div class="app-shell" id="app-shell" style="display:none;height:100vh;width:100%;overflow:hidden;">
 
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div class="sidebar-brand">AI<span>VOX</span></div></div>

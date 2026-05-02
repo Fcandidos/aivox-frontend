@@ -2485,6 +2485,8 @@ auth.onAuthStateChanged(async(user)=>{
       if(!data){const _initRole=window._fbUser?.role||'user';const _initPlan=window._fbUser?.plan||'trial';await db.collection('users').doc(user.uid).set({uid:user.uid,name:user.displayName||user.email.split('@')[0],email:user.email,plan:_initPlan,minutesUsed:0,minutesLimit:_initPlan==='trial'?5:_initPlan==='pro'?200:600,status:'active',role:_initRole,createdAt:serverTimestamp(),lastLogin:serverTimestamp()});data=await window.FB.getUser(user.uid);}
       if(data){
         window._fbUser=data;userPlan=data.plan||'trial';userRole=data.role||'user';
+        // BUGFIX: persiste role no localStorage para sobreviver a permission-denied temporário
+        try{localStorage.setItem('aivox_role',data.role||'user');localStorage.setItem('aivox_uid',user.uid);}catch(_){}
         const ap=['page-landing','page-login','page-register','page-reset','page-2fa'];
         const onAuth=ap.some(p=>document.getElementById(p)?.classList.contains('active'));
         if(onAuth){
@@ -2502,11 +2504,17 @@ auth.onAuthStateChanged(async(user)=>{
       }
     }catch(e){
       if(e.code==='permission-denied'){
-        // Preserva role/plano do login original — NÃO sobrescreve admin com 'user'
-        const _eRole=window._fbUser?.role||'user';
+        // BUGFIX: window._fbUser pode ser null aqui — usa localStorage como fallback seguro
+        // Isso evita que admin perca o role quando Firestore lança permission-denied
+        const _savedRole=localStorage.getItem('aivox_role')||'user';
+        const _savedUid=localStorage.getItem('aivox_uid');
+        const _eRole=(_savedUid===user.uid&&_savedRole==='admin')?'admin':(window._fbUser?.role||_savedRole);
         const _ePlan=window._fbUser?.plan||'trial';
         const _eName=window._fbUser?.name||user.email.split('@')[0];
         window._fbUser={uid:user.uid,email:user.email,name:_eName,plan:_ePlan,role:_eRole,minutesUsed:window._fbUser?.minutesUsed||0,minutesLimit:window._fbUser?.minutesLimit||5};
+        // Garante que as vars globais também ficam corretas
+        userRole=_eRole;
+        try{if(_eRole==='admin'){localStorage.setItem('aivox_role','admin');localStorage.setItem('aivox_uid',user.uid);}}catch(_){}
         const ap2=['page-landing','page-login','page-register','page-reset','page-2fa'];
         // Só re-entra no app se ainda estiver em tela de auth
         if(ap2.some(p=>document.getElementById(p)?.classList.contains('active')))enterApp(window._fbUser);
@@ -2731,7 +2739,7 @@ async function doLogin(){
   if(window.FB){
     try{
       const res=await window.FB.login(email,pass);
-      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;enterApp(res.data);showToast('✅ Bem-vindo, '+(res.data.name?.split(' ')[0]||'')+'!');return;}
+      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;try{localStorage.setItem('aivox_role',res.data.role||'user');localStorage.setItem('aivox_uid',res.data.uid||'');}catch(_){}enterApp(res.data);showToast('✅ Bem-vindo, '+(res.data.name?.split(' ')[0]||'')+'!');return;}
       else{loginAttempts++;if(loginAttempts>=MAX_ATTEMPTS){lockLogin(30);return;}let msg=res.error||'E-mail ou senha incorretos.';if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential'))msg='E-mail ou senha incorretos. '+(MAX_ATTEMPTS-loginAttempts)+' tentativa(s) restante(s).';errEl.textContent=msg;errEl.classList.add('show');}
     }catch(e){errEl.textContent='Erro de conexão.';errEl.classList.add('show');}
   }else{
@@ -2814,6 +2822,8 @@ function doLogout(){
   userPlan='trial';
   loginAttempts=0;
   currentPage='landing';
+  // BUGFIX: limpa localStorage ao sair para não vazar role entre sessões/usuários
+  try{localStorage.removeItem('aivox_role');localStorage.removeItem('aivox_uid');}catch(_){}
   // 6. Mostrar landing
   document.getElementById('app-shell').style.display='none';
   document.querySelectorAll('.auth-page.active,.landing-page.active').forEach(el=>el.classList.remove('active'));

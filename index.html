@@ -1032,9 +1032,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 </div>
 
 <!-- ====== APP SHELL ====== -->
-<!-- AIVOX v5.1 — deploy verificado -->
-<div id="_deploy_check" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#00e5ff;color:#000;font-size:11px;font-weight:800;text-align:center;padding:4px;font-family:monospace;">🧪 AIVOX v9-INSPECT carregado</div>
-<script>setTimeout(()=>{const el=document.getElementById('_deploy_check');if(el)el.remove();},4000);</script>
 <div class="app-shell" id="app-shell" style="display:none;height:100vh;width:100%;overflow:hidden;">
 
   <nav class="sidebar" id="sidebar">
@@ -2700,29 +2697,11 @@ function enterApp(data){
   }
 }
 function navApp(name){
-  console.log('[AIVOX] navApp →',name);
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));
   const pg=document.getElementById('page-'+name);
   if(!pg){console.warn('[AIVOX] Page not found: page-'+name);return;}
   pg.classList.add('active');
-  // Deep DOM inspector — encontra por que size é 0x0
-  setTimeout(()=>{
-    const rect=pg.getBoundingClientRect();
-    const s=window.getComputedStyle(pg);
-    console.log('━━━ [DOM INSPECT] page-'+name+' ━━━');
-    console.log('  size: '+Math.round(rect.width)+'x'+Math.round(rect.height));
-    console.log('  display: '+s.display+' | visibility: '+s.visibility+' | opacity: '+s.opacity);
-    console.log('  position: '+s.position+' | overflow: '+s.overflow);
-    // Walk up the DOM tree checking each parent
-    let el=pg, depth=0;
-    while(el && el!==document.body && depth<8){
-      const es=window.getComputedStyle(el);
-      const er=el.getBoundingClientRect();
-      console.log('  ['+(depth===0?'PAGE':depth===1?'PARENT':'ANC'+depth)+'] '+el.tagName+(el.id?'#'+el.id:'')+(el.className?' .'+String(el.className).split(' ')[0]:'')+' | '+Math.round(er.width)+'x'+Math.round(er.height)+' | display:'+es.display+' | height:'+es.height+' | flex:'+es.flex);
-      el=el.parentElement; depth++;
-    }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  },300);
+
   currentPage=name;
   document.querySelectorAll('.snav-item').forEach(e=>e.classList.remove('active'));
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');

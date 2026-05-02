@@ -14,7 +14,7 @@
 <link rel="manifest" href="/aivox-frontend/manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="/aivox-frontend/icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="/aivox-frontend/icon-192.png">
-<title>AIVOX v5.1</title>
+<title>AIVOX v5.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ====== RESET & ROOT ====== */
@@ -718,7 +718,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .ubf.warn{background:linear-gradient(90deg,var(--orange),#ffcc00);}
 .ubf.over{background:linear-gradient(90deg,var(--red),#ff0080);}
 .aps{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
-.apr{display:flex;align-items:center;padding:10px 13px;border-bottom:1px solid var(--border);gap:9px;}
+.apr{display:flex;align-items:center;padding:10px 13px;border-bottom:1px solid var(--border);gap:9px;min-height:52px;}
 .apr:last-child{border-bottom:none;}
 .apn{font-size:12px;font-weight:600;flex:1;}
 .aps-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
@@ -1155,7 +1155,7 @@ input, textarea, select {
 <div class="app-shell" id="app-shell" style="display:none;height:100vh;width:100%;overflow:hidden;">
 
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div class="sidebar-brand">AI<span>VOX</span></div></div>
+    <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div style="display:flex;flex-direction:column;gap:1px;"><div class="sidebar-brand">AI<span>VOX</span></div><div style="font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.5px;">v5.2</div></div></div>
     <div class="sidebar-nav">
       <div class="snav-item active" id="snav-home" onclick="navApp('home')"><span class="sni">🏠</span> Início</div>
       <div class="snav-item" id="snav-active" onclick="goActive()"><span class="sni">🎙️</span> Sessão ativa</div>
@@ -1173,6 +1173,7 @@ input, textarea, select {
         <div class="sidebar-av" id="sb-avatar">R</div>
         <div><div class="sidebar-uname" id="sb-name">Usuário</div><div class="sidebar-uplan" id="sb-plan">TRIAL</div></div>
       </div>
+      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.5px;">AIVOX v5.2 · build 2026-05-02</div>
     </div>
   </nav>
 
@@ -2075,6 +2076,7 @@ input, textarea, select {
                 <div class="apr"><div class="aps-dot" id="dot-openai" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">OpenAI Whisper (STT)</div><div class="apl" id="lat-openai">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-openai">—</div><div class="apbadge" id="badge-openai" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-gpt" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">GPT-4o Mini (tradução)</div><div class="apl" id="lat-gpt">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-gpt">—</div><div class="apbadge" id="badge-gpt" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-eleven" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">ElevenLabs (TTS/clone)</div><div class="apl" id="lat-eleven">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-eleven">—</div><div class="apbadge" id="badge-eleven" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
+                <div class="apr"><div class="aps-dot" id="dot-anthropic" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Anthropic Claude (IA Professor)</div><div class="apl" id="lat-anthropic">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-anthropic">—</div><div class="apbadge" id="badge-anthropic" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot ok" id="dot-firebase"></div><div style="flex:1;"><div class="apn">Firebase Auth</div><div class="apl" id="lat-firebase">Conectado ao projeto aivox-4bcbe</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--green);" id="ping-firebase">—</div><div class="apbadge ok" id="badge-firebase">Online</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-railway" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Railway (backend)</div><div class="apl" id="lat-railway">Não configurado</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-railway">—</div><div class="apbadge" id="badge-railway" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
               </div>
@@ -2163,6 +2165,13 @@ input, textarea, select {
                   <div style="position:relative;">
                     <canvas id="neon-canvas-gpt" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
                     <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#c084fc;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-gpt">—</span>
+                  </div>
+                </div>
+                <div class="neon-chart-wrap" data-api="anthropic" data-color="#ff6b35">
+                  <span style="font-size:9px;font-family:var(--mono);color:#ff6b35;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Anthropic (IA Professor)</span>
+                  <div style="position:relative;">
+                    <canvas id="neon-canvas-anthropic" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
+                    <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ff6b35;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-anthropic">—</span>
                   </div>
                 </div>
                 <div class="neon-chart-wrap" data-api="eleven" data-color="#ff8c00">
@@ -3632,11 +3641,13 @@ async function testBackendPing(){
       const allOk=diag.openai&&diag.firebase;
       const statusColor=allOk?'var(--green)':(diag.openai?'var(--orange)':'var(--red)');
       if(dot)dot.style.background=statusColor;
-      if(txt){txt.textContent=(allOk?'OK':'Problemas')+' '+ms+'ms | OpenAI:'+(diag.openai?'OK':'FALTA')+' Firebase:'+(diag.firebase?'OK':'nao config');txt.style.color=statusColor;}
+      const anthropicStatus=diag.anthropic?'Anthropic:OK':'Anthropic:⚠️FALTA';
+      if(txt){txt.textContent=(allOk?'OK':'Problemas')+' '+ms+'ms | OpenAI:'+(diag.openai?'OK':'FALTA')+' Firebase:'+(diag.firebase?'OK':'nao config')+' | '+anthropicStatus;txt.style.color=statusColor;}
       const msgs=[];
       if(!diag.openai)msgs.push('OPENAI_API_KEY ausente no Render');
       if(!diag.firebase)msgs.push('FIREBASE_SERVICE_ACCOUNT nao configurado');
       if(!diag.elevenlabs)msgs.push('ELEVENLABS_API_KEY nao configurada (TTS off)');
+      if(!diag.anthropic)msgs.push('⚠️ ANTHROPIC_API_KEY ausente — IA Professor retornará "..." (erro 500 em /api/learn)');
       if(msgs.length===0)msgs.push('Todas as variaveis OK!');
       if(fb){
         fb.innerHTML='<b>Diagnostico ('+ms+'ms):</b><br>'+msgs.join('<br>');
@@ -5356,7 +5367,10 @@ async function checkApiStatus(showToasts=true){
           setStatus('dot-eleven','badge-eleven','lat-eleven','ping-eleven','err','❌ Chave inválida ou ausente no Render',undefined);
         }
         if(data.anthropic){
+          setStatus('dot-anthropic','badge-anthropic','lat-anthropic','ping-anthropic','ok','Chave OK no Render ✓',keysMs);
+          updateNeonChart('anthropic',keysMs);
         }else{
+          setStatus('dot-anthropic','badge-anthropic','lat-anthropic','ping-anthropic','err','❌ ANTHROPIC_API_KEY ausente — IA Professor offline',undefined);
         }
         if(showToasts)showToast('✓ Status verificado!','success');
       }else{
@@ -7719,7 +7733,7 @@ async function learnAsk(question){
       const errData=await r.json().catch(()=>({}));
       const errMsg=errData.error||'Erro no servidor ('+r.status+')';
       if(r.status===500){
-        _learnAddBubble('ai','⚠️ O servidor retornou um erro interno. Verifique se a OPENAI_API_KEY está configurada no Render/Railway.');
+        _learnAddBubble('ai','⚠️ Erro 500: servidor retornou erro interno. Causa mais provável: ANTHROPIC_API_KEY ausente ou inválida no Render. Acesse Admin → APIs para verificar.');
       }else if(r.status===401||r.status===403){
         _learnAddBubble('ai','⚠️ Acesso negado. Faça logout e login novamente.');
       }else{

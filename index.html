@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -881,6 +881,116 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .sala-last-translation .label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:var(--mono);}
 .sala-last-translation .text{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;}
 
+
+/* ====== SCROLL FIX ADMIN TABS ====== */
+.atcont{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+  padding:16px 18px;
+  scroll-behavior:smooth;
+  /* CRÍTICO: impede que elementos internos travem o scroll */
+  position:relative;
+}
+.atcont::-webkit-scrollbar{display:none;}
+.atpanel{
+  min-height:0;
+}
+
+/* ====== NO-ZOOM GLOBAL ====== */
+input, textarea, select {
+  font-size:16px !important; /* evita zoom automático no iOS ao focar input */
+}
+/* Exceção para inputs pequenos que precisam de font menor visualmente */
+.otp-box{font-size:20px !important;}
+.input-field{font-size:16px !important;}
+
+/* ====== FIX CHAT TAB ====== */
+#tab-chats .achat-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:11px 13px;
+  margin-bottom:7px;
+  cursor:pointer;
+  transition:all .18s;
+}
+#tab-chats .section-label {
+  margin-bottom: 10px;
+}
+#admin-chat-list {
+  overflow:visible;
+}
+
+/* ====== FIX SISTEMA TAB ====== */
+#tab-sistema .trow {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:13px 15px;
+  margin-bottom:9px;
+}
+#tab-sistema .section-label {
+  margin-bottom:10px;
+}
+
+/* ====== FIX USO TAB ====== */
+#tab-uso {
+  overflow:visible;
+}
+#uso-user-list div {
+  cursor:default;
+}
+
+/* ====== FIX VISÃO GERAL TAB ====== */
+#tab-visao .rvw,
+#tab-visao .pcalc,
+#tab-visao .ptable {
+  overflow:visible;
+}
+
+/* ====== API CHARTS - SIDE BY SIDE ====== */
+#neon-charts {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+}
+#neon-charts .neon-chart-wrap {
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px;
+}
+
+/* Mobile: volta para coluna única */
+@media(max-width:600px){
+  #neon-charts {
+    grid-template-columns:1fr;
+  }
+}
+
+/* ====== MOBILE SCROLL FIX (Visão Geral, Uso, etc) ====== */
+@media(max-width:767px){
+  .atcont {
+    padding:12px 14px;
+    padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));
+  }
+  /* Impede que botões "Exportar logs" e "Upgrade ElevenLabs" fiquem inacessíveis */
+  #tab-api > *:last-child,
+  #tab-uso > *:last-child,
+  #tab-visao > *:last-child {
+    margin-bottom: 24px;
+  }
+}
 /* ====== BOTTOM NAV ====== */
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:100;}
 </style>
@@ -2184,6 +2294,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
           </div>
           <div style="height:14px;"></div>
           <button class="btn btn-danger btn-full" onclick="doLogout()">🚪 Sair do painel admin</button>
+          <div style="height:20px;"></div>
         </div>
       </div>
       <!-- User detail -->
@@ -4510,7 +4621,13 @@ function _renderAdminChatList(){
   list.innerHTML='';
   if(!adminChats.length){if(emptyEl)emptyEl.style.display='flex';const badge=document.getElementById('chat-badge');if(badge)badge.style.display='none';const uc=document.getElementById('chat-unread-count');if(uc)uc.style.display='none';return;}
   if(emptyEl)emptyEl.style.display='none';
-  adminChats.forEach(c=>{const el=document.createElement('div');el.className='achat-item'+(c.unread?' unread':'');el.innerHTML=`<div class="achat-av">${c.avatar}</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;"><span class="achat-name">${c.name}</span>${c.unread?'<span style="background:var(--accent);color:#000;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;font-family:var(--mono);">NOVO</span>':''}</div><div class="achat-preview">${c.preview}</div></div><div class="achat-time">${c.time}</div>`;el.addEventListener('click',()=>openAdminChat(c));list.appendChild(el);});
+  // Header com label e badge de não lidas
+  const header=document.createElement('div');
+  header.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;';
+  const unreadCount=adminChats.filter(c=>c.unread).length;
+  header.innerHTML=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--muted);font-family:var(--mono);">CONVERSAS ATIVAS</div>${unreadCount>0?`<div style="font-size:10px;color:var(--accent);font-family:var(--mono);background:var(--adim);padding:3px 8px;border-radius:7px;">${unreadCount} não lida${unreadCount>1?'s':''}</div>`:''}`;
+  list.appendChild(header);
+  adminChats.forEach(c=>{const el=document.createElement('div');el.className='achat-item'+(c.unread?' unread':'');el.style.cssText='display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .18s;';el.innerHTML=`<div class="achat-av" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">${c.avatar}</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;"><span class="achat-name" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">${c.name}</span>${c.unread?'<span style="background:var(--accent);color:#000;font-size:8px;font-weight:800;padding:1px 5px;border-radius:5px;font-family:var(--mono);flex-shrink:0;">NOVO</span>':''}</div><div class="achat-preview" style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.preview||'...'}</div></div><div class="achat-time" style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;text-align:right;">${c.time||''}</div>`;el.addEventListener('click',()=>openAdminChat(c));list.appendChild(el);});
   const unread=adminChats.filter(c=>c.unread).length,badge=document.getElementById('chat-badge');
   if(badge){badge.textContent=unread;badge.style.display=unread?'inline':'none';}
   const uc=document.getElementById('chat-unread-count');
@@ -7522,13 +7639,37 @@ async function learnAsk(question){
   if(!backendUrl){if(thinking)thinking.remove();showToast('Backend não configurado','error');return;}
   try{
     const token=await getAuthToken();
-    const r=await fetch(backendUrl+'/api/learn',{method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({question,lang:_learnLang,history:_learnHistory.slice(-6)})});
-    const d=await r.json();
+    if(!token){if(thinking)thinking.remove();_learnAddBubble('ai','⚠️ Sessão expirada. Faça logout e login novamente.');return;}
+    const r=await fetch(backendUrl+'/api/learn',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({question,lang:_learnLang,history:_learnHistory.slice(-6)}),
+      signal:AbortSignal.timeout(20000)
+    });
     if(thinking)thinking.remove();
+    if(!r.ok){
+      const errData=await r.json().catch(()=>({}));
+      const errMsg=errData.error||'Erro no servidor ('+r.status+')';
+      if(r.status===500){
+        _learnAddBubble('ai','⚠️ O servidor retornou um erro interno. Verifique se a OPENAI_API_KEY está configurada no Render/Railway.');
+      }else if(r.status===401||r.status===403){
+        _learnAddBubble('ai','⚠️ Acesso negado. Faça logout e login novamente.');
+      }else{
+        _learnAddBubble('ai','⚠️ '+errMsg);
+      }
+      return;
+    }
+    const d=await r.json();
     if(d.answer){_learnHistory.push({role:'assistant',content:d.answer});_learnAddBubble('ai',d.answer,true);addPts(2);}
-  }catch(e){if(thinking)thinking.remove();_learnAddBubble('ai','⚠️ Erro ao conectar.');}
+    else{_learnAddBubble('ai','⚠️ Resposta vazia do servidor.');}
+  }catch(e){
+    if(thinking)thinking.remove();
+    if(e.name==='TimeoutError'||e.name==='AbortError'){
+      _learnAddBubble('ai','⚠️ Timeout: servidor demorou demais. Tente novamente.');
+    }else{
+      _learnAddBubble('ai','⚠️ Erro de conexão: '+e.message.slice(0,60));
+    }
+  }
 }
 
 // ── LIÇÕES ────────────────────────────────────────────────────

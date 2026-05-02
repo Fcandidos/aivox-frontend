@@ -2731,7 +2731,7 @@ async function doLogin(){
   if(window.FB){
     try{
       const res=await window.FB.login(email,pass);
-      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;sendOTPEmail(res.data.email||email);showAuth('2fa');return;}
+      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;enterApp(res.data);showToast('✅ Bem-vindo, '+(res.data.name?.split(' ')[0]||'')+'!');return;}
       else{loginAttempts++;if(loginAttempts>=MAX_ATTEMPTS){lockLogin(30);return;}let msg=res.error||'E-mail ou senha incorretos.';if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential'))msg='E-mail ou senha incorretos. '+(MAX_ATTEMPTS-loginAttempts)+' tentativa(s) restante(s).';errEl.textContent=msg;errEl.classList.add('show');}
     }catch(e){errEl.textContent='Erro de conexão.';errEl.classList.add('show');}
   }else{

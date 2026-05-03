@@ -3809,9 +3809,10 @@ async function amiDoSearch() {
     const sentUids     = new Set(_ami.pending.sent.map(r=>r.toUid));
     itemsEl.innerHTML = results.map(u => {
       const isFriend=myFriendUids.has(u.uid), isPending=sentUids.has(u.uid);
-      const letter=(u.displayName||u.email||'U')[0].toUpperCase();
-      const btn=isFriend?`<span style="font-size:11px;color:var(--green);">✓ Amigo</span>`:isPending?`<span style="font-size:11px;color:var(--muted);">⏳ Enviado</span>`:`<button class="btn btn-primary btn-sm" onclick="sendFriendRequest('${u.uid}','${_esc(u.displayName||u.email||'Usuário')}',this)">+ Adicionar</button>`;
-      return `<div class="search-result-item"><div class="friend-av" style="width:36px;height:36px;font-size:13px;flex-shrink:0;">${letter}</div><div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(u.displayName||'Usuário')}</div><div style="font-size:11px;color:var(--muted);">${_esc(u.email||'')}</div></div>${btn}</div>`;
+      const uName = u.name || u.displayName || u.email?.split('@')[0] || 'Usuário';
+      const letter = uName[0].toUpperCase();
+      const btn=isFriend?`<span style="font-size:11px;color:var(--green);">✓ Amigo</span>`:isPending?`<span style="font-size:11px;color:var(--muted);">⏳ Enviado</span>`:`<button class="btn btn-primary btn-sm" onclick="sendFriendRequest('${u.uid}','${_esc(uName)}',this)">+ Adicionar</button>`;
+      return `<div class="search-result-item"><div class="friend-av" style="width:36px;height:36px;font-size:13px;flex-shrink:0;">${letter}</div><div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(uName)}</div><div style="font-size:11px;color:var(--muted);">${_esc(u.email||'')}</div></div>${btn}</div>`;
     }).join('');
   } catch(e) { console.warn('amiDoSearch',e); }
 }

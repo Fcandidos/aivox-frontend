@@ -598,7 +598,7 @@ function profIA_enter() {
     document.getElementById('profIA-mic-btn').style.pointerEvents = 'none';
   }
   // Kickoff welcome message
-  profIA_callAPI([]);
+  profIA_callAPI([{ role: 'user', content: 'Hello! Start the class.' }]);
 }
 
 // ── Overlay HTML builder ──────────────────────────────────────
@@ -634,7 +634,7 @@ function profIA_buildOverlayHTML() {
   <line x1="${boardX}" y1="${boardY+boardH*0.33}" x2="${boardX+boardW}" y2="${boardY+boardH*0.33}" stroke="rgba(255,255,255,.03)" stroke-width="1"/>
   <line x1="${boardX}" y1="${boardY+boardH*0.66}" x2="${boardX+boardW}" y2="${boardY+boardH*0.66}" stroke="rgba(255,255,255,.03)" stroke-width="1"/>
   <!-- Chalk tray -->
-  <rect x="${boardX+boardW*0.2}" y="${boardY+boardH+2}" width="${boardW*0.6}" height="12" fill="#4a2e12" rx="0 0 4px 4px"/>
+  <rect x="${boardX+boardW*0.2}" y="${boardY+boardH+2}" width="${boardW*0.6}" height="12" fill="#4a2e12" rx="4"/>
   <rect x="${boardX+boardW*0.3}" y="${boardY+boardH+4}" width="18" height="5" fill="#e0f0dc" rx="2" opacity=".7"/>
   <rect x="${boardX+boardW*0.42}" y="${boardY+boardH+4}" width="14" height="5" fill="#ffe07a" rx="2" opacity=".65"/>
   <rect x="${boardX+boardW*0.54}" y="${boardY+boardH+4}" width="16" height="5" fill="#ffaaaa" rx="2" opacity=".6"/>

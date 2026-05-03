@@ -2055,6 +2055,8 @@ input, textarea, select {
           <div class="learn-tab" onclick="learnTab('flash',this)">🃏 FLASHCARD</div>
           <div class="learn-tab" onclick="learnTab('exer',this)">✏️ PRATICAR</div>
           <div class="learn-tab" onclick="learnTab('pronunc',this)" style="position:relative;">🎙️ PRONÚNCIA<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:var(--accent);"></span></div>
+          <div class="learn-tab" onclick="learnTab('shadowing',this)" style="position:relative;">🗣 SHADOWING<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:var(--green);"></span></div>
+          <div class="learn-tab" onclick="learnTab('diario',this)" style="position:relative;">📔 DIÁRIO<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:#f472b6;"></span></div>
           <div class="learn-tab" onclick="learnTab('vocab',this)">📖 VOCABULÁRIO</div>
           <div class="learn-tab" id="tab-livre" onclick="learnTab('livre',this)" style="position:relative;">🗣️ LIVRE<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:var(--green);"></span></div>
         </div>
@@ -2149,71 +2151,101 @@ input, textarea, select {
 
         <!-- ── ABA PRONÚNCIA ── -->
         <div class="learn-tab-panel" id="ltp-pronunc" style="flex-direction:column;overflow:hidden;">
-          <!-- Lang bar -->
           <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;">
             <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
             <div id="pronunc-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
           </div>
-          <!-- Main scroll area -->
           <div id="pronunc-main" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
-            <!-- Score badge row -->
             <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
               <div style="font-size:12px;font-weight:700;color:var(--muted);font-family:var(--mono);">TREINO DE PRONÚNCIA COM IA</div>
               <div id="pronunc-score-badge" style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--yellow);background:var(--ydim);padding:3px 10px;border-radius:20px;border:1px solid rgba(255,208,0,.2);">0 pts</div>
             </div>
-
-            <!-- Word card -->
             <div id="pronunc-card" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px 18px;text-align:center;position:relative;overflow:hidden;">
               <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.4;"></div>
               <div id="pronunc-word-label" style="font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:2px;margin-bottom:10px;">PALAVRA ATUAL</div>
               <div id="pronunc-word" style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;color:var(--text);">—</div>
               <div id="pronunc-trans" style="font-size:14px;color:var(--muted);margin-bottom:12px;">Carregando...</div>
-              <!-- Phonetic -->
               <div id="pronunc-phonetic" style="font-size:13px;font-family:var(--mono);color:var(--accent);background:var(--adim);display:inline-block;padding:4px 12px;border-radius:20px;margin-bottom:14px;opacity:0.85;"></div>
-              <!-- Listen button -->
               <div style="display:flex;justify-content:center;gap:10px;margin-top:4px;">
-                <button onclick="pronuncOuvir()" id="pronunc-ouvir-btn" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;border:1px solid rgba(0,229,255,.3);background:var(--adim);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;">🔊 Ouvir pronúncia</button>
-                <button onclick="pronuncNova()" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;">↻ Outra</button>
+                <button onclick="pronuncOuvir()" id="pronunc-ouvir-btn" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;border:1px solid rgba(0,229,255,.3);background:var(--adim);color:var(--accent);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">🔊 Ouvir</button>
+                <button onclick="pronuncNova()" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;">↻ Outra</button>
               </div>
             </div>
-
-            <!-- Mic / Record area -->
-            <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;position:relative;">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;">
               <div id="pronunc-instrucao" style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Ouça a pronúncia correta acima, depois grave a sua voz para avaliação pela IA.</div>
-              <!-- Waveform -->
               <div id="pronunc-wave" style="display:none;height:44px;align-items:center;justify-content:center;gap:3px;margin-bottom:14px;">
-                <style>
-                  @keyframes wave-bar{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
-                  .wv-bar{width:4px;height:32px;border-radius:3px;background:var(--accent);animation:wave-bar 0.7s ease-in-out infinite;}
-                  .wv-bar:nth-child(2){animation-delay:.1s}.wv-bar:nth-child(3){animation-delay:.2s}.wv-bar:nth-child(4){animation-delay:.3s}.wv-bar:nth-child(5){animation-delay:.15s}.wv-bar:nth-child(6){animation-delay:.25s}.wv-bar:nth-child(7){animation-delay:.05s}
-                </style>
+                <style>@keyframes wave-bar{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}.wv-bar{width:4px;height:32px;border-radius:3px;background:var(--accent);animation:wave-bar 0.7s ease-in-out infinite;}.wv-bar:nth-child(2){animation-delay:.1s}.wv-bar:nth-child(3){animation-delay:.2s}.wv-bar:nth-child(4){animation-delay:.3s}.wv-bar:nth-child(5){animation-delay:.15s}.wv-bar:nth-child(6){animation-delay:.25s}.wv-bar:nth-child(7){animation-delay:.05s}</style>
                 <div class="wv-bar"></div><div class="wv-bar"></div><div class="wv-bar"></div><div class="wv-bar"></div><div class="wv-bar"></div><div class="wv-bar"></div><div class="wv-bar"></div>
               </div>
-              <!-- Mic button -->
               <button id="pronunc-mic-btn" onclick="pronuncToggleMic()" style="width:70px;height:70px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent2),var(--accent));cursor:pointer;font-size:26px;display:flex;align-items:center;justify-content:center;transition:all .25s;box-shadow:0 4px 22px rgba(0,229,255,.35);margin:0 auto 12px;">🎤</button>
               <div id="pronunc-mic-status" style="font-size:12px;color:var(--muted);font-family:var(--mono);">Toque para gravar</div>
             </div>
-
-            <!-- Feedback area (hidden initially) -->
-            <div id="pronunc-feedback" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;animation:fadeIn .3s ease;">
-              <style>@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}</style>
+            <div id="pronunc-feedback" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;">
               <div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DA IA</div>
-              <!-- Score ring -->
               <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
                 <div id="pronunc-score-ring" style="width:64px;height:64px;border-radius:50%;border:4px solid var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;font-weight:900;color:var(--green);">—</div>
-                <div style="flex:1;">
-                  <div id="pronunc-score-label" style="font-size:15px;font-weight:800;margin-bottom:4px;">—</div>
-                  <div id="pronunc-score-desc" style="font-size:12px;color:var(--muted);line-height:1.5;">—</div>
-                </div>
+                <div style="flex:1;"><div id="pronunc-score-label" style="font-size:15px;font-weight:800;margin-bottom:4px;">—</div><div id="pronunc-score-desc" style="font-size:12px;color:var(--muted);line-height:1.5;">—</div></div>
               </div>
-              <!-- Detailed feedback -->
               <div id="pronunc-detail" style="font-size:13px;color:var(--text);line-height:1.6;background:var(--surface);border-radius:12px;padding:12px;margin-bottom:12px;"></div>
-              <!-- Next button -->
-              <button onclick="pronuncNova()" style="width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;">▶ Próxima palavra</button>
+              <button onclick="pronuncNova()" style="width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima palavra</button>
             </div>
-
-            <!-- History -->
             <div id="pronunc-history" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+
+        <!-- ── ABA SHADOWING ── -->
+        <div class="learn-tab-panel" id="ltp-shadowing" style="flex-direction:column;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
+            <div id="shadow-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:12px;font-weight:700;color:var(--muted);font-family:var(--mono);">MODO SOMBRA — IMITE O NATIVO</div>
+              <div id="shadow-score-badge" style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--green);background:var(--gdim);padding:3px 10px;border-radius:20px;border:1px solid rgba(0,255,136,.2);">0 pts</div>
+            </div>
+            <!-- Frase card -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;text-align:center;position:relative;overflow:hidden;">
+              <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:0.4;"></div>
+              <div style="font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:2px;margin-bottom:10px;">FRASE PARA IMITAR</div>
+              <div id="shadow-phrase" style="font-size:20px;font-weight:800;margin-bottom:8px;line-height:1.4;">—</div>
+              <div id="shadow-phrase-trans" style="font-size:13px;color:var(--muted);margin-bottom:14px;">—</div>
+              <div style="display:flex;justify-content:center;gap:10px;">
+                <button onclick="shadowOuvir()" id="shadow-ouvir-btn" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;border:1px solid rgba(0,255,136,.3);background:var(--gdim);color:var(--green);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;">🔊 Ouvir nativo</button>
+                <button onclick="shadowNova()" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;">↻ Outra</button>
+              </div>
+            </div>
+            <!-- Step indicator -->
+            <div id="shadow-step" style="text-align:center;font-size:12px;color:var(--muted);font-family:var(--mono);background:var(--surface);border-radius:10px;padding:8px;">Passo 1: Ouça o áudio nativo acima</div>
+            <!-- Record area -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;">
+              <div id="shadow-wave" style="display:none;height:44px;align-items:center;justify-content:center;gap:3px;margin-bottom:14px;">
+                <div class="wv-bar" style="background:var(--green);"></div><div class="wv-bar" style="background:var(--green);"></div><div class="wv-bar" style="background:var(--green);"></div><div class="wv-bar" style="background:var(--green);"></div><div class="wv-bar" style="background:var(--green);"></div><div class="wv-bar" style="background:var(--green);"></div><div class="wv-bar" style="background:var(--green);"></div>
+              </div>
+              <button id="shadow-mic-btn" onclick="shadowToggleMic()" style="width:70px;height:70px;border-radius:50%;border:none;background:linear-gradient(135deg,#00b360,var(--green));cursor:pointer;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,255,136,.3);margin:0 auto 12px;">🎤</button>
+              <div id="shadow-mic-status" style="font-size:12px;color:var(--muted);font-family:var(--mono);">Ouça primeiro, depois imite</div>
+            </div>
+            <div id="shadow-feedback" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;"></div>
+            <div id="shadow-history" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+
+        <!-- ── ABA DIÁRIO ── -->
+        <div class="learn-tab-panel" id="ltp-diario" style="flex-direction:column;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;">
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA ALVO:</span>
+            <div id="diario-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);font-family:var(--mono);">DIÁRIO DE IDIOMA — IA CORRIGE E REESCREVE</div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">✍️ Escreva um parágrafo em português:</div>
+              <textarea id="diario-input" placeholder="Escreva aqui o que quiser em PT-BR... A IA vai corrigir, traduzir e dar feedback de estilo." style="width:100%;min-height:110px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-family:var(--font);font-size:14px;resize:vertical;outline:none;line-height:1.5;"></textarea>
+              <button onclick="diarioEnviar()" id="diario-btn" style="margin-top:10px;width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#ec4899);border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">✨ Corrigir e Traduzir com IA</button>
+            </div>
+            <div id="diario-result" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;"></div>
+            <!-- Histórico -->
+            <div id="diario-history" style="display:flex;flex-direction:column;gap:10px;"></div>
           </div>
         </div>
 
@@ -3369,7 +3401,7 @@ input, textarea, select {
         <div class="sug-grid">
 
           <!-- SRS -->
-          <div class="feat-card srs-f">
+          <div class="feat-card srs-f" onclick="navApp('learn');setTimeout(()=>learnTab('flash',document.querySelector('.learn-tab:nth-child(3)')),300);" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">⏱</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
@@ -3380,7 +3412,7 @@ input, textarea, select {
           </div>
 
           <!-- Pronúncia -->
-          <div class="feat-card pronun-f">
+          <div class="feat-card pronun-f" onclick="navApp('learn');setTimeout(()=>{ const tabs=document.querySelectorAll('.learn-tab'); tabs.forEach(t=>t.classList.remove('active')); const pt=Array.from(tabs).find(t=>t.textContent.includes('PRONÚNCIA')); if(pt){ pt.classList.add('active'); learnTab('pronunc',pt); } },300);" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">🎤</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
@@ -3391,7 +3423,7 @@ input, textarea, select {
           </div>
 
           <!-- Resumo Escuta -->
-          <div class="feat-card resumo-f">
+          <div class="feat-card resumo-f" onclick="navApp('escuta');" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">🧠</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
@@ -3402,7 +3434,7 @@ input, textarea, select {
           </div>
 
           <!-- Gamificação -->
-          <div class="feat-card gamif-f">
+          <div class="feat-card gamif-f" onclick="navApp('inicio');" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">🏆</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
@@ -3413,7 +3445,7 @@ input, textarea, select {
           </div>
 
           <!-- Shadowing -->
-          <div class="feat-card shadow-f">
+          <div class="feat-card shadow-f" onclick="navApp('learn');setTimeout(()=>{ const tabs=document.querySelectorAll('.learn-tab'); tabs.forEach(t=>t.classList.remove('active')); const pt=Array.from(tabs).find(t=>t.textContent.includes('SHADOWING')); if(pt){ pt.classList.add('active'); learnTab('shadowing',pt); } },300);" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">🗣</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
@@ -3424,7 +3456,7 @@ input, textarea, select {
           </div>
 
           <!-- Diário -->
-          <div class="feat-card diario-f">
+          <div class="feat-card diario-f" onclick="navApp('learn');setTimeout(()=>{ const tabs=document.querySelectorAll('.learn-tab'); tabs.forEach(t=>t.classList.remove('active')); const pt=Array.from(tabs).find(t=>t.textContent.includes('DIÁRIO')); if(pt){ pt.classList.add('active'); learnTab('diario',pt); } },300);" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">📔</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
@@ -3593,8 +3625,23 @@ async function _amiLoadFriends() {
 }
 
 function _amiListenPresence() {
-  if (!window._salaSocket) { setTimeout(_amiListenPresence, 2000); return; }
-  const s = window._salaSocket;
+  // Se o socket de sala já existe, usa ele; senão cria um socket dedicado de presença
+  if (!window._salaSocket && !window._presenceSocket) {
+    try {
+      window._presenceSocket = io(getBackendUrl(), {
+        transports: ['polling','websocket'], reconnection: true, reconnectionAttempts: 10,
+        reconnectionDelay: 3000, timeout: 15000,
+      });
+      window._presenceSocket.on('connect', () => {
+        window._presenceSocket.emit('ami-online', { uid: window._fbUser?.uid, name: window._fbUser?.displayName || 'Usuário' });
+      });
+      window._presenceSocket.on('reconnect', () => {
+        window._presenceSocket.emit('ami-online', { uid: window._fbUser?.uid, name: window._fbUser?.displayName || 'Usuário' });
+      });
+    } catch(e) { setTimeout(_amiListenPresence, 3000); return; }
+  }
+  const s = window._salaSocket || window._presenceSocket;
+  if (!s) { setTimeout(_amiListenPresence, 2000); return; }
   s.emit('ami-online', { uid: window._fbUser?.uid, name: window._fbUser?.displayName || 'Usuário' });
   s.on('ami-friend-online', ({ uid, name }) => {
     if (!_ami.friends.find(f => f.uid === uid)) return;
@@ -3772,10 +3819,18 @@ function closeFriendChat() { document.getElementById('fchat-modal')?.classList.r
 function _amiListenMessages() {
   const uid=window._fbUser?.uid;
   if (!uid||!db) return;
+  // Marca timestamp do login — toast só para msgs NOVAS (recebidas após login)
+  const _listenStart = Date.now();
   db.collection('friend_messages').where('toUid','==',uid).orderBy('createdAt','desc').limit(100)
     .onSnapshot(snap => {
       snap.docChanges().forEach(change => {
-        if (change.type==='added') { const d=change.doc.data(); _amiReceiveMsg(d.fromUid,d.fromName,d.text,d.audioUrl,d.createdAt?.toMillis?.()|| Date.now(),true); }
+        if (change.type==='added') {
+          const d=change.doc.data();
+          const msgTs = d.createdAt?.toMillis?.() || 0;
+          // fromFirestore=true suprime o toast; só é false para msgs realmente novas
+          const isHistorical = msgTs < _listenStart - 2000;
+          _amiReceiveMsg(d.fromUid,d.fromName,d.text,d.audioUrl,msgTs||Date.now(), isHistorical);
+        }
       });
     });
 }
@@ -10086,262 +10141,90 @@ function setLivreNivel(el){
 }
 
 // ══════════════════════════════════════════════════════════
-//  MÓDULO PRONÚNCIA — Treino com avaliação por IA
+//  MÓDULO PRONÚNCIA
 // ══════════════════════════════════════════════════════════
 (function(){
-  // ── State ────────────────────────────────────────────────
-  let _pLang = 'inglês';
-  let _pScore = 0;
-  let _pCurrentWord = null;
-  let _pHistory = [];
-  let _pRecording = false;
-  let _pMediaRec = null;
-  let _pChunks = [];
-  let _pSpeaking = false;
-
-  const LANGS = [
-    {key:'inglês',flag:'🇺🇸',label:'Inglês'},
-    {key:'espanhol',flag:'🇪🇸',label:'Espanhol'},
-    {key:'francês',flag:'🇫🇷',label:'Francês'},
-    {key:'alemão',flag:'🇩🇪',label:'Alemão'},
-    {key:'italiano',flag:'🇮🇹',label:'Italiano'},
-    {key:'japonês',flag:'🇯🇵',label:'Japonês'},
-  ];
-
-  const WORD_POOLS = {
-    inglês: [{w:'Hello',t:'Olá',ph:'/həˈloʊ/'},{w:'Beautiful',t:'Bonito(a)',ph:'/ˈbjuːtɪfəl/'},{w:'Schedule',t:'Agenda/Programação',ph:'/ˈʃɛdjuːl/'},{w:'Pronunciation',t:'Pronúncia',ph:'/prəˌnʌnsiˈeɪʃən/'},{w:'Comfortable',t:'Confortável',ph:'/ˈkʌmftəbəl/'},{w:'Necessary',t:'Necessário',ph:'/ˈnɛsəˌsɛri/'},{w:'Technology',t:'Tecnologia',ph:'/tɛkˈnɒlədʒi/'},{w:'Thorough',t:'Completo/Minucioso',ph:'/ˈθʌrəʊ/'},{w:'Vocabulary',t:'Vocabulário',ph:'/vəˈkæbjʊlɛri/'},{w:'Wednesday',t:'Quarta-feira',ph:'/ˈwɛnzdeɪ/'}],
-    espanhol: [{w:'Hola',t:'Olá',ph:'/ˈola/'},{w:'Gracias',t:'Obrigado',ph:'/ˈɡɾaθjas/'},{w:'Desarrollar',t:'Desenvolver',ph:'/desaˈrroʎar/'},{w:'Murciélago',t:'Morcego',ph:'/murˈθjelaɡo/'},{w:'Ferrocarril',t:'Ferrovia',ph:'/ferokariˈl/'},{w:'Excelente',t:'Excelente',ph:'/exθeˈlente/'},{w:'Comunicación',t:'Comunicação',ph:'/komuniˈkaθjon/'}],
-    francês: [{w:'Bonjour',t:'Bom dia',ph:'/bɔ̃ʒuʁ/'},{w:'Merci',t:'Obrigado',ph:'/mɛʁsi/'},{w:'Grenouille',t:'Rã',ph:'/ɡʁənuj/'},{w:'Feuille',t:'Folha',ph:'/fœj/'},{w:'Accueillir',t:'Acolher',ph:'/akœjiʁ/'},{w:'Aujourd\'hui',t:'Hoje',ph:'/oʒuʁdɥi/'}],
-    alemão: [{w:'Guten Morgen',t:'Bom dia',ph:'/ˈɡuːtən ˈmɔʁɡən/'},{w:'Danke',t:'Obrigado',ph:'/ˈdaŋkə/'},{w:'Schadenfreude',t:'Alegria com dano alheio',ph:'/ˈʃaːdənˌfʁɔʏdə/'},{w:'Krankenwagen',t:'Ambulância',ph:'/ˈkʁaŋkənˌvaːɡən/'},{w:'Entschuldigung',t:'Desculpe',ph:'/ɛntˈʃʊldɪɡʊŋ/'}],
-    italiano: [{w:'Ciao',t:'Oi/Tchau',ph:'/tʃaʊ/'},{w:'Grazie',t:'Obrigado',ph:'/ˈɡraːtsje/'},{w:'Sbagliare',t:'Errar',ph:'/zbaʎˈʎaːre/'},{w:'Figlio',t:'Filho',ph:'/ˈfiʎʎo/'},{w:'Piacere',t:'Prazer',ph:'/pjaˈtʃeːre/'}],
-    japonês: [{w:'こんにちは',t:'Olá (Konnichiwa)',ph:'/ko.n.ni.tɕi.wa/'},{w:'ありがとう',t:'Obrigado (Arigatou)',ph:'/a.ɾi.ɡa.to.ɯ/'},{w:'よろしく',t:'Por favor (Yoroshiku)',ph:'/jo.ɾo.ɕi.kɯ/'},{w:'すみません',t:'Com licença (Sumimasen)',ph:'/sɯ.mi.ma.se.n/'}],
+  let _pLang='inglês',_pScore=0,_pCurrentWord=null,_pHistory=[],_pRecording=false,_pMediaRec=null,_pChunks=[],_pSpeaking=false;
+  const LANGS=[{key:'inglês',flag:'🇺🇸',label:'Inglês'},{key:'espanhol',flag:'🇪🇸',label:'Espanhol'},{key:'francês',flag:'🇫🇷',label:'Francês'},{key:'alemão',flag:'🇩🇪',label:'Alemão'},{key:'italiano',flag:'🇮🇹',label:'Italiano'},{key:'japonês',flag:'🇯🇵',label:'Japonês'}];
+  const WORD_POOLS={
+    inglês:[{w:'Hello',t:'Olá',ph:'/həˈloʊ/'},{w:'Beautiful',t:'Bonito(a)',ph:'/ˈbjuːtɪfəl/'},{w:'Schedule',t:'Agenda',ph:'/ˈʃɛdjuːl/'},{w:'Pronunciation',t:'Pronúncia',ph:'/prəˌnʌnsiˈeɪʃən/'},{w:'Comfortable',t:'Confortável',ph:'/ˈkʌmftəbəl/'},{w:'Necessary',t:'Necessário',ph:'/ˈnɛsəˌsɛri/'},{w:'Technology',t:'Tecnologia',ph:'/tɛkˈnɒlədʒi/'},{w:'Thorough',t:'Minucioso',ph:'/ˈθʌrəʊ/'},{w:'Vocabulary',t:'Vocabulário',ph:'/vəˈkæbjʊlɛri/'},{w:'Wednesday',t:'Quarta-feira',ph:'/ˈwɛnzdeɪ/'}],
+    espanhol:[{w:'Hola',t:'Olá',ph:'/ˈola/'},{w:'Gracias',t:'Obrigado',ph:'/ˈɡɾaθjas/'},{w:'Desarrollar',t:'Desenvolver',ph:'/desaˈrroʎar/'},{w:'Murciélago',t:'Morcego',ph:'/murˈθjelaɡo/'},{w:'Excelente',t:'Excelente',ph:'/exθeˈlente/'},{w:'Comunicación',t:'Comunicação',ph:'/komuniˈkaθjon/'}],
+    francês:[{w:'Bonjour',t:'Bom dia',ph:'/bɔ̃ʒuʁ/'},{w:'Merci',t:'Obrigado',ph:'/mɛʁsi/'},{w:'Grenouille',t:'Rã',ph:'/ɡʁənuj/'},{w:'Accueillir',t:'Acolher',ph:'/akœjiʁ/'},{w:"Aujourd'hui",t:'Hoje',ph:'/oʒuʁdɥi/'}],
+    alemão:[{w:'Guten Morgen',t:'Bom dia',ph:'/ˈɡuːtən ˈmɔʁɡən/'},{w:'Danke',t:'Obrigado',ph:'/ˈdaŋkə/'},{w:'Schadenfreude',t:'Alegria com dano alheio',ph:'/ˈʃaːdənˌfʁɔʏdə/'},{w:'Entschuldigung',t:'Desculpe',ph:'/ɛntˈʃʊldɪɡʊŋ/'}],
+    italiano:[{w:'Ciao',t:'Oi/Tchau',ph:'/tʃaʊ/'},{w:'Grazie',t:'Obrigado',ph:'/ˈɡraːtsje/'},{w:'Sbagliare',t:'Errar',ph:'/zbaʎˈʎaːre/'},{w:'Piacere',t:'Prazer',ph:'/pjaˈtʃeːre/'}],
+    japonês:[{w:'こんにちは',t:'Olá (Konnichiwa)',ph:'/ko.n.ni.tɕi.wa/'},{w:'ありがとう',t:'Obrigado (Arigatou)',ph:'/a.ɾi.ɡa.to.ɯ/'},{w:'すみません',t:'Com licença (Sumimasen)',ph:'/sɯ.mi.ma.se.n/'}],
   };
-
-  // ── Init ────────────────────────────────────────────────
-  window._pronuncInit = function(){
-    _buildLangBar();
-    _loadWord();
-    _renderHistory();
-  };
-
-  function _buildLangBar(){
-    const bar = document.getElementById('pronunc-lang-bar');
-    if(!bar) return;
-    bar.innerHTML = LANGS.map(l=>`<div class="learn-lang-btn${l.key===_pLang?' active':''}" onclick="_pronuncSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');
-  }
-
-  window._pronuncSetLang = function(lang, el){
-    _pLang = lang;
-    document.querySelectorAll('#pronunc-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));
-    if(el) el.classList.add('active');
-    _loadWord();
-    _hideFeedback();
-  };
-
-  function _loadWord(){
-    const pool = WORD_POOLS[_pLang] || WORD_POOLS['inglês'];
-    const unseen = pool.filter(w => !_pHistory.find(h=>h.word===w.w));
-    const pick = (unseen.length > 0 ? unseen : pool)[Math.floor(Math.random()*(unseen.length||pool.length))];
-    _pCurrentWord = pick;
-    const wordEl = document.getElementById('pronunc-word');
-    const transEl = document.getElementById('pronunc-trans');
-    const phEl = document.getElementById('pronunc-phonetic');
-    if(wordEl) wordEl.textContent = pick.w;
-    if(transEl) transEl.textContent = pick.t;
-    if(phEl){ phEl.textContent = pick.ph || ''; phEl.style.display = pick.ph ? 'inline-block' : 'none'; }
-    _hideFeedback();
-    const statusEl = document.getElementById('pronunc-mic-status');
-    if(statusEl) statusEl.textContent = 'Toque para gravar';
-  }
-
-  // ── Speak / Ouvir ────────────────────────────────────────
-  window.pronuncOuvir = function(){
-    if(!_pCurrentWord || _pSpeaking) return;
-    const btn = document.getElementById('pronunc-ouvir-btn');
-    const langMap = {inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};
-    const utter = new SpeechSynthesisUtterance(_pCurrentWord.w);
-    utter.lang = langMap[_pLang] || 'en-US';
-    utter.rate = 0.85;
-    _pSpeaking = true;
-    if(btn){ btn.style.opacity='0.5'; btn.disabled=true; }
-    utter.onend = ()=>{ _pSpeaking=false; if(btn){btn.style.opacity='1';btn.disabled=false;} };
-    utter.onerror = ()=>{ _pSpeaking=false; if(btn){btn.style.opacity='1';btn.disabled=false;} };
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utter);
-  };
-
-  // ── New word ─────────────────────────────────────────────
-  window.pronuncNova = function(){
-    speechSynthesis.cancel();
-    _loadWord();
-  };
-
-  // ── Mic ─────────────────────────────────────────────────
-  window.pronuncToggleMic = function(){
-    if(_pRecording){ _stopRecording(); } else { _startRecording(); }
-  };
-
-  async function _startRecording(){
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      _pChunks = [];
-      _pMediaRec = new MediaRecorder(stream);
-      _pMediaRec.ondataavailable = e=>{ if(e.data.size>0) _pChunks.push(e.data); };
-      _pMediaRec.onstop = ()=>{ stream.getTracks().forEach(t=>t.stop()); _processRecording(); };
-      _pMediaRec.start();
-      _pRecording = true;
-      _updateMicUI(true);
-    } catch(e){
-      showToast('⚠️ Microfone não disponível','error');
-    }
-  }
-
-  function _stopRecording(){
-    if(_pMediaRec && _pMediaRec.state !== 'inactive'){ _pMediaRec.stop(); }
-    _pRecording = false;
-    _updateMicUI(false);
-  }
-
-  function _updateMicUI(rec){
-    const btn = document.getElementById('pronunc-mic-btn');
-    const wave = document.getElementById('pronunc-wave');
-    const status = document.getElementById('pronunc-mic-status');
-    if(btn){
-      btn.style.background = rec ? 'linear-gradient(135deg,var(--red),#ff8800)' : 'linear-gradient(135deg,var(--accent2),var(--accent))';
-      btn.textContent = rec ? '⏹' : '🎤';
-    }
-    if(wave) wave.style.display = rec ? 'flex' : 'none';
-    if(status) status.textContent = rec ? 'Gravando... toque para parar' : 'Analisando...';
-  }
-
-  async function _processRecording(){
-    const status = document.getElementById('pronunc-mic-status');
-    if(status) status.textContent = 'IA avaliando sua pronúncia...';
-    // Use SpeechRecognition if available, else fallback to AI text evaluation
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(SpeechRec){
-      const langMap = {inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};
-      const rec = new SpeechRec();
-      rec.lang = langMap[_pLang] || 'en-US';
-      rec.interimResults = false;
-      rec.maxAlternatives = 3;
-      const blob = new Blob(_pChunks);
-      // Play back to SpeechRec via audio element trick — instead, replay and capture
-      rec.onresult = (e)=>{
-        const alts = Array.from(e.results[0]).map(r=>r.transcript.trim().toLowerCase());
-        _evaluateWithAI(alts.join('|'));
-      };
-      rec.onerror = ()=>{ _evaluateWithAI(''); };
-      rec.start();
-      // Stop recognition after 3s
-      setTimeout(()=>{ try{rec.stop();}catch(e){} }, 3500);
-    } else {
-      // Fallback: evaluate without transcript
-      _evaluateWithAI('');
-    }
-  }
-
-  async function _evaluateWithAI(transcript){
-    const word = _pCurrentWord;
-    if(!word){ return; }
-    const prompt = transcript
-      ? `Você é um avaliador de pronúncia de idiomas. O estudante deveria pronunciar a palavra "${word.w}" em ${_pLang} (tradução: "${word.t}", pronúncia correta: "${word.ph}"). O sistema de reconhecimento de voz captou o que ele disse como: "${transcript}". 
-
-Avalie a pronúncia em uma escala de 0 a 100 e dê um feedback curto e motivador em português. Retorne SOMENTE um JSON válido (sem markdown) neste formato exato:
-{"score":85,"label":"Muito Bom!","desc":"Sua pronúncia ficou clara.","tips":"Atenção ao som final, tente alongar levemente."}`
-      : `Você é um avaliador de pronúncia. O estudante praticou a palavra "${word.w}" em ${_pLang} (pronúncia correta: "${word.ph}"), mas o microfone não capturou claramente. Dê um feedback encorajador com dicas de pronúncia. Retorne SOMENTE um JSON válido (sem markdown):
-{"score":60,"label":"Tente novamente!","desc":"Não consegui captar sua voz claramente.","tips":"Dica de pronúncia para ${word.w}: ${word.ph}. Tente falar mais perto do microfone."}`;
-
-    try{
-      const res = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',
-          max_tokens:400,
-          messages:[{role:'user',content:prompt}]
-        })
-      });
-      const data = await res.json();
-      const txt = (data.content||[]).map(b=>b.text||'').join('').trim();
-      let result;
-      try{ result = JSON.parse(txt); } catch(e){
-        const m = txt.match(/\{[\s\S]*\}/);
-        result = m ? JSON.parse(m[0]) : {score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Ouça novamente e repita em voz alta.'};
-      }
-      _showFeedback(result);
-    } catch(e){
-      _showFeedback({score:65,label:'Erro de conexão',desc:'Não foi possível avaliar agora.',tips:'Verifique sua conexão e tente novamente.'});
-    }
-  }
-
-  function _showFeedback(result){
-    const score = Math.max(0, Math.min(100, result.score||0));
-    const color = score>=80 ? 'var(--green)' : score>=55 ? 'var(--yellow)' : 'var(--red)';
-    const ringEl = document.getElementById('pronunc-score-ring');
-    const labelEl = document.getElementById('pronunc-score-label');
-    const descEl = document.getElementById('pronunc-score-desc');
-    const detailEl = document.getElementById('pronunc-detail');
-    const feedbackEl = document.getElementById('pronunc-feedback');
-    const statusEl = document.getElementById('pronunc-mic-status');
-    if(ringEl){ ringEl.textContent = score; ringEl.style.borderColor = color; ringEl.style.color = color; }
-    if(labelEl){ labelEl.textContent = result.label||''; labelEl.style.color = color; }
-    if(descEl) descEl.textContent = result.desc||'';
-    if(detailEl) detailEl.innerHTML = `<strong style="color:var(--accent)">💡 Dica:</strong> ${result.tips||''}`;
-    if(feedbackEl) feedbackEl.style.display = 'block';
-    if(statusEl) statusEl.textContent = 'Toque para tentar novamente';
-    // Add to history & points
-    const pts = Math.round(score / 10);
-    _pScore += pts;
-    _pHistory.unshift({word:_pCurrentWord.w, score, pts, lang:_pLang, time: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
-    if(_pHistory.length > 20) _pHistory.pop();
-    _updateScoreBadge();
-    _renderHistory();
-    addPts(pts);
-  }
-
-  function _hideFeedback(){
-    const feedbackEl = document.getElementById('pronunc-feedback');
-    if(feedbackEl) feedbackEl.style.display = 'none';
-    const wave = document.getElementById('pronunc-wave');
-    if(wave) wave.style.display = 'none';
-    const btn = document.getElementById('pronunc-mic-btn');
-    if(btn){ btn.style.background='linear-gradient(135deg,var(--accent2),var(--accent))'; btn.textContent='🎤'; }
-    const status = document.getElementById('pronunc-mic-status');
-    if(status) status.textContent = 'Toque para gravar';
-  }
-
-  function _updateScoreBadge(){
-    const b = document.getElementById('pronunc-score-badge');
-    if(b) b.textContent = _pScore + ' pts';
-  }
-
-  function _renderHistory(){
-    const cont = document.getElementById('pronunc-history');
-    if(!cont) return;
-    if(_pHistory.length === 0){ cont.innerHTML=''; return; }
-    const color = s => s>=80?'var(--green)':s>=55?'var(--yellow)':'var(--red)';
-    cont.innerHTML = `<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">HISTÓRICO RECENTE</div>` +
-      _pHistory.slice(0,6).map(h=>`
-        <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;">
-          <div style="font-size:11px;font-family:var(--mono);color:${color(h.score)};font-weight:900;width:36px;text-align:center;flex-shrink:0;">${h.score}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.word}</div>
-            <div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div>
-          </div>
-          <div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--yellow);">+${h.pts}pts</div>
-        </div>`).join('');
-  }
-
-  // ── Hook into learnTab ───────────────────────────────────
-  const _origLearnTabPronunc = window.learnTab;
-  window.learnTab = function(tab, el){
-    _origLearnTabPronunc(tab, el);
-    if(tab === 'pronunc') window._pronuncInit();
-  };
+  window._pronuncInit=function(){_buildLangBar();_loadWord();_renderHistory();};
+  function _buildLangBar(){const b=document.getElementById('pronunc-lang-bar');if(!b)return;b.innerHTML=LANGS.map(l=>`<div class="learn-lang-btn${l.key===_pLang?' active':''}" onclick="_pronuncSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');}
+  window._pronuncSetLang=function(lang,el){_pLang=lang;document.querySelectorAll('#pronunc-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');_loadWord();_hideFeedback();};
+  function _loadWord(){const pool=WORD_POOLS[_pLang]||WORD_POOLS['inglês'];const unseen=pool.filter(w=>!_pHistory.find(h=>h.word===w.w));const src=unseen.length>0?unseen:pool;const pick=src[Math.floor(Math.random()*src.length)];_pCurrentWord=pick;const w=document.getElementById('pronunc-word'),t=document.getElementById('pronunc-trans'),ph=document.getElementById('pronunc-phonetic');if(w)w.textContent=pick.w;if(t)t.textContent=pick.t;if(ph){ph.textContent=pick.ph||'';ph.style.display=pick.ph?'inline-block':'none';}_hideFeedback();const s=document.getElementById('pronunc-mic-status');if(s)s.textContent='Toque para gravar';}
+  window.pronuncOuvir=function(){if(!_pCurrentWord||_pSpeaking)return;const btn=document.getElementById('pronunc-ouvir-btn');const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const u=new SpeechSynthesisUtterance(_pCurrentWord.w);u.lang=langMap[_pLang]||'en-US';u.rate=0.85;_pSpeaking=true;if(btn){btn.style.opacity='0.5';btn.disabled=true;}u.onend=()=>{_pSpeaking=false;if(btn){btn.style.opacity='1';btn.disabled=false;}};u.onerror=()=>{_pSpeaking=false;if(btn){btn.style.opacity='1';btn.disabled=false;}};speechSynthesis.cancel();speechSynthesis.speak(u);};
+  window.pronuncNova=function(){speechSynthesis.cancel();_loadWord();};
+  window.pronuncToggleMic=function(){if(_pRecording){_stopRec();}else{_startRec();}};
+  async function _startRec(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});_pChunks=[];_pMediaRec=new MediaRecorder(stream);_pMediaRec.ondataavailable=e=>{if(e.data.size>0)_pChunks.push(e.data);};_pMediaRec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());_processRec();};_pMediaRec.start();_pRecording=true;_updateMicUI(true);}catch(e){showToast('⚠️ Microfone não disponível','error');}}
+  function _stopRec(){if(_pMediaRec&&_pMediaRec.state!=='inactive')_pMediaRec.stop();_pRecording=false;_updateMicUI(false);}
+  function _updateMicUI(rec){const btn=document.getElementById('pronunc-mic-btn'),wave=document.getElementById('pronunc-wave'),status=document.getElementById('pronunc-mic-status');if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,var(--accent2),var(--accent))';btn.textContent=rec?'⏹':'🎤';}if(wave)wave.style.display=rec?'flex':'none';if(status)status.textContent=rec?'Gravando... toque para parar':'Analisando...';}
+  async function _processRec(){const status=document.getElementById('pronunc-mic-status');if(status)status.textContent='IA avaliando...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_pLang]||'en-US';rec.interimResults=false;rec.maxAlternatives=3;rec.onresult=(e)=>{const alts=Array.from(e.results[0]).map(r=>r.transcript.trim().toLowerCase());_evalWithAI(alts.join('|'));};rec.onerror=()=>{_evalWithAI('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},3500);}else{_evalWithAI('');}}
+  async function _evalWithAI(transcript){const word=_pCurrentWord;if(!word)return;const prompt=transcript?`Você é avaliador de pronúncia. O estudante devia pronunciar "${word.w}" em ${_pLang} (tradução: "${word.t}", fonética: "${word.ph}"). O reconhecimento captou: "${transcript}". Avalie de 0 a 100 com feedback motivador em português. Retorne APENAS JSON: {"score":85,"label":"Muito Bom!","desc":"Sua pronúncia ficou clara.","tips":"Dica de melhoria."}`:`Avalie a prática da palavra "${word.w}" em ${_pLang} (fonética: "${word.ph}"). Microfone não captou claramente. Dê dicas de pronúncia. Retorne APENAS JSON: {"score":60,"label":"Tente novamente!","desc":"Não captei sua voz.","tips":"Dica: ${word.ph}"}`;try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Ouça e repita em voz alta.'};}_showFeedback(result);}catch(e){_showFeedback({score:65,label:'Erro de conexão',desc:'Verifique sua conexão.',tips:'Tente novamente.'});}}
+  function _showFeedback(r){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const ring=document.getElementById('pronunc-score-ring'),label=document.getElementById('pronunc-score-label'),desc=document.getElementById('pronunc-score-desc'),detail=document.getElementById('pronunc-detail'),fb=document.getElementById('pronunc-feedback'),status=document.getElementById('pronunc-mic-status');if(ring){ring.textContent=score;ring.style.borderColor=color;ring.style.color=color;}if(label){label.textContent=r.label||'';label.style.color=color;}if(desc)desc.textContent=r.desc||'';if(detail)detail.innerHTML=`<strong style="color:var(--accent)">💡 Dica:</strong> ${r.tips||''}`;if(fb)fb.style.display='block';if(status)status.textContent='Toque para tentar novamente';const pts=Math.round(score/10);_pScore+=pts;_pHistory.unshift({word:_pCurrentWord.w,score,pts,lang:_pLang,time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});if(_pHistory.length>20)_pHistory.pop();document.getElementById('pronunc-score-badge').textContent=_pScore+' pts';_renderHistory();addPts(pts);}
+  function _hideFeedback(){const fb=document.getElementById('pronunc-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('pronunc-wave');if(wave)wave.style.display='none';const btn=document.getElementById('pronunc-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,var(--accent2),var(--accent))';btn.textContent='🎤';}const s=document.getElementById('pronunc-mic-status');if(s)s.textContent='Toque para gravar';}
+  function _renderHistory(){const cont=document.getElementById('pronunc-history');if(!cont)return;if(!_pHistory.length){cont.innerHTML='';return;}const color=s=>s>=80?'var(--green)':s>=55?'var(--yellow)':'var(--red)';cont.innerHTML=`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">HISTÓRICO RECENTE</div>`+_pHistory.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;"><div style="font-size:11px;font-family:var(--mono);color:${color(h.score)};font-weight:900;width:36px;text-align:center;">${h.score}</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">${h.word}</div><div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div></div><div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--yellow);">+${h.pts}pts</div></div>`).join('');}
 })();
 
+// ══════════════════════════════════════════════════════════
+//  MÓDULO SHADOWING
+// ══════════════════════════════════════════════════════════
+(function(){
+  let _sLang='inglês',_sScore=0,_sCurrentPhrase=null,_sHistory=[],_sRecording=false,_sMediaRec=null,_sChunks=[],_sHeard=false;
+  const LANGS=[{key:'inglês',flag:'🇺🇸',label:'Inglês'},{key:'espanhol',flag:'🇪🇸',label:'Espanhol'},{key:'francês',flag:'🇫🇷',label:'Francês'},{key:'alemão',flag:'🇩🇪',label:'Alemão'},{key:'italiano',flag:'🇮🇹',label:'Italiano'},{key:'japonês',flag:'🇯🇵',label:'Japonês'}];
+  const PHRASES={
+    inglês:[{p:'How are you doing today?',t:'Como você está hoje?'},{p:'Nice to meet you, my name is...',t:'Prazer em conhecê-lo, meu nome é...'},{p:'Could you please speak more slowly?',t:'Você poderia falar mais devagar?'},{p:'I would like to order a coffee, please.',t:'Eu gostaria de pedir um café, por favor.'},{p:'What time does the next train leave?',t:'A que horas parte o próximo trem?'},{p:'Thank you so much for your help.',t:'Muito obrigado pela sua ajuda.'},{p:'I have been learning English for two years.',t:'Estou aprendendo inglês há dois anos.'}],
+    espanhol:[{p:'¿Cómo estás hoy?',t:'Como você está hoje?'},{p:'Mucho gusto, me llamo...',t:'Prazer, meu nome é...'},{p:'¿Puedes hablar más despacio, por favor?',t:'Você pode falar mais devagar?'},{p:'¿A qué hora sale el próximo tren?',t:'A que horas sai o próximo trem?'}],
+    francês:[{p:'Comment allez-vous aujourd'hui?',t:'Como vai você hoje?'},{p:'Enchanté de vous rencontrer.',t:'Prazer em conhecê-lo.'},{p:'Pourriez-vous parler plus lentement?',t:'Poderia falar mais devagar?'}],
+    alemão:[{p:'Wie geht es Ihnen heute?',t:'Como vai você hoje?'},{p:'Schön, Sie kennenzulernen.',t:'Prazer em conhecê-lo.'},{p:'Könnten Sie bitte langsamer sprechen?',t:'Poderia falar mais devagar?'}],
+    italiano:[{p:'Come sta oggi?',t:'Como vai você hoje?'},{p:'Piacere di conoscerla.',t:'Prazer em conhecê-lo.'},{p:'Potrebbe parlare più lentamente?',t:'Poderia falar mais devagar?'}],
+    japonês:[{p:'お元気ですか？',t:'Como vai você? (O-genki desu ka?)'},{p:'はじめまして。',t:'Prazer em conhecê-lo. (Hajimemashite.)'},{p:'もう少しゆっくり話してください。',t:'Por favor, fale mais devagar. (Mou sukoshi yukkuri hanashite kudasai.)'}],
+  };
+  window._shadowingInit=function(){_buildLangBar();_loadPhrase();};
+  function _buildLangBar(){const b=document.getElementById('shadow-lang-bar');if(!b)return;b.innerHTML=LANGS.map(l=>`<div class="learn-lang-btn${l.key===_sLang?' active':''}" onclick="_shadowSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');}
+  window._shadowSetLang=function(lang,el){_sLang=lang;document.querySelectorAll('#shadow-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');_loadPhrase();};
+  function _loadPhrase(){const pool=PHRASES[_sLang]||PHRASES['inglês'];const pick=pool[Math.floor(Math.random()*pool.length)];_sCurrentPhrase=pick;const p=document.getElementById('shadow-phrase'),t=document.getElementById('shadow-phrase-trans');if(p)p.textContent=pick.p;if(t)t.textContent=pick.t;_hideShadowFeedback();_sHeard=false;const step=document.getElementById('shadow-step');if(step)step.textContent='Passo 1: Ouça o áudio nativo acima';const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Ouça primeiro, depois imite';}
+  window.shadowOuvir=function(){if(!_sCurrentPhrase)return;const btn=document.getElementById('shadow-ouvir-btn');const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const u=new SpeechSynthesisUtterance(_sCurrentPhrase.p);u.lang=langMap[_sLang]||'en-US';u.rate=0.8;u.onend=()=>{if(btn){btn.style.opacity='1';btn.disabled=false;}_sHeard=true;const step=document.getElementById('shadow-step');if(step)step.textContent='Passo 2: Agora imite! Toque no microfone e repita a frase.';const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Pronto! Toque para imitar';};if(btn){btn.style.opacity='0.5';btn.disabled=true;}speechSynthesis.cancel();speechSynthesis.speak(u);};
+  window.shadowNova=function(){speechSynthesis.cancel();_loadPhrase();};
+  window.shadowToggleMic=function(){if(!_sHeard){showToast('⚠️ Ouça o áudio primeiro!','info');return;}if(_sRecording){_stopShadowRec();}else{_startShadowRec();}};
+  async function _startShadowRec(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});_sChunks=[];_sMediaRec=new MediaRecorder(stream);_sMediaRec.ondataavailable=e=>{if(e.data.size>0)_sChunks.push(e.data);};_sMediaRec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());_processShadowRec();};_sMediaRec.start();_sRecording=true;_updateShadowMicUI(true);}catch(e){showToast('⚠️ Microfone não disponível','error');}}
+  function _stopShadowRec(){if(_sMediaRec&&_sMediaRec.state!=='inactive')_sMediaRec.stop();_sRecording=false;_updateShadowMicUI(false);}
+  function _updateShadowMicUI(rec){const btn=document.getElementById('shadow-mic-btn'),wave=document.getElementById('shadow-wave'),status=document.getElementById('shadow-mic-status');if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,#00b360,var(--green))';btn.textContent=rec?'⏹':'🎤';}if(wave)wave.style.display=rec?'flex':'none';if(status)status.textContent=rec?'Gravando... toque para parar':'Analisando...';}
+  async function _processShadowRec(){const status=document.getElementById('shadow-mic-status');if(status)status.textContent='IA comparando com o original...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_sLang]||'en-US';rec.interimResults=false;rec.onresult=(e)=>{const transcript=e.results[0][0].transcript;_evalShadow(transcript);};rec.onerror=()=>{_evalShadow('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},4000);}else{_evalShadow('');}}
+  async function _evalShadow(transcript){const phrase=_sCurrentPhrase;if(!phrase)return;const prompt=`Você avalia shadowing (imitação de frase nativa). A frase original era: "${phrase.p}" em ${_sLang}. O estudante disse: "${transcript||'(não captado)'}". Compare as frases, avalie fluência, ritmo e precisão de 0 a 100. Dê feedback motivador em português. Retorne APENAS JSON: {"score":80,"label":"Ótimo ritmo!","desc":"Você capturou bem o padrão.","tips":"Atenção na entonação da segunda parte."}`;
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Repita várias vezes para ganhar fluência.'};}_showShadowFeedback(result,transcript);}catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}}
+  function _showShadowFeedback(r,transcript){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const fb=document.getElementById('shadow-feedback');if(!fb)return;fb.style.display='block';fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div><div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div></div>${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}<div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:12px;">💡 ${r.tips||''}</div><button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;const pts=Math.round(score/10);_sScore+=pts;_sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';addPts(pts);const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';}
+  function _hideShadowFeedback(){const fb=document.getElementById('shadow-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('shadow-wave');if(wave)wave.style.display='none';const btn=document.getElementById('shadow-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,#00b360,var(--green))';btn.textContent='🎤';}}
+})();
 
+// ══════════════════════════════════════════════════════════
+//  MÓDULO DIÁRIO DE IDIOMA
+// ══════════════════════════════════════════════════════════
+(function(){
+  let _dLang='inglês';
+  const LANGS=[{key:'inglês',flag:'🇺🇸',label:'Inglês'},{key:'espanhol',flag:'🇪🇸',label:'Espanhol'},{key:'francês',flag:'🇫🇷',label:'Francês'},{key:'alemão',flag:'🇩🇪',label:'Alemão'},{key:'italiano',flag:'🇮🇹',label:'Italiano'},{key:'japonês',flag:'🇯🇵',label:'Japonês'}];
+  let _dHistory=[];
+  window._diarioInit=function(){_buildLangBar();_renderDiarioHistory();};
+  function _buildLangBar(){const b=document.getElementById('diario-lang-bar');if(!b)return;b.innerHTML=LANGS.map(l=>`<div class="learn-lang-btn${l.key===_dLang?' active':''}" onclick="_diarioSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');}
+  window._diarioSetLang=function(lang,el){_dLang=lang;document.querySelectorAll('#diario-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');};
+  window.diarioEnviar=async function(){const input=document.getElementById('diario-input');const text=(input?.value||'').trim();if(!text){showToast('Escreva algo primeiro!','info');return;}const btn=document.getElementById('diario-btn');if(btn){btn.textContent='✨ Analisando...';btn.disabled=true;}const prompt=`Você é professor de ${_dLang}. O estudante escreveu este texto em português: "${text}". Faça 3 coisas: 1) Corrija e melhore o texto em português (se necessário), 2) Traduza para ${_dLang} de forma natural, 3) Dê feedback de gramática e estilo em português. Retorne APENAS JSON: {"original":"${text}","corrigido":"texto corrigido em pt","traduzido":"tradução em ${_dLang}","feedback":"feedback detalhado sobre gramática e estilo","pontos":["ponto positivo 1","ponto positivo 2"],"melhorias":["sugestão de melhoria 1"]}`;
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):null;}if(!result)throw new Error('parse');_showDiarioResult(result);}catch(e){showToast('Erro ao processar. Verifique sua conexão.','error');}finally{if(btn){btn.textContent='✨ Corrigir e Traduzir com IA';btn.disabled=false;}}};
+  function _showDiarioResult(r){const res=document.getElementById('diario-result');if(!res)return;res.style.display='block';res.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:12px;">ANÁLISE DA IA</div>
+  <div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;font-family:var(--mono);">📝 TRADUÇÃO EM ${_dLang.toUpperCase()}</div><div style="background:var(--adim);border:1px solid rgba(0,229,255,.2);border-radius:10px;padding:12px;font-size:14px;font-weight:600;color:var(--accent);line-height:1.5;">${r.traduzido||'—'}</div></div>
+  ${r.corrigido&&r.corrigido!==r.original?`<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;font-family:var(--mono);">✅ TEXTO CORRIGIDO</div><div style="background:var(--gdim);border:1px solid rgba(0,255,136,.2);border-radius:10px;padding:12px;font-size:13px;line-height:1.5;">${r.corrigido}</div></div>`:''}
+  <div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;font-family:var(--mono);">💡 FEEDBACK</div><div style="font-size:13px;line-height:1.6;color:var(--text);">${r.feedback||''}</div></div>
+  ${r.pontos?.length?`<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:6px;font-family:var(--mono);">👍 PONTOS POSITIVOS</div>${r.pontos.map(p=>`<div style="font-size:12px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);">✓ ${p}</div>`).join('')}</div>`:''}
+  ${r.melhorias?.length?`<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--yellow);margin-bottom:6px;font-family:var(--mono);">⚡ SUGESTÕES</div>${r.melhorias.map(m=>`<div style="font-size:12px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);">→ ${m}</div>`).join('')}</div>`:''}`;
+  _dHistory.unshift({text:r.original?.substring(0,50)||'...',translated:r.traduzido?.substring(0,50)||'',lang:_dLang,time:new Date().toLocaleDateString('pt-BR')});if(_dHistory.length>10)_dHistory.pop();_renderDiarioHistory();addPts(5);}
+  function _renderDiarioHistory(){const cont=document.getElementById('diario-history');if(!cont)return;if(!_dHistory.length){cont.innerHTML='';return;}cont.innerHTML=`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">ENTRADAS ANTERIORES</div>`+_dHistory.map(h=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;"><div style="font-size:12px;font-weight:700;margin-bottom:2px;">${h.text}...</div><div style="font-size:11px;color:var(--accent);margin-bottom:2px;">${h.translated}...</div><div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div></div>`).join('');}
+})();
+
+// ── Override learnTab to init livre ──────────────────────────
 const _origLearnTab=window.learnTab;
 window.learnTab=function(tab,el){
   document.querySelectorAll('.learn-tab').forEach(t=>t.classList.remove('active'));
@@ -10354,6 +10237,9 @@ window.learnTab=function(tab,el){
   if(tab==='exer')renderExer();
   if(tab==='vocab')renderVocab();
   if(tab==='livre')renderLivre();
+  if(tab==='pronunc') window._pronuncInit?.();
+  if(tab==='shadowing') window._shadowingInit?.();
+  if(tab==='diario') window._diarioInit?.();
 };
 
 // ── Hook _learnAddBubble to show vocab chips ─────────────────

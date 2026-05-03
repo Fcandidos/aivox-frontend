@@ -1617,6 +1617,7 @@ input, textarea, select {
       <div class="snav-item" id="snav-faq" onclick="navApp('faq')"><span class="sni">❓</span> Ajuda</div>
       <div class="snav-item" id="snav-sala" onclick="navApp('sala')"><span class="sni">👥</span> Salas</div>
       <div class="snav-item" id="snav-amigos" onclick="navApp('amigos')"><span class="sni">👫</span> Amigos <span id="friends-online-count">0</span></div>
+      <div class="snav-item" id="snav-novidades" onclick="navApp('novidades')" style="background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(0,229,255,.07));border-color:rgba(168,85,247,.2);"><span class="sni">✨</span> <span style="background:linear-gradient(90deg,#a855f7,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">Novidades</span></div>
       <div class="snav-item admin-only-nav" id="snav-settings" onclick="navApp('settings')" style="display:none;"><span class="sni">⚙️</span> Configurações</div>
       <div class="snav-item" id="snav-admin" onclick="navApp('admin')" style="display:none;"><span class="sni">🛡️</span> Admin <span id="payment-notify-badge" style="display:none;background:var(--green);color:#000;font-size:9px;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:4px;font-family:var(--mono);">0</span></div>
     </div>
@@ -3058,7 +3059,7 @@ input, textarea, select {
         <button class="ami-tab active" id="ami-tab-amigos" onclick="amiSwitchTab('amigos')">👫 Meus Amigos</button>
         <button class="ami-tab" id="ami-tab-pending" onclick="amiSwitchTab('pending')">🔔 Pendentes <span class="ami-tab-badge" id="ami-pending-badge">0</span></button>
         <button class="ami-tab" id="ami-tab-buscar" onclick="amiSwitchTab('buscar')">🔍 Buscar</button>
-        <button class="ami-tab" id="ami-tab-sugestoes" onclick="amiSwitchTab('sugestoes')">💡 Novidades</button>
+
       </div>
     
       <!-- TAB: MEUS AMIGOS -->
@@ -3111,10 +3112,44 @@ input, textarea, select {
         </div>
       </div>
     
-      <!-- TAB: NOVIDADES -->
-      <div id="ami-panel-sugestoes" class="ami-scroll" style="display:none;">
 
-        <!-- Hero header -->
+      <!-- CHAT PRIVADO MODAL -->
+      <div class="friend-chat-modal" id="fchat-modal">
+        <div class="fchat-header">
+          <button class="dcl" onclick="closeFriendChat()">‹</button>
+          <div class="friend-av" id="fchat-av" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">A</div>
+          <div class="fchat-title">
+            <div class="fchat-name" id="fchat-name">Amigo</div>
+            <div class="fchat-status" id="fchat-status">offline</div>
+          </div>
+          <button class="friend-btn call" id="fchat-call-btn" onclick="startFriendCall()" title="Chamada de áudio">📞</button>
+          <button class="friend-btn" onclick="startFriendPractice()" title="Praticar juntos" style="border-color:rgba(255,208,0,.25);color:var(--yellow);">🎓</button>
+        </div>
+        <div class="fchat-msgs" id="fchat-msgs">
+          <div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa · Tudo é ponta a ponta pelo servidor</div>
+        </div>
+        <div class="typing-indicator" id="fchat-typing" style="display:none;">
+          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+        </div>
+        <div class="fchat-input-area">
+          <textarea class="fchat-input" id="fchat-input" placeholder="Escreva uma mensagem..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFriendMsg();}"
+            oninput="friendTypingHint()"></textarea>
+          <div class="voice-level-bar" id="fchat-voice-bar">
+            <div class="vlbar"></div><div class="vlbar"></div><div class="vlbar"></div>
+            <div class="vlbar"></div><div class="vlbar"></div>
+          </div>
+          <button class="fchat-mic-btn" id="fchat-mic" onclick="toggleFriendVoice()" title="Gravar áudio">🎤</button>
+          <button class="fchat-send-btn" onclick="sendFriendMsg()" title="Enviar">➤</button>
+        </div>
+      </div>
+    
+
+    </div><!-- /page-amigos -->
+
+    <!-- ══ PAGE: NOVIDADES ══════════════════════════════════════════════════ -->
+    <div class="page" id="page-novidades" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 20px calc(80px + env(safe-area-inset-bottom,0px));flex-direction:column;">
+<!-- Hero header -->
         <div style="background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(0,229,255,.10));border:1.5px solid rgba(124,58,237,.3);border-radius:18px;padding:18px 20px;margin-bottom:4px;position:relative;overflow:hidden;">
           <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(0,229,255,.15),transparent 70%);pointer-events:none;"></div>
           <div style="font-size:11px;font-family:var(--mono);font-weight:800;color:#a855f7;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">✦ AIVOX v5.2</div>
@@ -3253,41 +3288,7 @@ input, textarea, select {
         <div style="margin-top:20px;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;text-align:center;">
           <div style="font-size:11px;color:var(--muted);">💬 Tem uma ideia? Fale com o suporte e sugira novas funcionalidades para o AIVOX!</div>
         </div>
-
-      </div>
-    
-      <!-- CHAT PRIVADO MODAL -->
-      <div class="friend-chat-modal" id="fchat-modal">
-        <div class="fchat-header">
-          <button class="dcl" onclick="closeFriendChat()">‹</button>
-          <div class="friend-av" id="fchat-av" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">A</div>
-          <div class="fchat-title">
-            <div class="fchat-name" id="fchat-name">Amigo</div>
-            <div class="fchat-status" id="fchat-status">offline</div>
-          </div>
-          <button class="friend-btn call" id="fchat-call-btn" onclick="startFriendCall()" title="Chamada de áudio">📞</button>
-          <button class="friend-btn" onclick="startFriendPractice()" title="Praticar juntos" style="border-color:rgba(255,208,0,.25);color:var(--yellow);">🎓</button>
-        </div>
-        <div class="fchat-msgs" id="fchat-msgs">
-          <div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa · Tudo é ponta a ponta pelo servidor</div>
-        </div>
-        <div class="typing-indicator" id="fchat-typing" style="display:none;">
-          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-        </div>
-        <div class="fchat-input-area">
-          <textarea class="fchat-input" id="fchat-input" placeholder="Escreva uma mensagem..." rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFriendMsg();}"
-            oninput="friendTypingHint()"></textarea>
-          <div class="voice-level-bar" id="fchat-voice-bar">
-            <div class="vlbar"></div><div class="vlbar"></div><div class="vlbar"></div>
-            <div class="vlbar"></div><div class="vlbar"></div>
-          </div>
-          <button class="fchat-mic-btn" id="fchat-mic" onclick="toggleFriendVoice()" title="Gravar áudio">🎤</button>
-          <button class="fchat-send-btn" onclick="sendFriendMsg()" title="Enviar">➤</button>
-        </div>
-      </div>
-    
-    </div><!-- /page-amigos -->
+    </div><!-- /page-novidades -->
 
 <!-- ================================================================
      MÓDULO AMIGOS — JavaScript completo
@@ -3881,7 +3882,7 @@ console.log('✅ AIVOX Módulo Amigos carregado');
       <div class="ni active" id="bn-home" onclick="navApp('home')"><span>🏠</span><span class="nl">Início</span></div>
       <div class="ni" id="bn-history" onclick="navApp('history')"><span>💬</span><span class="nl">Histórico</span></div>
       <div class="ni" id="bn-amigos" onclick="navApp('amigos')"><span>👫</span><span class="nl">Amigos</span></div>
-      <div class="ni" id="bn-faq" onclick="navApp('faq')"><span>❓</span><span class="nl">Ajuda</span></div>
+      <div class="ni" id="bn-novidades" onclick="navApp('novidades')"><span>✨</span><span class="nl">Novidades</span></div>
       <div class="ni" id="bn-profile" onclick="navApp('profile')"><span>👤</span><span class="nl">Conta</span></div>
     </div>
   </div>
@@ -4056,7 +4057,7 @@ async function runFullDiagnose(){
 
   // ── 4. PÁGINAS DOM ──
   console.group('📄 DOM');
-  const pages=['page-home','page-admin','page-settings','page-sala','page-chat','page-learn','page-profile','page-amigos'];
+  const pages=['page-home','page-admin','page-settings','page-sala','page-chat','page-learn','page-profile','page-amigos','page-novidades'];
   const missing=pages.filter(p=>!document.getElementById(p));
   missing.length===0 ? ok('DOM: todas as '+pages.length+' páginas presentes') : err('DOM: páginas ausentes → '+missing.join(', '));
   pages.forEach(p=>console.log(p+':', document.getElementById(p)?'✅':'❌ AUSENTE'));
@@ -4250,7 +4251,7 @@ function navApp(name){
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const bn=document.getElementById('bn-'+name);if(bn)bn.classList.add('active');
-  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem',amigos:'Amigos'};
+  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem',amigos:'Amigos',novidades:'Novidades'};
   const tb=document.getElementById('topbar-title');if(tb)tb.textContent=titles[name]||'';
   if(name==='history'){renderHist(histData);_histTab='sess';switchHistTab('sess');}
   if(name==='faq'){renderFaq('todos');setTimeout(()=>goSlide(0),100);}
@@ -4262,6 +4263,7 @@ function navApp(name){
   if(name==='profile')renderProfilePage();
   if(name==='sala')initSalaPage();
   if(name==='learn'){loadStreak();loadVocab();}
+  if(name==='novidades'&&typeof _amiLoadVotes==='function')_amiLoadVotes();
   if(name==='amigos'){
     if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();}
     else{amiSwitchTab(_amiCurrentTab||'amigos');}

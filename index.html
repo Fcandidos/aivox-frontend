@@ -3710,26 +3710,32 @@ function _amiListenPresence() {
       });
   };
   setTimeout(_listenFriendsPresence, 1500);
-  s.on('ami-friend-online', ({ uid, name }) => {
-    if (!_ami.friends.find(f => f.uid === uid)) return;
-    const wasOffline = !_ami.online[uid];
-    _ami.online[uid] = true;
-    _amiRenderFriends(); _amiUpdateOnlineCount();
-    if (wasOffline) _amiShowLoginNotif(name, uid);
-  });
-  s.on('ami-friend-offline', ({ uid }) => { delete _ami.online[uid]; _amiRenderFriends(); _amiUpdateOnlineCount(); });
-  s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, ts }) => { _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts); });
-  s.on('ami-typing', ({ fromUid }) => {
-    if (_ami.currentChat?.uid === fromUid) {
-      const el = document.getElementById('fchat-typing');
-      if (el) { el.style.display='flex'; clearTimeout(_amiTypingTO); _amiTypingTO=setTimeout(()=>{if(el)el.style.display='none';},3000); }
-    }
-  });
-  s.on('ami-call-offer',  ({ fromUid, fromName, offer }) => _amiHandleOffer(fromUid, fromName, offer));
-  s.on('ami-call-answer', ({ answer }) => _amiHandleAnswer(answer));
-  s.on('ami-call-ice',    ({ candidate }) => _amiHandleIce(candidate));
-  s.on('ami-call-reject', () => _amiCallRejected());
-  s.on('ami-call-hangup', () => hangupFriendCall());
+  // Registra listeners do socket com retry seguro (evita ReferenceError: s is not defined)
+  const _setupAmiSocketListeners = () => {
+    const s = window._salaSocket;
+    if (!s) { setTimeout(_setupAmiSocketListeners, 1000); return; }
+    s.on('ami-friend-online', ({ uid, name }) => {
+      if (!_ami.friends.find(f => f.uid === uid)) return;
+      const wasOffline = !_ami.online[uid];
+      _ami.online[uid] = true;
+      _amiRenderFriends(); _amiUpdateOnlineCount();
+      if (wasOffline) _amiShowLoginNotif(name, uid);
+    });
+    s.on('ami-friend-offline', ({ uid }) => { delete _ami.online[uid]; _amiRenderFriends(); _amiUpdateOnlineCount(); });
+    s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, ts }) => { _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts); });
+    s.on('ami-typing', ({ fromUid }) => {
+      if (_ami.currentChat?.uid === fromUid) {
+        const el = document.getElementById('fchat-typing');
+        if (el) { el.style.display='flex'; clearTimeout(_amiTypingTO); _amiTypingTO=setTimeout(()=>{if(el)el.style.display='none';},3000); }
+      }
+    });
+    s.on('ami-call-offer',  ({ fromUid, fromName, offer }) => _amiHandleOffer(fromUid, fromName, offer));
+    s.on('ami-call-answer', ({ answer }) => _amiHandleAnswer(answer));
+    s.on('ami-call-ice',    ({ candidate }) => _amiHandleIce(candidate));
+    s.on('ami-call-reject', () => _amiCallRejected());
+    s.on('ami-call-hangup', () => hangupFriendCall());
+  };
+  _setupAmiSocketListeners();
 }
 
 function _amiRenderFriends() {
@@ -3863,21 +3869,33 @@ async function confirmRemoveFriend(uid, name) {
   if (!confirm('Remover '+name+' da sua lista de amigos?')) return;
   try {
     const myUid = window._fbUser.uid;
-    // Só deleta da PRÓPRIA subcoleção (permitido pelas Firestore Rules)
+    // Deleta da própria subcoleção (permitido pelas Firestore Rules)
     await db.collection('users').doc(myUid).collection('friends').doc(uid).delete();
-    // Sinaliza remoção via friend_requests para que o outro lado também se limpe
-    const reqSnap = await db.collection('friend_requests')
-      .where('status','==','accepted')
-      .where('fromUid','in',[myUid, uid])
-      .get();
+    // Duas queries separadas para evitar bloqueio das Rules com operador 'in'
+    const [snapFrom, snapTo] = await Promise.all([
+      db.collection('friend_requests')
+        .where('fromUid','==', myUid)
+        .where('toUid','==', uid)
+        .where('status','==','accepted')
+        .get(),
+      db.collection('friend_requests')
+        .where('fromUid','==', uid)
+        .where('toUid','==', myUid)
+        .where('status','==','accepted')
+        .get()
+    ]);
     const batch2 = db.batch();
-    reqSnap.docs.forEach(d => {
-      const data = d.data();
-      if ((data.fromUid===myUid && data.toUid===uid) || (data.fromUid===uid && data.toUid===myUid)) {
-        batch2.update(d.ref, { status:'removed', removedBy: myUid, removedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      }
+    const allDocs = [...snapFrom.docs, ...snapTo.docs];
+    allDocs.forEach(d => {
+      batch2.update(d.ref, {
+        status: 'removed',
+        removedBy: myUid,
+        removedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
     });
-    await batch2.commit().catch(()=>{});
+    if (allDocs.length > 0) {
+      await batch2.commit();
+    }
     // Atualiza lista local imediatamente
     _ami.friends = _ami.friends.filter(f => f.uid !== uid);
     delete _ami.online[uid];

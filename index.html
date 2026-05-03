@@ -2272,37 +2272,72 @@ input, textarea, select {
           </div>
         </div>
 
-        <!-- ── ABA PROFESSOR ── -->
-        <div class="learn-tab-panel active" id="ltp-professor" style="flex-direction:column;overflow:hidden;">
-          <div class="learn-lang-strip">
-            <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
-            <div class="learn-lang-btn active" data-lang="inglês" onclick="setLearnLang(this)">🇺🇸 Inglês</div>
-            <div class="learn-lang-btn" data-lang="espanhol" onclick="setLearnLang(this)">🇪🇸 Espanhol</div>
-            <div class="learn-lang-btn" data-lang="francês" onclick="setLearnLang(this)">🇫🇷 Francês</div>
-            <div class="learn-lang-btn" data-lang="alemão" onclick="setLearnLang(this)">🇩🇪 Alemão</div>
-            <div class="learn-lang-btn" data-lang="italiano" onclick="setLearnLang(this)">🇮🇹 Italiano</div>
-            <div class="learn-lang-btn" data-lang="japonês" onclick="setLearnLang(this)">🇯🇵 Japonês</div>
+        <!-- ── ABA PROFESSOR IA ── -->
+        <div class="learn-tab-panel active" id="ltp-professor" style="flex-direction:column;overflow-y:auto;padding:16px;gap:14px;">
+
+          <!-- Hero -->
+          <div style="background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(0,229,255,.08));border:1.5px solid rgba(124,58,237,.3);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-28px;right:-28px;width:120px;height:120px;background:radial-gradient(circle,rgba(124,58,237,.2),transparent 70%);pointer-events:none;"></div>
+            <div style="font-size:10px;font-family:var(--mono);color:var(--accent2);letter-spacing:2px;margin-bottom:4px;">✦ MODO IMERSIVO</div>
+            <div style="font-size:18px;font-weight:900;margin-bottom:6px;">🎓 Professor IA</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;">Aula particular com uma professora animada numa sala de aula virtual. Ela se move, gesticula e escreve na lousa em tempo real.</div>
           </div>
-          <div class="learn-bubs" id="learn-bubs">
-            <div class="learn-bubble ai">
-              <div class="lb-label">🎓 PROFESSOR AIVOX</div>
-              Olá! Sou seu professor de idiomas. Pergunte qualquer coisa — pronuncia, significados, frases do dia a dia. Pode falar ou digitar! 😊
-            </div>
-          </div>
-          <div class="learn-input-area">
-            <div style="display:flex;justify-content:center;margin-bottom:8px;">
-              <div id="learn-voice-toggle" onclick="learnToggleVoice()" style="display:flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);transition:all .2s;user-select:none;">
-                <div id="learn-voice-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all .2s;flex-shrink:0;"></div>
-                <span id="learn-voice-label">🔇 Resposta em voz (off)</span>
+
+          <!-- Nível -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;">NÍVEL</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div class="profIA-opt active" data-val="Básico" onclick="profIA_sel('level',this)">
+                <div style="font-size:20px;margin-bottom:2px;">🌱</div>
+                <div style="font-size:12px;font-weight:700;">Básico</div>
+                <div style="font-size:10px;color:var(--muted);">Iniciante</div>
+              </div>
+              <div class="profIA-opt" data-val="Intermediário" onclick="profIA_sel('level',this)">
+                <div style="font-size:20px;margin-bottom:2px;">🔥</div>
+                <div style="font-size:12px;font-weight:700;">Intermediário</div>
+                <div style="font-size:10px;color:var(--muted);">Fluência</div>
+              </div>
+              <div class="profIA-opt" data-val="Avançado" onclick="profIA_sel('level',this)">
+                <div style="font-size:20px;margin-bottom:2px;">⚡</div>
+                <div style="font-size:12px;font-weight:700;">Avançado</div>
+                <div style="font-size:10px;color:var(--muted);">Profissional</div>
               </div>
             </div>
-            <button class="learn-mic-btn" id="learn-mic-btn" onclick="learnToggleMic()">🎤</button>
-            <div class="learn-status" id="learn-status">Toque para perguntar por voz</div>
-            <div style="display:flex;gap:8px;">
-              <input type="text" id="learn-text-input" class="input-field" placeholder="Ou escreva sua pergunta aqui..." style="flex:1;font-size:13px;" onkeydown="if(event.key==='Enter')learnSendText()">
-              <button onclick="learnSendText()" style="background:var(--adim);border:1px solid rgba(0,229,255,.3);color:var(--accent);border-radius:10px;padding:0 16px;cursor:pointer;font-size:18px;">→</button>
+          </div>
+
+          <!-- Modo -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;">MODO</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="profIA-opt active" data-val="Conversa livre" onclick="profIA_sel('mode',this)">💬 Conversa livre</div>
+              <div class="profIA-opt" data-val="Viagem e turismo" onclick="profIA_sel('mode',this)">✈️ Viagem &amp; turismo</div>
+              <div class="profIA-opt" data-val="Entrevista de emprego" onclick="profIA_sel('mode',this)">💼 Entrevista</div>
+              <div class="profIA-opt" data-val="Reunião de negócios" onclick="profIA_sel('mode',this)">🏢 Negócios</div>
+              <div class="profIA-opt" data-val="Vocabulário" onclick="profIA_sel('mode',this)">🎓 Vocabulário</div>
+              <div class="profIA-opt" data-val="Gramática" onclick="profIA_sel('mode',this)">📖 Gramática</div>
+              <div class="profIA-opt" data-val="Pronúncia" onclick="profIA_sel('mode',this)">🎯 Pronúncia</div>
+              <div class="profIA-opt" data-val="Storytelling" onclick="profIA_sel('mode',this)">📚 Storytelling</div>
             </div>
           </div>
+
+          <!-- Idioma -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;">IDIOMA</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="profIA-lang active" data-val="English" onclick="profIA_sel('lang',this)">🇺🇸 Inglês</div>
+              <div class="profIA-lang" data-val="Spanish" onclick="profIA_sel('lang',this)">🇪🇸 Espanhol</div>
+              <div class="profIA-lang" data-val="French" onclick="profIA_sel('lang',this)">🇫🇷 Francês</div>
+            </div>
+          </div>
+
+          <!-- Botão entrar -->
+          <button onclick="profIA_enter()" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:16px;padding:18px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(124,58,237,.3);transition:all .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(0,229,255,.3)'" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(124,58,237,.3)'">
+            🚪 Entrar na Sala
+          </button>
+
+          <!-- Última sessão -->
+          <div id="profIA-last-info" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
+
         </div>
 
         <!-- ── ABA LIÇÕES ── -->
@@ -10447,6 +10482,7 @@ function learnTab(tab, el) {
   if(tab==='flash') renderFlash();
   if(tab==='exer') renderExer();
   if(tab==='vocab') renderVocab();
+  if(tab==='professor') typeof profIA_onTabOpen === 'function' && profIA_onTabOpen();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -12459,5 +12495,9 @@ function _salaMostrarUIVideo(show){
   </div>
 </div>
 
+<!-- PROFESSOR IA — overlay fullscreen (controlado por professor-ia.js) -->
+<div id="profIA-overlay" style="display:none;position:fixed;inset:0;z-index:9999;"></div>
+
+<script src="professor-ia.js"></script>
 </body>
 </html>

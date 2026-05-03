@@ -1012,8 +1012,7 @@ input, textarea, select {
   display: flex; gap: 0; background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0; width: 100%;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 .ami-tabs::-webkit-scrollbar { display: none; }
 .ami-tab {
@@ -1116,7 +1115,6 @@ input, textarea, select {
   padding: 14px 16px; border-bottom: 1px solid var(--border);
   flex-shrink: 0; background: var(--surface); z-index: 2;
 }
-
 /* ====== CHAT PRIVADO DE AMIGO ====== */
 .friend-chat-modal {
   position: absolute; inset: 0; z-index: 200;
@@ -3080,7 +3078,6 @@ input, textarea, select {
     
     </div><!-- /page-amigos -->
 
-
 <!-- ================================================================
      MÓDULO AMIGOS — JavaScript completo
      ================================================================ -->
@@ -3133,24 +3130,50 @@ async function _amiLoadFriends() {
   try {
     const uid = window._fbUser?.uid;
     if (!uid || !db) return;
+
+    // Lista de amigos confirmados
     db.collection('users').doc(uid).collection('friends')
       .onSnapshot(snap => {
         _ami.friends = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
         _amiRenderFriends();
         _amiUpdateOnlineCount();
-      });
+      }, e => console.warn('[AMI] friends snap erro:', e.code));
+
+    // Solicitações recebidas (pendentes)
     db.collection('friend_requests').where('toUid','==',uid).where('status','==','pending')
       .onSnapshot(snap => {
         _ami.pending.received = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         _amiUpdatePendingBadge();
         if (_amiCurrentTab === 'pending') _amiRenderPending();
-      });
+      }, e => console.warn('[AMI] received snap erro:', e.code));
+
+    // Solicitações enviadas (pendentes)
     db.collection('friend_requests').where('fromUid','==',uid).where('status','==','pending')
       .onSnapshot(snap => {
         _ami.pending.sent = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         if (_amiCurrentTab === 'pending') _amiRenderPending();
-      });
-  } catch (e) { console.warn('_amiLoadFriends', e); }
+      }, e => console.warn('[AMI] sent snap erro:', e.code));
+
+    // Auto-adicionar quando outro usuário aceitar minha solicitação
+    db.collection('friend_requests').where('fromUid','==',uid).where('status','==','accepted')
+      .onSnapshot(snap => {
+        snap.docChanges().forEach(async change => {
+          if (change.type !== 'added') return;
+          const d = change.doc.data();
+          const alreadyFriend = _ami.friends.find(f => f.uid === d.toUid);
+          if (alreadyFriend) return;
+          try {
+            const myName = window._fbUser.name || window._fbUser.displayName || 'Usuário';
+            const acceptedByName = d.acceptedByName || d.toName || 'Amigo';
+            await db.collection('users').doc(uid).collection('friends').doc(d.toUid).set({
+              uid: d.toUid, name: acceptedByName, addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showToast('🎉 ' + acceptedByName + ' aceitou seu pedido!', 'success');
+          } catch(e) { console.warn('[AMI] auto-add amigo erro:', e.code); }
+        });
+      }, e => console.warn('[AMI] accepted snap erro:', e.code));
+
+  } catch (e) { console.warn('[AMI] _amiLoadFriends erro:', e); }
 }
 
 function _amiListenPresence() {
@@ -3214,7 +3237,7 @@ function _amiRenderPending() {
   document.getElementById('ami-list-received').innerHTML = r.map(req => `
     <div class="req-card">
       <div class="friend-av" style="width:38px;height:38px;font-size:14px;flex-shrink:0;">${(req.fromName||'A')[0].toUpperCase()}</div>
-      <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(req.fromName||'Usuário')}</div><div style="font-size:11px;color:var(--muted);">Quer ser seu amigo</div></div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(req.fromName||req.fromEmail||'Usuário')}</div><div style="font-size:11px;color:var(--muted);">quer ser seu amigo · ${req.fromUid?.substring(0,8)||''}</div></div>
       <div class="req-actions">
         <button class="btn btn-primary btn-sm" onclick="acceptFriendReq('${req.id}','${req.fromUid}','${_esc(req.fromName||'Amigo')}')">✓</button>
         <button class="btn btn-danger btn-sm" onclick="rejectFriendReq('${req.id}')">✕</button>
@@ -3268,7 +3291,7 @@ async function sendFriendRequest(toUid, toName, btn) {
   try {
     if (btn) { btn.disabled=true; btn.textContent='⏳'; }
     await db.collection('friend_requests').add({
-      fromUid: window._fbUser.uid, fromName: window._fbUser.displayName||'Usuário',
+      fromUid: window._fbUser.uid, fromName: window._fbUser.name||window._fbUser.displayName||'Usuário',
       toUid, toName, status:'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
     if (btn) { btn.textContent='✓ Enviado'; btn.style.background='var(--gdim)'; btn.style.color='var(--green)'; }
@@ -3279,14 +3302,27 @@ async function sendFriendRequest(toUid, toName, btn) {
 async function acceptFriendReq(reqId, fromUid, fromName) {
   if (!window._fbUser?.uid||!db) return;
   try {
-    const batch=db.batch(), myUid=window._fbUser.uid, myName=window._fbUser.displayName||'Usuário';
-    batch.update(db.collection('friend_requests').doc(reqId),{status:'accepted'});
-    batch.set(db.collection('users').doc(myUid).collection('friends').doc(fromUid),{uid:fromUid,name:fromName,addedAt:firebase.firestore.FieldValue.serverTimestamp()});
-    batch.set(db.collection('users').doc(fromUid).collection('friends').doc(myUid),{uid:myUid,name:myName,addedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    const myUid = window._fbUser.uid;
+    const myName = window._fbUser.name || window._fbUser.displayName || 'Usuário';
+    // Escreve apenas na própria subcoleção (permitido pelas Rules)
+    // e marca o request como accepted para que o remetente também se adicione via onSnapshot
+    const batch = db.batch();
+    batch.update(db.collection('friend_requests').doc(reqId), {
+      status: 'accepted',
+      acceptedByName: myName,
+      acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.set(
+      db.collection('users').doc(myUid).collection('friends').doc(fromUid),
+      { uid: fromUid, name: fromName, addedAt: firebase.firestore.FieldValue.serverTimestamp() }
+    );
     await batch.commit();
-    showToast('🎉 '+fromName+' agora é seu amigo!','success');
-    if (window._salaSocket) window._salaSocket.emit('ami-friend-accepted',{toUid:fromUid,name:myName});
-  } catch(e) { showToast('Erro ao aceitar solicitação','error'); }
+    showToast('🎉 ' + fromName + ' agora é seu amigo!', 'success');
+    if (window._salaSocket) window._salaSocket.emit('ami-friend-accepted', { toUid: fromUid, name: myName });
+  } catch(e) {
+    console.error('[AMI] acceptFriendReq erro:', e);
+    showToast('Erro ao aceitar solicitação: ' + (e.code || e.message), 'error');
+  }
 }
 
 async function rejectFriendReq(reqId) { try { await db.collection('friend_requests').doc(reqId).update({status:'rejected'}); } catch(e){} }

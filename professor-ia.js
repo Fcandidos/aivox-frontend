@@ -597,8 +597,10 @@ function profIA_enter() {
     document.getElementById('profIA-mic-btn').style.opacity = '.3';
     document.getElementById('profIA-mic-btn').style.pointerEvents = 'none';
   }
-  // Kickoff welcome message
-  profIA_callAPI([{ role: 'user', content: 'Hello! Start the class.' }]);
+  // Kickoff welcome message — also seed history so turn 2+ starts with user
+  const _initMsg = { role: 'user', content: 'Hello! Start the class.' };
+  PISTATE.history.push(_initMsg);
+  profIA_callAPI([_initMsg]);
 }
 
 // ── Overlay HTML builder ──────────────────────────────────────

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIVOX Debug Panel</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#080b12;color:#e8eaf2;font-family:'Courier New',monospace;font-size:13px;padding:20px;}
+h1{color:#00e5ff;font-size:18px;margin-bottom:4px;}
+.sub{color:#4a5170;font-size:11px;margin-bottom:20px;}
+.section{background:#0f1420;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:16px;}
+.section-title{font-size:11px;letter-spacing:2px;color:#4a5170;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-title span{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a5170;}
+.section-title span.ok{background:#00ff88;}
+.section-title span.err{background:#ff4466;}
+.section-title span.warn{background:#ffd000;}
+.section-title span.run{background:#00e5ff;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);gap:12px;}
+.row:last-child{border-bottom:none;}
+.row-label{color:#7a82a0;font-size:12px;flex-shrink:0;}
+.row-val{color:#e8eaf2;font-size:12px;text-align:right;word-break:break-all;max-width:70%;}
+.ok{color:#00ff88;}
+.err{color:#ff4466;}
+.warn{color:#ffd000;}
+.info{color:#00e5ff;}
+.muted{color:#4a5170;}
+.btn{padding:10px 20px;border-radius:10px;border:1px solid rgba(0,229,255,.3);background:rgba(0,229,255,.1);color:#00e5ff;cursor:pointer;font-size:13px;font-family:inherit;font-weight:700;margin-right:8px;margin-bottom:8px;transition:all .2s;}
+.btn:hover{background:rgba(0,229,255,.2);}
+.btn.red{border-color:rgba(255,68,102,.3);background:rgba(255,68,102,.1);color:#ff4466;}
+.btn.green{border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.1);color:#00ff88;}
+.log{background:#080b12;border-radius:8px;padding:10px;margin-top:10px;max-height:220px;overflow-y:auto;font-size:11px;line-height:1.7;}
+.log-line{padding:1px 0;}
+.log-line.e{color:#ff4466;}
+.log-line.w{color:#ffd000;}
+.log-line.s{color:#00ff88;}
+.log-line.i{color:#00e5ff;}
+.log-line.m{color:#7a82a0;}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-left:6px;}
+.badge.ok{background:rgba(0,255,136,.15);color:#00ff88;}
+.badge.err{background:rgba(255,68,102,.15);color:#ff4466;}
+.badge.warn{background:rgba(255,208,0,.15);color:#ffd000;}
+input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;color:#e8eaf2;font-family:inherit;font-size:12px;width:100%;margin-top:6px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<h1>🔧 AIVOX Debug Panel</h1>
+<p class="sub">Diagnóstico de Ranking e Presença Online · Cole no mesmo domínio do app ou abra em nova aba enquanto logado</p>
+
+<div style="margin-bottom:16px;">
+  <button class="btn" onclick="runAll()">▶ Rodar Todos os Testes</button>
+  <button class="btn red" onclick="clearLog()">🗑 Limpar</button>
+</div>
+
+<!-- STATUS GERAL -->
+<div class="section">
+  <div class="section-title"><span id="dot-firebase" class="warn"></span>Firebase & Auth</div>
+  <div class="row"><span class="row-label">Firebase SDK</span><span class="row-val" id="val-sdk">—</span></div>
+  <div class="row"><span class="row-label">Usuário logado</span><span class="row-val" id="val-user">—</span></div>
+  <div class="row"><span class="row-label">UID</span><span class="row-val" id="val-uid">—</span></div>
+  <div class="row"><span class="row-label">Token válido</span><span class="row-val" id="val-token">—</span></div>
+  <div class="row"><span class="row-label">Firestore (db)</span><span class="row-val" id="val-db">—</span></div>
+</div>
+
+<!-- RANKING -->
+<div class="section">
+  <div class="section-title"><span id="dot-ranking" class="warn"></span>Ranking / Leaderboard</div>
+  <div class="row"><span class="row-label">WRITE — leaderboard/{uid}</span><span class="row-val" id="val-lb-write">—</span></div>
+  <div class="row"><span class="row-label">READ — leaderboard (orderBy xp)</span><span class="row-val" id="val-lb-read">—</span></div>
+  <div class="row"><span class="row-label">Docs encontrados</span><span class="row-val" id="val-lb-count">—</span></div>
+  <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-lb-err">—</span></div>
+  <div class="log" id="log-ranking"></div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testRanking()">🔄 Testar Ranking</button>
+    <button class="btn green" onclick="testRankingWrite()">✍ Testar só WRITE</button>
+    <button class="btn" onclick="testRankingRead()">📖 Testar só READ</button>
+  </div>
+</div>
+
+<!-- PRESENÇA -->
+<div class="section">
+  <div class="section-title"><span id="dot-presence" class="warn"></span>Presença Online (presence)</div>
+  <div class="row"><span class="row-label">WRITE — presence/{uid}</span><span class="row-val" id="val-pr-write">—</span></div>
+  <div class="row"><span class="row-label">READ — presence/{uid} (próprio)</span><span class="row-val" id="val-pr-read">—</span></div>
+  <div class="row"><span class="row-label">Campo online no doc</span><span class="row-val" id="val-pr-online">—</span></div>
+  <div class="row"><span class="row-label">lastSeen (ms atrás)</span><span class="row-val" id="val-pr-lastseen">—</span></div>
+  <div class="row"><span class="row-label">isRecent (< 120s)</span><span class="row-val" id="val-pr-recent">—</span></div>
+  <div class="log" id="log-presence"></div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testPresence()">🔄 Testar Presença</button>
+    <button class="btn green" onclick="testPresenceAmigo()">👥 Testar Presença de Amigo</button>
+  </div>
+  <div style="margin-top:8px;">
+    <input id="input-friend-uid" placeholder="UID do amigo para testar (ex: abc123...)" />
+  </div>
+</div>
+
+<!-- REGRAS FIRESTORE -->
+<div class="section">
+  <div class="section-title"><span id="dot-rules" class="warn"></span>Diagnóstico de Regras</div>
+  <div class="row"><span class="row-label">Ler doc de outro usuário (leaderboard)</span><span class="row-val" id="val-rule-read-other">—</span></div>
+  <div class="row"><span class="row-label">Escrever no doc de outro usuário</span><span class="row-val" id="val-rule-write-other">—</span></div>
+  <div class="row"><span class="row-label">Leitura sem autenticação</span><span class="row-val" id="val-rule-unauth">—</span></div>
+  <div class="log" id="log-rules"></div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testRules()">🔒 Testar Regras</button>
+  </div>
+</div>
+
+<!-- LOG GERAL -->
+<div class="section">
+  <div class="section-title"><span></span>Log Completo</div>
+  <div class="log" id="log-geral" style="max-height:300px;"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// ── CONFIG (mesmo do app) ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDicAMVOcjO2wCHbce5MXgBpOXjMcYEh5k",
+  authDomain: "aivox-4bcbe.firebaseapp.com",
+  projectId: "aivox-4bcbe",
+  storageBucket: "aivox-4bcbe.firebasestorage.app",
+  messagingSenderId: "364416004782",
+  appId: "1:364416004782:web:3d21a64ef3f28008ea733f"
+};
+
+let app, auth, db, currentUser;
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function setVal(id, text, cls=''){
+  const el = document.getElementById(id);
+  if(el){ el.textContent = text; el.className = 'row-val ' + cls; }
+}
+function setDot(id, cls){ const el=document.getElementById(id); if(el) el.className=cls; }
+
+function addLog(logId, msg, type='m'){
+  const el = document.getElementById(logId);
+  if(!el) return;
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = '[' + new Date().toLocaleTimeString('pt-BR') + '] ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  // também no geral
+  const g = document.getElementById('log-geral');
+  if(g && logId !== 'log-geral'){
+    const g2 = line.cloneNode(true);
+    g.appendChild(g2);
+    g.scrollTop = g.scrollHeight;
+  }
+}
+function clearLog(){ 
+  ['log-ranking','log-presence','log-rules','log-geral'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML='';
+  });
+}
+
+// ── INIT FIREBASE ─────────────────────────────────────────────────
+async function initFirebase(){
+  try {
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    app = firebase.app();
+    auth = firebase.auth();
+    db = firebase.firestore();
+    setVal('val-sdk','✓ SDK 9.23 carregado','ok');
+    addLog('log-geral','Firebase SDK inicializado','s');
+    return true;
+  } catch(e){
+    setVal('val-sdk','✗ Erro: '+e.message,'err');
+    addLog('log-geral','ERRO Firebase SDK: '+e.message,'e');
+    return false;
+  }
+}
+
+async function checkAuth(){
+  return new Promise(resolve => {
+    const unsub = auth.onAuthStateChanged(user => {
+      unsub();
+      currentUser = user;
+      if(user){
+        setVal('val-user', user.displayName || user.email || 'Sem nome', 'ok');
+        setVal('val-uid', user.uid, 'info');
+        setDot('dot-firebase','ok');
+        addLog('log-geral','Usuário autenticado: ' + (user.email||user.uid),'s');
+      } else {
+        setVal('val-user','✗ Não logado — abra esse arquivo no mesmo domínio do app enquanto logado','err');
+        setVal('val-uid','—','err');
+        setDot('dot-firebase','err');
+        addLog('log-geral','AVISO: usuário não está logado neste contexto','w');
+      }
+      resolve(user);
+    });
+  });
+}
+
+async function checkToken(){
+  if(!currentUser){ setVal('val-token','✗ Sem usuário','err'); return null; }
+  try {
+    const token = await currentUser.getIdToken(true);
+    setVal('val-token', '✓ Token OK (' + token.substring(0,20) + '...)', 'ok');
+    addLog('log-geral','Token obtido com sucesso','s');
+    return token;
+  } catch(e){
+    setVal('val-token','✗ Erro: '+e.message,'err');
+    addLog('log-geral','ERRO token: '+e.message,'e');
+    return null;
+  }
+}
+
+function checkDb(){
+  if(db){ setVal('val-db','✓ Firestore instanciado','ok'); return true; }
+  setVal('val-db','✗ db não inicializado','err'); return false;
+}
+
+// ── RANKING TESTS ─────────────────────────────────────────────────
+async function testRankingWrite(){
+  if(!currentUser||!db){ addLog('log-ranking','Sem usuário/db — não é possível testar','w'); return false; }
+  const uid = currentUser.uid;
+  addLog('log-ranking','Tentando WRITE em leaderboard/'+uid.substring(0,8)+'...','i');
+  try {
+    await db.collection('leaderboard').doc(uid).set({
+      uid, name: currentUser.displayName || 'Debug User',
+      xp: 1, streakDays: 0, badges: 0, level: 'Debug',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    setVal('val-lb-write','✓ WRITE OK','ok');
+    addLog('log-ranking','✓ WRITE bem-sucedido','s');
+    return true;
+  } catch(e){
+    setVal('val-lb-write','✗ ' + e.code + ': ' + e.message,'err');
+    setVal('val-lb-err', e.code + ' — ' + e.message, 'err');
+    setDot('dot-ranking','err');
+    addLog('log-ranking','✗ WRITE falhou: ['+e.code+'] '+e.message,'e');
+    if(e.code === 'permission-denied'){
+      addLog('log-ranking','→ CAUSA: Firestore Rules bloqueando escrita em /leaderboard/{uid}','w');
+      addLog('log-ranking','→ Adicione: match /leaderboard/{uid} { allow write: if request.auth.uid == uid; }','w');
+    }
+    return false;
+  }
+}
+
+async function testRankingRead(){
+  if(!currentUser||!db){ addLog('log-ranking','Sem usuário/db','w'); return false; }
+  addLog('log-ranking','Tentando READ em leaderboard (orderBy xp desc, limit 10)...','i');
+  try {
+    const snap = await db.collection('leaderboard').orderBy('xp','desc').limit(10).get();
+    const count = snap.size;
+    setVal('val-lb-read','✓ READ OK','ok');
+    setVal('val-lb-count', count + ' docs encontrados', count > 0 ? 'ok' : 'warn');
+    addLog('log-ranking','✓ READ bem-sucedido — '+count+' docs','s');
+    snap.forEach(doc => {
+      const d = doc.data();
+      addLog('log-ranking','  doc: uid='+d.uid?.substring(0,8)+'... xp='+d.xp+' name='+d.name,'m');
+    });
+    return true;
+  } catch(e){
+    setVal('val-lb-read','✗ ' + e.code + ': ' + e.message,'err');
+    setVal('val-lb-err', e.code + ' — ' + e.message,'err');
+    setDot('dot-ranking','err');
+    addLog('log-ranking','✗ READ falhou: ['+e.code+'] '+e.message,'e');
+    if(e.code === 'permission-denied'){
+      addLog('log-ranking','→ CAUSA: Firestore Rules bloqueando leitura em /leaderboard','w');
+      addLog('log-ranking','→ Adicione: match /leaderboard/{uid} { allow read: if request.auth != null; }','w');
+    }
+    if(e.code === 'failed-precondition'){
+      addLog('log-ranking','→ CAUSA: Index ausente para orderBy("xp")','w');
+      addLog('log-ranking','→ Crie o index no Firebase Console conforme o link no erro do console','w');
+    }
+    return false;
+  }
+}
+
+async function testRanking(){
+  setDot('dot-ranking','run');
+  addLog('log-ranking','=== TESTE RANKING INICIADO ===','i');
+  const w = await testRankingWrite();
+  const r = await testRankingRead();
+  if(w && r){ setDot('dot-ranking','ok'); addLog('log-ranking','✅ Ranking OK — ambas as operações funcionam','s'); }
+  else { setDot('dot-ranking','err'); addLog('log-ranking','❌ Ranking com problemas — veja erros acima','e'); }
+}
+
+// ── PRESENÇA TESTS ────────────────────────────────────────────────
+async function testPresence(){
+  if(!currentUser||!db){ addLog('log-presence','Sem usuário/db','w'); return; }
+  setDot('dot-presence','run');
+  const uid = currentUser.uid;
+  addLog('log-presence','=== TESTE PRESENÇA INICIADO ===','i');
+
+  // WRITE
+  addLog('log-presence','Tentando WRITE em presence/'+uid.substring(0,8)+'...','i');
+  try {
+    await db.collection('presence').doc(uid).set({
+      uid, name: currentUser.displayName || 'Debug',
+      online: true,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    setVal('val-pr-write','✓ WRITE OK','ok');
+    addLog('log-presence','✓ WRITE OK','s');
+  } catch(e){
+    setVal('val-pr-write','✗ '+e.code,'err');
+    addLog('log-presence','✗ WRITE falhou: ['+e.code+'] '+e.message,'e');
+    if(e.code==='permission-denied') addLog('log-presence','→ Adicione rule: match /presence/{uid} { allow write: if request.auth.uid == uid; }','w');
+    setDot('dot-presence','err'); return;
+  }
+
+  // Aguarda serverTimestamp ser resolvido
+  addLog('log-presence','Aguardando 1.5s para serverTimestamp ser processado...','m');
+  await new Promise(r => setTimeout(r, 1500));
+
+  // READ
+  addLog('log-presence','Tentando READ em presence/'+uid.substring(0,8)+'...','i');
+  try {
+    const doc = await db.collection('presence').doc(uid).get();
+    if(!doc.exists){ setVal('val-pr-read','✗ Doc não existe','err'); addLog('log-presence','✗ Doc não existe após write','e'); return; }
+    const data = doc.data();
+    setVal('val-pr-read','✓ READ OK','ok');
+    addLog('log-presence','✓ READ OK','s');
+
+    // Diagnóstico do campo online
+    setVal('val-pr-online', String(data.online), data.online ? 'ok' : 'err');
+    addLog('log-presence', 'online = ' + data.online, data.online ? 's' : 'e');
+
+    // Diagnóstico do lastSeen
+    const lastSeenMs = data.lastSeen?.toMillis?.();
+    if(lastSeenMs == null){
+      setVal('val-pr-lastseen','⚠ null — serverTimestamp pendente','warn');
+      setVal('val-pr-recent','⚠ null → isRecent seria FALSE (BUG!)','warn');
+      addLog('log-presence','⚠ lastSeen chegou NULL — serverTimestamp ainda não processado','w');
+      addLog('log-presence','→ Isso é a causa do bug "online=false" — fix: tratar null como recente','w');
+    } else {
+      const diff = Date.now() - lastSeenMs;
+      const isRecent = diff < 120000;
+      setVal('val-pr-lastseen', Math.round(diff/1000) + 's atrás', isRecent ? 'ok' : 'err');
+      setVal('val-pr-recent', String(isRecent), isRecent ? 'ok' : 'err');
+      addLog('log-presence', 'lastSeen = '+Math.round(diff/1000)+'s atrás, isRecent = '+isRecent, isRecent ? 's' : 'e');
+    }
+    setDot('dot-presence','ok');
+  } catch(e){
+    setVal('val-pr-read','✗ '+e.code,'err');
+    addLog('log-presence','✗ READ falhou: ['+e.code+'] '+e.message,'e');
+    if(e.code==='permission-denied') addLog('log-presence','→ Adicione rule: match /presence/{uid} { allow read: if request.auth != null; }','w');
+    setDot('dot-presence','err');
+  }
+}
+
+async function testPresenceAmigo(){
+  const friendUid = document.getElementById('input-friend-uid').value.trim();
+  if(!friendUid){ addLog('log-presence','Digite o UID do amigo no campo acima','w'); return; }
+  if(!currentUser||!db){ addLog('log-presence','Sem usuário/db','w'); return; }
+  addLog('log-presence','=== TESTE PRESENÇA AMIGO: '+friendUid.substring(0,12)+'... ===','i');
+  try {
+    const doc = await db.collection('presence').doc(friendUid).get();
+    if(!doc.exists){ addLog('log-presence','Doc não existe — amigo nunca gravou presença','w'); return; }
+    const data = doc.data();
+    addLog('log-presence', 'online = ' + data.online, data.online ? 's' : 'e');
+    const lastSeenMs = data.lastSeen?.toMillis?.();
+    if(lastSeenMs == null){
+      addLog('log-presence','⚠ lastSeen = NULL — serverTimestamp pendente ou doc antigo sem lastSeen','w');
+      addLog('log-presence','→ Com o fix, null → isRecent=true → amigo apareceria ONLINE','i');
+    } else {
+      const diff = Date.now() - lastSeenMs;
+      const isRecent = diff < 120000;
+      addLog('log-presence','lastSeen = '+Math.round(diff/1000)+'s atrás', isRecent ? 's' : 'e');
+      addLog('log-presence','isRecent = '+isRecent+' | isOnline = '+(data.online===true && isRecent), (data.online===true && isRecent) ? 's' : 'e');
+      if(!isRecent) addLog('log-presence','→ lastSeen > 120s atrás — amigo realmente offline (heartbeat parou)','w');
+    }
+  } catch(e){
+    addLog('log-presence','✗ READ amigo falhou: ['+e.code+'] '+e.message,'e');
+    if(e.code==='permission-denied') addLog('log-presence','→ Falta rule: match /presence/{uid} { allow read: if request.auth != null; }','w');
+  }
+}
+
+// ── RULES TESTS ───────────────────────────────────────────────────
+async function testRules(){
+  if(!currentUser||!db){ addLog('log-rules','Sem usuário/db','w'); return; }
+  setDot('dot-rules','run');
+  addLog('log-rules','=== TESTE DE REGRAS ===','i');
+
+  // Tentar ler doc de OUTRO usuário no leaderboard
+  addLog('log-rules','Tentando ler doc de outro uid em leaderboard...','i');
+  try {
+    await db.collection('leaderboard').doc('__test_outro_uid__').get();
+    setVal('val-rule-read-other','✓ Permitido (correto — read é pública para auth)','ok');
+    addLog('log-rules','✓ Read de outro uid permitido (esperado)','s');
+  } catch(e){
+    setVal('val-rule-read-other','✗ '+e.code,'err');
+    addLog('log-rules','✗ Read de outro uid bloqueado: '+e.code,'e');
+    if(e.code==='permission-denied') addLog('log-rules','→ Rule de READ ainda não está correta — usuário logado deveria poder ler qualquer doc do leaderboard','w');
+  }
+
+  // Tentar WRITE em doc de outro usuário
+  addLog('log-rules','Tentando WRITE em leaderboard/__outro_uid__ (deve falhar)...','i');
+  try {
+    await db.collection('leaderboard').doc('__outro_uid_qualquer__').set({ xp: 999 });
+    setVal('val-rule-write-other','⚠ PERMITIDO (PROBLEMA! — usuário consegue escrever como outro)','err');
+    addLog('log-rules','⚠ WRITE em outro uid PERMITIDO — regra de write está aberta demais!','e');
+  } catch(e){
+    setVal('val-rule-write-other','✓ Bloqueado ('+e.code+') — correto','ok');
+    addLog('log-rules','✓ WRITE em outro uid bloqueado — regra correta','s');
+  }
+
+  setDot('dot-rules','ok');
+  addLog('log-rules','=== FIM TESTE DE REGRAS ===','i');
+}
+
+// ── RUN ALL ───────────────────────────────────────────────────────
+async function runAll(){
+  clearLog();
+  addLog('log-geral','========== AIVOX DEBUG PANEL ==========','i');
+  const ok = await initFirebase();
+  if(!ok) return;
+  await checkAuth();
+  await checkToken();
+  checkDb();
+  await testRanking();
+  await testPresence();
+  await testRules();
+  addLog('log-geral','========== FIM DOS TESTES ==========','i');
+}
+
+// Auto-init ao carregar
+window.onload = async () => {
+  await initFirebase();
+  await checkAuth();
+  checkDb();
+};
+</script>
+</body>
+</html>

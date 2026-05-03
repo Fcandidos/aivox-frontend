@@ -1005,13 +1005,26 @@ input, textarea, select {
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:100;}
 
 /* ====== AMIGOS — ESTRUTURA GERAL ====== */
-#page-amigos { position: relative; overflow: hidden; flex: 1; flex-direction: column; min-height: 0; display: flex; }
+#page-amigos {
+  position: relative;
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 !important;
+}
 
 /* Tabs internas da página */
 .ami-tabs {
   display: flex; gap: 0; background: var(--surface);
-  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; width: 100%;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.ami-tabs::-webkit-scrollbar { display: none; }
 .ami-tab {
   flex: 1; padding: 13px 8px; border: none; border-bottom: 2px solid transparent;
   background: transparent; font-family: var(--font); font-size: 12px; font-weight: 700;
@@ -1028,8 +1041,12 @@ input, textarea, select {
 
 /* Scroll interno */
 .ami-scroll {
-  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 14px; overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px;
+  overscroll-behavior: contain;
   padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -1107,16 +1124,28 @@ input, textarea, select {
 
 /* ====== HEADER INTERNO DA PÁGINA AMIGOS ====== */
 .ami-page-header {
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-  border-bottom: 1px solid var(--border); flex-shrink: 0;
-  background: var(--surface); z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+  z-index: 2;
+  position: relative;
 }
 
 /* ====== CHAT PRIVADO DE AMIGO ====== */
 .friend-chat-modal {
-  position: absolute; inset: 0; z-index: 200;
-  background: var(--bg); display: flex; flex-direction: column;
-  transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
   pointer-events: none;
 }
 .friend-chat-modal.sh { transform: translateX(0); pointer-events: all; }
@@ -3301,7 +3330,13 @@ function navApp(name){
   if(name==='profile')renderProfilePage();
   if(name==='sala')initSalaPage();
   if(name==='learn'){loadStreak();loadVocab();}
-  if(name==='amigos'){if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();}else{amiSwitchTab(_amiCurrentTab||'amigos');}}
+  if(name==='amigos'){
+    if(typeof initAmigoModule==='function'&&!window._amiModuleInited){
+      window._amiModuleInited=true; initAmigoModule();
+    } else {
+      amiSwitchTab(_amiCurrentTab||'amigos');
+    }
+  }
   const hideBnav=['active','chat','admin','payment','langsel','sala-ativa'];
   const bnav=document.getElementById('bnav');if(bnav)bnav.style.display=hideBnav.includes(name)?'none':'';
   closeSidebar();
@@ -9339,9 +9374,9 @@ function _salaMostrarUIVideo(show){
 <!-- ================================================================
      MÓDULO AMIGOS — Page + Overlays de chamada
      ================================================================ -->
-<div class="page" id="page-amigos" style="overflow:hidden;flex:1;flex-direction:column;min-height:0;display:flex;position:relative;">
+<div class="page" id="page-amigos">
 
-  <!-- Header interno -->
+  <!-- Header interno da página Amigos -->
   <div class="ami-page-header">
     <div style="font-size:22px;">👫</div>
     <div style="flex:1;">
@@ -9518,7 +9553,7 @@ let _amiSearchTO = null;
 let _amiCurrentTab = 'amigos';
 
 function initAmigoModule() {
-  if (!window._fbUser?.uid || !db) { console.warn('[AMI] _fbUser ou db ausente'); return; }
+  if (!window._fbUser?.uid || !db) { console.warn('[AMI] initAmigoModule: aguardando auth/db'); return; }
   amiSwitchTab('amigos');
   _amiLoadFriends();
   _amiListenPresence();

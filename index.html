@@ -1254,6 +1254,68 @@ input, textarea, select {
   cursor: pointer; padding: 0 0 0 4px; line-height: 1;
 }
 
+/* ====== NOTIFICAÇÃO DE MENSAGEM (canto inferior direito) ====== */
+.ami-msg-notif {
+  position: fixed; bottom: 24px; right: 20px; z-index: 9995;
+  background: var(--surface);
+  border: 1px solid rgba(0,229,255,.4);
+  border-radius: 16px;
+  padding: 14px 16px 14px 14px;
+  display: flex; align-items: center; gap: 12px;
+  min-width: 260px; max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 24px rgba(0,229,255,.12);
+  cursor: pointer;
+  animation: msgNotifIn .4s cubic-bezier(.22,1,.36,1) both;
+  transition: opacity .35s, transform .35s;
+}
+.ami-msg-notif.hiding {
+  opacity: 0; transform: translateY(16px) scale(.97);
+  pointer-events: none;
+}
+@keyframes msgNotifIn {
+  from { opacity: 0; transform: translateY(40px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ami-msg-notif-av {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #000; flex-shrink: 0;
+  position: relative;
+}
+.ami-msg-notif-av .notif-count {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--red); color: #fff;
+  font-size: 9px; font-weight: 900; font-family: var(--mono);
+  border-radius: 8px; padding: 1px 5px;
+  min-width: 16px; text-align: center;
+  border: 1.5px solid var(--surface);
+}
+.ami-msg-notif-body { flex: 1; min-width: 0; }
+.ami-msg-notif-name { font-size: 13px; font-weight: 800; color: var(--accent); }
+.ami-msg-notif-text { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ami-msg-notif-time { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+.ami-msg-notif-close {
+  background: none; border: none; color: var(--muted); font-size: 15px;
+  cursor: pointer; flex-shrink: 0; padding: 0 0 0 4px; line-height: 1;
+}
+.ami-msg-notif-close:hover { color: var(--text); }
+/* Barra de progresso do timer */
+.ami-msg-notif-bar {
+  position: absolute; bottom: 0; left: 0;
+  height: 3px; border-radius: 0 0 16px 16px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  width: 100%; transform-origin: left;
+  animation: notifBarDrain 5s linear forwards;
+}
+@keyframes notifBarDrain {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+@media(max-width:767px){
+  .ami-msg-notif { bottom: calc(72px + env(safe-area-inset-bottom,0px)); right: 12px; max-width: 290px; }
+}
+
 /* ====== SUGESTÕES ====== */
 /* ── NOVIDADES: grids ── */
 .sug-grid {
@@ -3795,10 +3857,8 @@ function _amiListenPresence() {
             if (!doc.exists) { delete _ami.online[fUid]; _amiRenderFriends(); _amiUpdateOnlineCount(); return; }
             const data = doc.data();
             const wasOnline = !!_ami.online[fUid];
-            // lastSeen pode chegar null no primeiro snapshot enquanto serverTimestamp processa
-            // Nesse caso, se online===true, confiamos no campo online diretamente
-            const lastSeenMs = data.lastSeen?.toMillis?.() || null;
-            const isRecent = lastSeenMs === null ? true : (Date.now() - lastSeenMs) < 120000;
+            const lastSeen = data.lastSeen?.toMillis?.() || 0;
+            const isRecent = (Date.now() - lastSeen) < 120000;
             const isOnline = data.online === true && isRecent;
             if (isOnline) { _ami.online[fUid] = true; }
             else { delete _ami.online[fUid]; }
@@ -3807,16 +3867,6 @@ function _amiListenPresence() {
               if (friend) _amiShowLoginNotif(friend.name || data.name, fUid);
             }
             _amiRenderFriends(); _amiUpdateOnlineCount();
-            // Atualiza header do chat aberto em tempo real
-            if (_ami.currentChat?.uid === fUid) {
-              const statusEl = document.getElementById('fchat-status');
-              if (statusEl) {
-                statusEl.textContent = isOnline ? '● Online agora' : '● Offline';
-                statusEl.className = 'fchat-status' + (isOnline ? ' online' : ' offline');
-              }
-              const callBtn = document.getElementById('fchat-call-btn');
-              if (callBtn) callBtn.style.opacity = isOnline ? '1' : '.4';
-            }
           }, err => {
             // Ignora silenciosamente permission-denied — amigo não configurou presença
             if (err?.code !== 'permission-denied') console.warn('[PRESENCE]', fUid, err?.code);
@@ -4037,6 +4087,19 @@ function openFriendChat(uid, name) {
   if (callBtn) callBtn.style.opacity=isOnline?'1':'.4';
   _amiLoadChatMsgs(uid);
   document.getElementById('fchat-modal')?.classList.add('sh');
+  // Limpa notificação desse remetente ao abrir o chat
+  if (_amiMsgNotifData[uid]) {
+    delete _amiMsgNotifData[uid];
+    const remaining = Object.keys(_amiMsgNotifData).length;
+    if (remaining === 0) {
+      _amiMsgNotifDismiss(false);
+      _amiTabBlinkStop();
+    } else {
+      // Ainda há msgs de outros — re-renderiza com quem sobrou
+      const nextUid = Object.keys(_amiMsgNotifData)[0];
+      _amiMsgNotifRender();
+    }
+  }
 }
 
 function closeFriendChat() { document.getElementById('fchat-modal')?.classList.remove('sh'); _ami.currentChat=null; }
@@ -4114,7 +4177,135 @@ function _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts, fromFirestore) {
   if (_ami.currentChat?.uid===fromUid) {
     _amiRenderChat(fromUid);
     document.getElementById('fchat-typing').style.display='none';
-  } else { showToast('💬 '+fromName+': '+(text||'🎤 Áudio').substring(0,30),'info'); }
+  } else {
+    // Acumula não lidas e exibe notificação consolidada + pisca aba
+    _amiMsgNotifAdd(fromUid, fromName, text, audioUrl);
+  }
+}
+
+// ── SISTEMA DE NOTIFICAÇÃO DE MENSAGEM ─────────────────────────────
+// Mapa: uid → { name, count, lastText, lastTs }
+const _amiMsgNotifData = {};
+let _amiMsgNotifEl = null;
+let _amiMsgNotifTimer = null;
+let _amiTabBlinkInterval = null;
+const _originalTitle = document.title;
+
+function _amiMsgNotifAdd(uid, name, text, audioUrl) {
+  // Acumula contagem por remetente
+  if (!_amiMsgNotifData[uid]) _amiMsgNotifData[uid] = { name, count: 0, lastText: '', lastTs: 0 };
+  _amiMsgNotifData[uid].count++;
+  _amiMsgNotifData[uid].lastText = text || '🎤 Áudio';
+  _amiMsgNotifData[uid].lastTs = Date.now();
+  _amiMsgNotifRender();
+  _amiTabBlinkStart(name);
+}
+
+function _amiMsgNotifRender() {
+  // Calcula totais consolidados
+  const uids = Object.keys(_amiMsgNotifData);
+  if (!uids.length) return;
+
+  const totalMsgs = uids.reduce((s, u) => s + _amiMsgNotifData[u].count, 0);
+  // Pega o remetente com mais mensagens recentes
+  const topUid = uids.sort((a,b) => _amiMsgNotifData[b].lastTs - _amiMsgNotifData[a].lastTs)[0];
+  const top = _amiMsgNotifData[topUid];
+  const outrosCount = uids.length - 1;
+
+  // Nome a exibir
+  let displayName = top.name;
+  if (outrosCount > 0) displayName += ' +' + outrosCount;
+
+  // Texto do sub
+  let subText = totalMsgs === 1
+    ? (top.lastText).substring(0, 38)
+    : totalMsgs + ' mensagens' + (outrosCount > 0 ? ' de ' + uids.length + ' amigos' : '');
+
+  const letter = (top.name||'?')[0].toUpperCase();
+
+  // Remove notif anterior sem animação para substituir
+  if (_amiMsgNotifEl) {
+    _amiMsgNotifEl.remove();
+    _amiMsgNotifEl = null;
+  }
+  if (_amiMsgNotifTimer) { clearTimeout(_amiMsgNotifTimer); _amiMsgNotifTimer = null; }
+
+  const el = document.createElement('div');
+  el.className = 'ami-msg-notif';
+  el.style.position = 'fixed';
+  el.innerHTML = `
+    <div class="ami-msg-notif-av">
+      ${letter}
+      <span class="notif-count">${totalMsgs}</span>
+    </div>
+    <div class="ami-msg-notif-body">
+      <div class="ami-msg-notif-name">💬 ${_esc(displayName)}</div>
+      <div class="ami-msg-notif-text">${_esc(subText)}</div>
+      <div class="ami-msg-notif-time">agora</div>
+    </div>
+    <button class="ami-msg-notif-close" title="Fechar">✕</button>
+    <div class="ami-msg-notif-bar"></div>
+  `;
+
+  // Clique no card → abre chat
+  el.addEventListener('click', (e) => {
+    if (e.target.classList.contains('ami-msg-notif-close')) return;
+    _amiMsgNotifDismiss(true);
+    navApp('amigos');
+    setTimeout(() => {
+      const f = _ami.friends.find(f => f.uid === topUid);
+      if (f) openFriendChat(f.uid, f.name);
+    }, 150);
+  });
+
+  // Botão fechar
+  el.querySelector('.ami-msg-notif-close').addEventListener('click', (e) => {
+    e.stopPropagation();
+    _amiMsgNotifDismiss(false);
+  });
+
+  document.body.appendChild(el);
+  _amiMsgNotifEl = el;
+
+  // Auto-dismiss após 5s
+  _amiMsgNotifTimer = setTimeout(() => _amiMsgNotifDismiss(false), 5000);
+}
+
+function _amiMsgNotifDismiss(clearData) {
+  if (_amiMsgNotifTimer) { clearTimeout(_amiMsgNotifTimer); _amiMsgNotifTimer = null; }
+  if (_amiMsgNotifEl) {
+    _amiMsgNotifEl.classList.add('hiding');
+    setTimeout(() => { if(_amiMsgNotifEl){ _amiMsgNotifEl.remove(); _amiMsgNotifEl=null; } }, 380);
+  }
+  if (clearData) {
+    Object.keys(_amiMsgNotifData).forEach(k => delete _amiMsgNotifData[k]);
+    _amiTabBlinkStop();
+  }
+}
+
+// ── PISCAR TÍTULO DA ABA ────────────────────────────────────────────
+function _amiTabBlinkStart(fromName) {
+  if (_amiTabBlinkInterval) return; // já está piscando
+  let show = true;
+  const blinkTitle = '💬 ' + fromName + ' te mandou mensagem';
+  _amiTabBlinkInterval = setInterval(() => {
+    document.title = show ? blinkTitle : _originalTitle;
+    show = !show;
+  }, 1200);
+  // Para de piscar quando usuário focar na aba
+  const stopOnFocus = () => {
+    _amiTabBlinkStop();
+    window.removeEventListener('focus', stopOnFocus);
+  };
+  window.addEventListener('focus', stopOnFocus);
+}
+
+function _amiTabBlinkStop() {
+  if (_amiTabBlinkInterval) {
+    clearInterval(_amiTabBlinkInterval);
+    _amiTabBlinkInterval = null;
+  }
+  document.title = _originalTitle;
 }
 
 function friendTypingHint() { if(!_ami.currentChat||!window._salaSocket)return; window._salaSocket.emit('ami-typing',{toUid:_ami.currentChat.uid}); }
@@ -9753,9 +9944,9 @@ async function _gamifLoadRanking() {
   const uid = window._fbUser?.uid;
   const c = document.getElementById('gamif-content');
   if (!c) return;
-  // Publica dados do usuário INDEPENDENTE — erro aqui não bloqueia leitura do ranking
-  if (uid && db) {
-    try {
+  try {
+    // Publica dados do usuário atual no leaderboard público
+    if (uid && db) {
       const myName = window._fbUser?.displayName || window._fbUser?.email?.split('@')[0] || 'Usuário';
       const myLevel = GAMIF_LEVELS[_gamifGetLevelNum()].label.split(' ').slice(1).join(' ');
       await db.collection('leaderboard').doc(uid).set({
@@ -9766,13 +9957,8 @@ async function _gamifLoadRanking() {
         level: myLevel,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
-    } catch(we) {
-      // Erro de escrita não impede leitura do ranking
-      console.warn('[LEADERBOARD] write error (não crítico):', we?.code || we);
     }
-  }
-  // Busca top 50 — bloco separado para não ser afetado por erro de escrita
-  try {
+    // Busca top 50 ordenado por XP
     const snap = await db.collection('leaderboard').orderBy('xp','desc').limit(50).get();
     const entries = [];
     snap.forEach(doc => entries.push(doc.data()));
@@ -9780,7 +9966,7 @@ async function _gamifLoadRanking() {
       c.innerHTML = _gamifRenderRankingHTML(entries, uid);
     }
   } catch(e) {
-    console.warn('[LEADERBOARD] read error:', e?.code || e);
+    console.warn('[LEADERBOARD]', e?.code || e);
     if (document.getElementById('gamif-content') === c) {
       c.innerHTML = `<div style="text-align:center;padding:40px 16px;">
         <div style="font-size:28px;margin-bottom:10px;">⚠️</div>
@@ -10153,71 +10339,26 @@ const _LICOES_TEMAS = {
 
 async function _carregarLicoesIA(lang, forceRefresh){
   const key = lang;
-  const lsKey = 'aivox_licoes_ia_' + lang;
-  // 1. Cache em memória — retorno imediato
   if(!forceRefresh && _licoesCacheIA[key]) return _licoesCacheIA[key];
-  // 2. Cache localStorage — evita skeleton lento em revisitas
-  if(!forceRefresh){
-    try{
-      const cached = localStorage.getItem(lsKey);
-      if(cached){
-        const parsed = JSON.parse(cached);
-        if(Array.isArray(parsed) && parsed.length){
-          _licoesCacheIA[key] = parsed;
-          // Atualiza em background sem bloquear UI
-          _carregarLicoesIABackground(lang, lsKey);
-          return parsed;
-        }
-      }
-    }catch(e){}
-  }
-  // 3. Busca no backend com skeleton + timeout de 12s
   const scroll = document.getElementById('licoes-scroll');
   if(scroll) scroll.innerHTML = _licoesSkeleton();
   try{
     const token = await getAuthToken();
-    const ctrl = new AbortController();
-    const tOut = setTimeout(() => ctrl.abort(), 12000);
     const res = await fetch(getBackendUrl()+'/api/learn/licoes',{
       method:'POST',
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({lang}),
-      signal: ctrl.signal
+      body:JSON.stringify({lang})
     });
-    clearTimeout(tOut);
     if(!res.ok) throw new Error('Backend retornou '+res.status);
     const data = await res.json();
     const parsed = data.licoes;
     if(!parsed||!Array.isArray(parsed)) throw new Error('Resposta inválida');
     _licoesCacheIA[key] = parsed;
-    try{ localStorage.setItem(lsKey, JSON.stringify(parsed)); }catch(e){}
     return parsed;
   }catch(e){
     console.error('Lições IA erro:',e.message);
     return LICOES_DATA[lang] || [];
   }
-}
-
-// Atualiza cache em background sem travar UI
-async function _carregarLicoesIABackground(lang, lsKey){
-  try{
-    const token = await getAuthToken();
-    const ctrl = new AbortController();
-    const tOut = setTimeout(() => ctrl.abort(), 15000);
-    const res = await fetch(getBackendUrl()+'/api/learn/licoes',{
-      method:'POST',
-      headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({lang}),
-      signal: ctrl.signal
-    });
-    clearTimeout(tOut);
-    if(!res.ok) return;
-    const data = await res.json();
-    const parsed = data.licoes;
-    if(!parsed||!Array.isArray(parsed)) return;
-    _licoesCacheIA[lang] = parsed;
-    try{ localStorage.setItem(lsKey, JSON.stringify(parsed)); }catch(e){}
-  }catch(e){ /* silencioso — é background */ }
 }
 
 function _licoesSkeleton(){

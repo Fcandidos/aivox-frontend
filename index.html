@@ -2041,12 +2041,37 @@ input, textarea, select {
           <div class="learn-sub">Professor, lições, flashcards e exercícios</div>
         </div>
         <!-- Streak bar -->
-        <div class="learn-streak-bar">
+        <div class="learn-streak-bar" style="cursor:pointer;" onclick="gamifOpenModal()">
           <span class="streak-fire">🔥</span>
           <span class="streak-num" id="streak-num">0</span>
-          <span class="streak-label">dias seguidos</span>
+          <span class="streak-label">dias</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:2px;">seguidos</span>
           <span class="streak-sep"></span>
+          <span id="gamif-xp-level" style="font-size:10px;font-weight:800;font-family:var(--mono);color:#a855f7;margin-right:6px;">Nv.1</span>
           <span class="streak-pts" id="streak-pts">0 pts</span>
+          <span style="font-size:10px;color:var(--accent);margin-left:8px;font-weight:700;">🏅 Ver</span>
+        </div>
+
+        <!-- MODAL GAMIFICAÇÃO -->
+        <div id="gamif-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);overflow-y:auto;padding:20px 16px;">
+          <div style="max-width:480px;margin:0 auto;background:var(--card);border:1.5px solid rgba(168,85,247,.3);border-radius:22px;overflow:hidden;">
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(0,229,255,.1));padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:10px;font-family:var(--mono);color:#a855f7;letter-spacing:2px;text-transform:uppercase;">🎮 GAMIFICAÇÃO</div>
+                <div style="font-size:18px;font-weight:900;color:var(--text);margin-top:4px;">Seu Progresso</div>
+              </div>
+              <button onclick="gamifCloseModal()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>
+            <!-- Tabs -->
+            <div style="display:flex;border-bottom:1px solid var(--border);">
+              <button onclick="gamifTab('missoes',this)" id="gtab-missoes" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;letter-spacing:1px;">📋 MISSÕES</button>
+              <button onclick="gamifTab('conquistas',this)" id="gtab-conquistas" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">🏅 CONQUISTAS</button>
+              <button onclick="gamifTab('nivel',this)" id="gtab-nivel" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">⭐ NÍVEL</button>
+            </div>
+            <!-- Content -->
+            <div id="gamif-content" style="padding:16px;min-height:300px;"></div>
+          </div>
         </div>
         <!-- Abas -->
         <div class="learn-tabs">
@@ -3434,14 +3459,14 @@ input, textarea, select {
           </div>
 
           <!-- Gamificação -->
-          <div class="feat-card gamif-f" onclick="navApp('inicio');" style="cursor:pointer;">
+          <div class="feat-card gamif-f" onclick="navApp('learn');setTimeout(()=>gamifOpenModal(),400);" style="cursor:pointer;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div class="feat-card-icon" style="margin:0;font-size:24px;">🏆</div>
               <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
             </div>
             <div class="feat-card-title">Gamificação Profunda</div>
-            <div class="feat-card-desc">Conquistas, streak de dias, ranking mensal por idioma e desafios semanais. Compartilhe seu progresso com amigos.</div>
-            <div class="feat-card-badge">🔴 Aprendizagem → Conquistas</div>
+            <div class="feat-card-desc">Conquistas, streak de dias, XP, níveis e missões diárias. Seu progresso salvo na nuvem — nunca perde mesmo trocando de dispositivo.</div>
+            <div class="feat-card-badge">🔴 Aprendizagem → Ver Progresso</div>
           </div>
 
           <!-- Shadowing -->
@@ -3464,6 +3489,17 @@ input, textarea, select {
             <div class="feat-card-title">Diário de Idioma</div>
             <div class="feat-card-desc">Escreva em PT-BR e a IA corrige, reescreve no idioma alvo e dá feedback de gramática e estilo. Histórico salvo no seu perfil.</div>
             <div class="feat-card-badge">🩷 Aprendizagem → Diário</div>
+          </div>
+
+          <!-- Gamificação -->
+          <div class="feat-card gamif-f" onclick="navApp('learn');setTimeout(()=>gamifOpenModal(),400);" style="cursor:pointer;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">🎮</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Gamificação Completa</div>
+            <div class="feat-card-desc">Streak de dias, XP, níveis (Iniciante → Mestre), missões diárias e badges de conquista. Seu progresso salvo na nuvem.</div>
+            <div class="feat-card-badge">🎮 Aprendizagem → Ver Progresso</div>
           </div>
 
         </div>
@@ -3557,6 +3593,49 @@ function initAmigoModule() {
   _amiListenMessages();
   _amiLoadVotes();
   _amiUpdateOnlineCount();
+  _amiFixFriendNames(); // Corrige nomes errados gravados por bug anterior
+}
+
+// Corrige nomes errados na subcoleção friends consultando os friend_requests
+async function _amiFixFriendNames() {
+  try {
+    const myUid = window._fbUser?.uid;
+    if (!myUid || !db) return;
+    // Busca todos os requests onde EU enviei e foram aceitos
+    const snap = await db.collection('friend_requests')
+      .where('fromUid', '==', myUid)
+      .where('status', '==', 'accepted')
+      .get();
+    for (const doc of snap.docs) {
+      const d = doc.data();
+      // O nome correto do amigo (quem aceitou) está em acceptedByName
+      const correctName = d.acceptedByName;
+      if (!correctName) continue;
+      const friendRef = db.collection('users').doc(myUid).collection('friends').doc(d.toUid);
+      const friendDoc = await friendRef.get();
+      if (friendDoc.exists && friendDoc.data().name !== correctName) {
+        await friendRef.update({ name: correctName });
+        console.log('[AMI] Nome corrigido:', friendDoc.data().name, '->', correctName);
+      }
+    }
+    // Busca todos os requests onde EU recebi e aceitei
+    const snap2 = await db.collection('friend_requests')
+      .where('toUid', '==', myUid)
+      .where('status', '==', 'accepted')
+      .get();
+    for (const doc of snap2.docs) {
+      const d = doc.data();
+      // O nome correto do amigo (quem enviou) está em fromName
+      const correctName = d.fromName;
+      if (!correctName) continue;
+      const friendRef = db.collection('users').doc(myUid).collection('friends').doc(d.fromUid);
+      const friendDoc = await friendRef.get();
+      if (friendDoc.exists && friendDoc.data().name !== correctName) {
+        await friendRef.update({ name: correctName });
+        console.log('[AMI] Nome corrigido:', friendDoc.data().name, '->', correctName);
+      }
+    }
+  } catch(e) { console.warn('[AMI] _amiFixFriendNames erro:', e); }
 }
 
 function amiSwitchTab(tab) {
@@ -3608,11 +3687,14 @@ async function _amiLoadFriends() {
         snap.docChanges().forEach(async change => {
           const d = change.doc.data();
           // Aceito: auto-adicionar como amigo
-          if (change.type === 'added' && d.status === 'accepted') {
+          // IMPORTANTE: só processa 'modified' para evitar re-processar docs antigos ao iniciar o listener
+          if (change.type === 'modified' && d.status === 'accepted') {
             const alreadyFriend = _ami.friends.find(f => f.uid === d.toUid);
             if (alreadyFriend) return;
             try {
-              const acceptedByName = d.acceptedByName || d.toName || 'Amigo';
+              // acceptedByName = nome de quem ACEITOU (o outro usuário, toUid)
+              // fromName = nome de quem ENVIOU (eu mesmo — não usar aqui)
+              const acceptedByName = d.acceptedByName || 'Amigo';
               await db.collection('users').doc(uid).collection('friends').doc(d.toUid).set({
                 uid: d.toUid, name: acceptedByName, addedAt: firebase.firestore.FieldValue.serverTimestamp()
               });
@@ -3856,6 +3938,8 @@ async function acceptFriendReq(reqId, fromUid, fromName) {
     await batch.commit();
     showToast('🎉 ' + fromName + ' agora é seu amigo!', 'success');
     if (window._salaSocket) window._salaSocket.emit('ami-friend-accepted', { toUid: fromUid, name: myName });
+    // XP por adicionar amigo
+    if(typeof addPts==='function') addPts(15,'amigos');
   } catch(e) {
     console.error('[AMI] acceptFriendReq erro:', e);
     showToast('Erro ao aceitar solicitação: ' + (e.code || e.message), 'error');
@@ -4124,6 +4208,11 @@ function _amiCallRejected() { hangupFriendCall(); showToast('Chamada recusada','
 
 function hangupFriendCall() {
   clearInterval(_ami.callTimer); _ami.callTimer=null;
+  // XP por chamada de voz (se durou pelo menos 10 segundos)
+  if(_ami.callSeconds>=10 && typeof addPts==='function') {
+    addPts(10,'chamadas');
+    _gamifToast('📞 +10 XP pela chamada de voz!','#00e5ff');
+  }
   if (_ami.callUid&&window._salaSocket) window._salaSocket.emit('ami-call-hangup',{toUid:_ami.callUid});
   try{_ami.localStream?.getTracks().forEach(t=>t.stop());}catch(e){}
   try{_ami.pc?.close();}catch(e){}
@@ -9293,30 +9382,311 @@ function learnTab(tab, el) {
   if(tab==='vocab') renderVocab();
 }
 
-// ── STREAK ────────────────────────────────────────────────────
-function loadStreak() {
+// ══════════════════════════════════════════════════════════════
+// 🎮 GAMIFICAÇÃO COMPLETA — Streak, XP, Nível, Missões, Badges
+// ══════════════════════════════════════════════════════════════
+
+// ── Definições ─────────────────────────────────────────────────
+const GAMIF_LEVELS = [
+  {min:0,    max:99,   label:'🌱 Iniciante',   color:'#64748b'},
+  {min:100,  max:299,  label:'🔵 Aprendiz',    color:'#3b82f6'},
+  {min:300,  max:599,  label:'🟢 Estudante',   color:'#22c55e'},
+  {min:600,  max:999,  label:'🟡 Praticante',  color:'#eab308'},
+  {min:1000, max:1799, label:'🟠 Fluente',     color:'#f97316'},
+  {min:1800, max:2999, label:'🔴 Avançado',    color:'#ef4444'},
+  {min:3000, max:4999, label:'🟣 Expert',      color:'#a855f7'},
+  {min:5000, max:Infinity, label:'💎 Mestre',  color:'#00e5ff'},
+];
+
+const GAMIF_BADGES = [
+  // Streak
+  {id:'streak3',    icon:'🔥', name:'Em Chamas',      desc:'3 dias seguidos',        cat:'streak',   check:g=>g.streakDays>=3},
+  {id:'streak7',    icon:'🔥', name:'Semana Perfeita', desc:'7 dias seguidos',        cat:'streak',   check:g=>g.streakDays>=7},
+  {id:'streak30',   icon:'🔥', name:'Mês de Fogo',    desc:'30 dias seguidos',       cat:'streak',   check:g=>g.streakDays>=30},
+  // XP
+  {id:'xp100',      icon:'⭐', name:'Primeiro Passo', desc:'100 pontos conquistados', cat:'xp',      check:g=>g.xp>=100},
+  {id:'xp500',      icon:'⭐', name:'Dedicado',       desc:'500 pontos',              cat:'xp',      check:g=>g.xp>=500},
+  {id:'xp1000',     icon:'💫', name:'Mil Pontos',     desc:'1.000 pontos',            cat:'xp',      check:g=>g.xp>=1000},
+  {id:'xp5000',     icon:'💎', name:'Elite',          desc:'5.000 pontos',            cat:'xp',      check:g=>g.xp>=5000},
+  // Missões
+  {id:'miss5',      icon:'📋', name:'Missão Aceita',  desc:'5 missões completas',    cat:'missoes',  check:g=>g.totalMissoes>=5},
+  {id:'miss20',     icon:'📋', name:'Caçador',        desc:'20 missões completas',   cat:'missoes',  check:g=>g.totalMissoes>=20},
+  {id:'miss100',    icon:'🏆', name:'Lendário',       desc:'100 missões completas',  cat:'missoes',  check:g=>g.totalMissoes>=100},
+  // Atividades
+  {id:'flash10',    icon:'🃏', name:'Virador de Cartas','desc':'10 flashcards ok',   cat:'learn',    check:g=>g.flashOk>=10},
+  {id:'flash50',    icon:'🃏', name:'Mestre dos Cards', desc:'50 flashcards ok',     cat:'learn',    check:g=>g.flashOk>=50},
+  {id:'prof10',     icon:'🎓', name:'Aluno Aplicado',  desc:'10 msgs ao professor',  cat:'learn',    check:g=>g.profMsgs>=10},
+  {id:'licao5',     icon:'📚', name:'Curioso',         desc:'5 lições concluídas',   cat:'learn',    check:g=>g.licoesOk>=5},
+  {id:'licao20',    icon:'📚', name:'Estudioso',       desc:'20 lições concluídas',  cat:'learn',    check:g=>g.licoesOk>=20},
+  {id:'pronun10',   icon:'🎙️', name:'Boa Voz',         desc:'10 avaliações de pronúncia', cat:'learn', check:g=>g.pronunOk>=10},
+  {id:'shadow10',   icon:'🗣️', name:'Sombra',          desc:'10 shadowings feitos',  cat:'learn',    check:g=>g.shadowOk>=10},
+  {id:'diario5',    icon:'📔', name:'Escritor',        desc:'5 entradas no diário',  cat:'learn',    check:g=>g.diarioOk>=5},
+  {id:'social1',    icon:'👥', name:'Social',          desc:'Fez 1 chamada de voz',  cat:'social',   check:g=>g.chamadas>=1},
+  {id:'amigo1',     icon:'🤝', name:'Primeiro Amigo',  desc:'1 amigo adicionado',    cat:'social',   check:g=>g.amigos>=1},
+];
+
+const DAILY_MISSIONS_POOL = [
+  {id:'m_flash5',   icon:'🃏', name:'Virar 5 flashcards',        xp:20,  target:'flashOk',  need:5},
+  {id:'m_prof3',    icon:'🎓', name:'3 mensagens ao professor',   xp:15,  target:'profMsgs', need:3},
+  {id:'m_licao1',   icon:'📚', name:'Concluir 1 lição',          xp:30,  target:'licoesOk', need:1},
+  {id:'m_pronun3',  icon:'🎙️', name:'3 avaliações de pronúncia', xp:25,  target:'pronunOk', need:3},
+  {id:'m_shadow3',  icon:'🗣️', name:'3 shadowings',              xp:25,  target:'shadowOk', need:3},
+  {id:'m_diario1',  icon:'📔', name:'Escrever no diário',         xp:20,  target:'diarioOk', need:1},
+  {id:'m_vocab3',   icon:'📖', name:'Salvar 3 palavras',          xp:15,  target:'vocabSave', need:3},
+  {id:'m_exer5',    icon:'✏️', name:'5 exercícios certos',       xp:20,  target:'exerOk',   need:5},
+];
+
+// ── Estado global gamif ─────────────────────────────────────────
+let _gamif = {
+  xp:0, streakDays:0, streakMax:0, lastDay:'',
+  flashOk:0, profMsgs:0, licoesOk:0, pronunOk:0, shadowOk:0,
+  diarioOk:0, vocabSave:0, exerOk:0, chamadas:0, amigos:0,
+  totalMissoes:0, badges:[],
+  dailyMissions:[], dailyDate:'', dailyProgress:{},
+};
+let _gamifLoaded = false;
+let _gamifCurrentTab = 'missoes';
+
+// ── Carregar do Firestore ───────────────────────────────────────
+async function loadStreak() {
+  const uid = window._fbUser?.uid; if(!uid||!db) return;
   try {
-    const uid = window._fbUser?.uid||'x';
-    const d = JSON.parse(localStorage.getItem('aivox_streak_'+uid)||'{}');
+    const doc = await db.collection('users').doc(uid).collection('gamif').doc('data').get();
+    if(doc.exists) { _gamif = {..._gamif, ...doc.data()}; }
+    _gamifLoaded = true;
+    // Streak logic
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now()-86400000).toDateString();
-    if(d.lastDay===today){ _streakDays=d.days||0; _streakPts=d.pts||0; }
-    else if(d.lastDay===yesterday){ _streakDays=(d.days||0)+1; _streakPts=d.pts||0; _saveStreak(); }
-    else { _streakDays=1; _streakPts=d.pts||0; _saveStreak(); }
-  } catch(e){ _streakDays=0; _streakPts=0; }
+    if(_gamif.lastDay !== today) {
+      if(_gamif.lastDay === yesterday) { _gamif.streakDays++; }
+      else if(_gamif.lastDay) { _gamif.streakDays=1; }
+      else { _gamif.streakDays=1; }
+      _gamif.lastDay = today;
+      if(_gamif.streakDays > (_gamif.streakMax||0)) _gamif.streakMax=_gamif.streakDays;
+      _gamifSave();
+    }
+    // Daily missions: regenerate if new day
+    if(_gamif.dailyDate !== today) {
+      _gamif.dailyDate = today;
+      _gamif.dailyProgress = {};
+      // Pick 3 random missions
+      const pool = [...DAILY_MISSIONS_POOL].sort(()=>Math.random()-.5).slice(0,3);
+      _gamif.dailyMissions = pool.map(m=>({...m, done:false}));
+      _gamifSave();
+    }
+    _streakDays = _gamif.streakDays;
+    _streakPts  = _gamif.xp;
+    updateStreakUI();
+    // Aviso de streak em risco: se já é fim de dia e ainda não praticou hoje
+    const hour = new Date().getHours();
+    if(hour >= 20 && _gamif.streakDays > 2 && _gamif.lastDay !== today) {
+      setTimeout(()=>{
+        _gamifToast('⚠️ Seu streak de '+_gamif.streakDays+'🔥 dias está em risco! Pratique agora!','#f97316');
+      }, 3000);
+    }
+  } catch(e){ console.warn('[GAMIF] load err',e); }
+}
+
+// ── Salvar no Firestore ─────────────────────────────────────────
+async function _gamifSave() {
+  const uid = window._fbUser?.uid; if(!uid||!db) return;
+  try {
+    await db.collection('users').doc(uid).collection('gamif').doc('data').set(_gamif);
+  } catch(e){ console.warn('[GAMIF] save err',e); }
+}
+
+// ── Adicionar XP e verificar missões/badges ─────────────────────
+function addPts(n, action) {
+  _gamif.xp += n;
+  _streakPts = _gamif.xp;
+  // Incrementa contador da ação
+  if(action && _gamif.hasOwnProperty(action)) {
+    _gamif[action] = (_gamif[action]||0) + 1;
+  }
+  // Verifica missões diárias
+  if(action && _gamif.dailyMissions) {
+    _gamif.dailyMissions.forEach(m => {
+      if(m.done) return;
+      if(m.target === action) {
+        _gamif.dailyProgress[m.id] = (_gamif.dailyProgress[m.id]||0)+1;
+        if(_gamif.dailyProgress[m.id] >= m.need) {
+          m.done = true;
+          _gamif.totalMissoes = (_gamif.totalMissoes||0)+1;
+          _gamif.xp += m.xp;
+          _streakPts = _gamif.xp;
+          _gamifToast('🎯 Missão concluída: '+m.name+' +'+m.xp+' XP!','#a855f7');
+        }
+      }
+    });
+  }
+  // Verifica badges
+  const novosBadges = [];
+  GAMIF_BADGES.forEach(b => {
+    if(!_gamif.badges.includes(b.id) && b.check(_gamif)) {
+      _gamif.badges.push(b.id);
+      novosBadges.push(b);
+    }
+  });
+  if(novosBadges.length) {
+    setTimeout(()=>{ novosBadges.forEach(b=>_gamifToast('🏅 Badge desbloqueado: '+b.icon+' '+b.name,'#ffd000')); },500);
+  }
   updateStreakUI();
+  _gamifSave();
 }
-function _saveStreak(){
-  try{
-    const uid=window._fbUser?.uid||'x';
-    localStorage.setItem('aivox_streak_'+uid, JSON.stringify({days:_streakDays,pts:_streakPts,lastDay:new Date().toDateString()}));
-  }catch(e){}
+
+// ── Toast especial gamif ────────────────────────────────────────
+function _gamifToast(msg, color) {
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1f2e;border:1.5px solid '+color+';color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:99999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);';
+  t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3500);
 }
-function addPts(n){ _streakPts+=n; _saveStreak(); updateStreakUI(); }
-function updateStreakUI(){
-  const sn=document.getElementById('streak-num'), sp=document.getElementById('streak-pts');
-  if(sn)sn.textContent=_streakDays;
-  if(sp)sp.textContent=_streakPts+' pts';
+
+// ── UI Streak bar ───────────────────────────────────────────────
+function updateStreakUI() {
+  const sn=document.getElementById('streak-num'), sp=document.getElementById('streak-pts'), lv=document.getElementById('gamif-xp-level');
+  if(sn) sn.textContent=_gamif.streakDays||_streakDays||0;
+  if(sp) sp.textContent=(_gamif.xp||_streakPts||0)+' XP';
+  if(lv) {
+    const lvl = _gamifGetLevel();
+    lv.textContent='Nv.'+(_gamifGetLevelNum()+1);
+    lv.style.color=lvl.color;
+  }
+}
+
+function _gamifGetLevelNum() {
+  const xp=_gamif.xp||0;
+  for(let i=GAMIF_LEVELS.length-1;i>=0;i--){ if(xp>=GAMIF_LEVELS[i].min) return i; }
+  return 0;
+}
+function _gamifGetLevel() { return GAMIF_LEVELS[_gamifGetLevelNum()]; }
+
+// ── Modal ───────────────────────────────────────────────────────
+function gamifOpenModal() {
+  const m=document.getElementById('gamif-modal'); if(m) m.style.display='block';
+  gamifTab('missoes', document.getElementById('gtab-missoes'));
+}
+function gamifCloseModal() {
+  const m=document.getElementById('gamif-modal'); if(m) m.style.display='none';
+}
+function gamifTab(tab, btn) {
+  _gamifCurrentTab=tab;
+  document.querySelectorAll('#gamif-modal button[id^="gtab-"]').forEach(b=>{
+    b.style.color='var(--muted)'; b.style.borderBottom='2px solid transparent';
+  });
+  if(btn){ btn.style.color='var(--accent)'; btn.style.borderBottom='2px solid var(--accent)'; }
+  const c=document.getElementById('gamif-content'); if(!c) return;
+  if(tab==='missoes')    c.innerHTML=_gamifRenderMissoes();
+  if(tab==='conquistas') c.innerHTML=_gamifRenderConquistas();
+  if(tab==='nivel')      c.innerHTML=_gamifRenderNivel();
+}
+
+function _gamifRenderMissoes() {
+  const missions = _gamif.dailyMissions||[];
+  const today = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  let html = '<div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">📅 '+today+'</div>';
+  html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Complete as missões diárias para ganhar XP bônus!</div>';
+  if(!missions.length) { html+='<div style="text-align:center;color:var(--muted);padding:40px 0;">Carregando missões...</div>'; return html; }
+  missions.forEach(m=>{
+    const prog = _gamif.dailyProgress[m.id]||0;
+    const pct = Math.min(100, Math.round((prog/m.need)*100));
+    const done = m.done;
+    html+=`<div style="background:${done?'rgba(0,255,136,.06)':'var(--surface)'};border:1.5px solid ${done?'rgba(0,255,136,.3)':'var(--border)'};border-radius:14px;padding:14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:22px;">${m.icon}</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:${done?'var(--green)':'var(--text)'};">${m.name}</div>
+          <div style="font-size:11px;color:var(--muted);">+${m.xp} XP de bônus</div>
+        </div>
+        <span style="font-size:12px;font-weight:800;font-family:var(--mono);color:${done?'var(--green)':'var(--muted)'};">${done?'✅ FEITO':(prog+'/'+m.need)}</span>
+      </div>
+      <div style="background:var(--border);border-radius:20px;height:6px;overflow:hidden;">
+        <div style="background:${done?'var(--green)':'var(--accent)'};height:100%;width:${pct}%;border-radius:20px;transition:width .4s;"></div>
+      </div>
+    </div>`;
+  });
+  const feitas = missions.filter(m=>m.done).length;
+  html+=`<div style="margin-top:16px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:14px;padding:14px;text-align:center;">
+    <div style="font-size:24px;margin-bottom:4px;">${feitas===3?'🎉':'⚡'}</div>
+    <div style="font-size:13px;font-weight:700;color:#a855f7;">${feitas}/3 missões hoje</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;">${feitas===3?'Parabéns! Volte amanhã para novas missões!':'Continue praticando para completar todas!'}</div>
+  </div>`;
+  return html;
+}
+
+function _gamifRenderConquistas() {
+  const earned = _gamif.badges||[];
+  const cats = {streak:'🔥 Sequência',xp:'⭐ Pontuação',missoes:'📋 Missões',learn:'📚 Aprendizagem',social:'👥 Social'};
+  let html='<div style="font-size:11px;color:var(--muted);margin-bottom:16px;">'+earned.length+'/'+GAMIF_BADGES.length+' conquistas desbloqueadas</div>';
+  Object.entries(cats).forEach(([cat,catLabel])=>{
+    const catBadges=GAMIF_BADGES.filter(b=>b.cat===cat);
+    html+=`<div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin:14px 0 8px;">${catLabel}</div>`;
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+    catBadges.forEach(b=>{
+      const has=earned.includes(b.id);
+      html+=`<div style="background:${has?'rgba(255,208,0,.06)':'var(--surface)'};border:1.5px solid ${has?'rgba(255,208,0,.3)':'var(--border)'};border-radius:12px;padding:12px;opacity:${has?'1':'.5'};">
+        <div style="font-size:22px;margin-bottom:4px;">${has?b.icon:'🔒'}</div>
+        <div style="font-size:12px;font-weight:700;color:${has?'#ffd000':'var(--muted)'};">${b.name}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${b.desc}</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  return html;
+}
+
+function _gamifRenderNivel() {
+  const xp=_gamif.xp||0;
+  const lvNum=_gamifGetLevelNum();
+  const lv=GAMIF_LEVELS[lvNum];
+  const nextLv=GAMIF_LEVELS[lvNum+1];
+  const pct=nextLv?Math.round(((xp-lv.min)/(nextLv.min-lv.min))*100):100;
+  const streak=_gamif.streakDays||0;
+  const streakMax=_gamif.streakMax||streak;
+  return `
+  <div style="text-align:center;padding:10px 0 20px;">
+    <div style="font-size:48px;margin-bottom:8px;">${lv.label.split(' ')[0]}</div>
+    <div style="font-size:20px;font-weight:900;color:${lv.color};">${lv.label.split(' ').slice(1).join(' ')}</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Nível ${lvNum+1} de ${GAMIF_LEVELS.length}</div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:12px;color:var(--muted);">XP Total</span>
+      <span style="font-size:14px;font-weight:800;font-family:var(--mono);color:${lv.color};">${xp.toLocaleString('pt-BR')} XP</span>
+    </div>
+    ${nextLv?`<div style="background:var(--border);border-radius:20px;height:8px;overflow:hidden;margin-bottom:6px;">
+      <div style="background:${lv.color};height:100%;width:${pct}%;border-radius:20px;transition:width .5s;"></div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);text-align:right;">${xp} / ${nextLv.min} XP → ${nextLv.label.split(' ').slice(1).join(' ')}</div>`:'<div style="font-size:12px;color:#ffd000;text-align:center;margin-top:4px;">🏆 Nível máximo atingido!</div>'}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;">
+      <div style="font-size:24px;">🔥</div>
+      <div style="font-size:20px;font-weight:900;color:var(--yellow);font-family:var(--mono);">${streak}</div>
+      <div style="font-size:11px;color:var(--muted);">dias seguidos</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;">
+      <div style="font-size:24px;">🏆</div>
+      <div style="font-size:20px;font-weight:900;color:var(--accent);font-family:var(--mono);">${streakMax}</div>
+      <div style="font-size:11px;color:var(--muted);">recorde pessoal</div>
+    </div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;">
+    <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:12px;">📊 SUAS ESTATÍSTICAS</div>
+    ${[
+      ['🃏 Flashcards ok',_gamif.flashOk||0],
+      ['🎓 Msgs ao professor',_gamif.profMsgs||0],
+      ['📚 Lições concluídas',_gamif.licoesOk||0],
+      ['🎙️ Pronúncias',_gamif.pronunOk||0],
+      ['🗣️ Shadowings',_gamif.shadowOk||0],
+      ['📔 Diário',_gamif.diarioOk||0],
+      ['📋 Missões totais',_gamif.totalMissoes||0],
+      ['🏅 Badges',(_gamif.badges||[]).length+'/'+GAMIF_BADGES.length],
+    ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+      <span style="font-size:12px;color:var(--muted);">${l}</span>
+      <span style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text);">${v}</span>
+    </div>`).join('')}
+  </div>`;
 }
 
 // ── PROFESSOR ─────────────────────────────────────────────────
@@ -9428,7 +9798,7 @@ async function learnAsk(question){
       return;
     }
     const d=await r.json();
-    if(d.answer){_learnHistory.push({role:'assistant',content:d.answer});_learnAddBubble('ai',d.answer,true);addPts(2);}
+    if(d.answer){_learnHistory.push({role:'assistant',content:d.answer});_learnAddBubble('ai',d.answer,true);addPts(2,'profMsgs');}
     else{_learnAddBubble('ai','⚠️ Resposta vazia do servidor.');}
   }catch(e){
     if(thinking)thinking.remove();
@@ -9483,7 +9853,7 @@ function openLicao(id){
 }
 function closeLicao(){document.getElementById('licao-modal').classList.remove('sh');}
 function concluirLicao(id){
-  _setLicaoConcluida(id); addPts(10);
+  _setLicaoConcluida(id); addPts(10,'licoesOk');
   showToast('🏆 Lição concluída! +10 pts','success');
   closeLicao(); renderLicoes();
 }
@@ -9522,7 +9892,7 @@ function renderFlashCard(){
   if(_flashIdx>=_flashDeck.length){
     const pct=Math.round(_flashOk/Math.max(_flashDeck.length,1)*100);
     wrap.innerHTML=`<div style="text-align:center;padding:20px 0;"><div style="font-size:44px;margin-bottom:10px;">🎉</div><div style="font-size:18px;font-weight:900;margin-bottom:4px;">Deck completo!</div><div style="font-size:13px;color:var(--muted);margin-bottom:18px;">✅ ${_flashOk} sabia · ❌ ${_flashNope} não sabia</div></div><div class="flash-stats"><div class="flash-stat"><div class="flash-stat-n" style="color:var(--green);">${_flashOk}</div><div class="flash-stat-l">Sabia</div></div><div class="flash-stat"><div class="flash-stat-n" style="color:var(--red);">${_flashNope}</div><div class="flash-stat-l">Não sabia</div></div><div class="flash-stat"><div class="flash-stat-n" style="color:var(--accent);">${pct}%</div><div class="flash-stat-l">Acerto</div></div></div><button class="btn btn-primary" style="margin-top:16px;width:100%;max-width:320px;" onclick="buildFlashDeck();renderFlashCard();">🔄 Reiniciar deck</button>`;
-    addPts(5); return;
+    addPts(5,'flashOk'); return;
   }
   const card=_flashDeck[_flashIdx];
   const wo=card.word.replace(/'/g,"\'");
@@ -9534,7 +9904,7 @@ function flipFlash(){
   if(_flashFlipped){if(c)c.classList.add('flip');if(b)b.style.display='flex';}
   else{if(c)c.classList.remove('flip');if(b)b.style.display='none';}
 }
-function flashGot(){_flashOk++;addPts(3);_flashIdx++;_flashFlipped=false;renderFlashCard();}
+function flashGot(){_flashOk++;addPts(3,'flashOk');_flashIdx++;_flashFlipped=false;renderFlashCard();}
 function flashNope(){_flashNope++;_flashIdx++;_flashFlipped=false;renderFlashCard();}
 
 // ── EXERCÍCIOS ───────────────────────────────────────────────
@@ -9550,7 +9920,7 @@ function saveVocabWord(word,trans,lang){
   _vocabData.unshift({word:word.trim(),trans:(trans||'').trim(),lang:lang||_learnLang,savedAt:Date.now()});
   localStorage.setItem('aivox_vocab_'+(window._fbUser?.uid||'x'),JSON.stringify(_vocabData.slice(0,500)));
   _vocabFiltered=[..._vocabData];
-  showToast('📖 "'+word+'" salvo!','success'); addPts(1);
+  showToast('📖 "'+word+'" salvo!','success'); addPts(1,'vocabSave');
 }
 function deleteVocabWord(globalIdx){
   loadVocab();
@@ -9778,7 +10148,7 @@ function buildFlashDeck(){
 const _origFlashGot=window.flashGot;
 window.flashGot=function(){
   if(_flashDeck[_flashIdx]) _updateSRS(_flashDeck[_flashIdx].word,_flashLang,true);
-  _flashOk++; addPts(3); _flashIdx++; _flashFlipped=false; renderFlashCard();
+  _flashOk++; addPts(3,'flashOk'); _flashIdx++; _flashFlipped=false; renderFlashCard();
 };
 window.flashNope=function(){
   if(_flashDeck[_flashIdx]) _updateSRS(_flashDeck[_flashIdx].word,_flashLang,false);
@@ -9893,7 +10263,7 @@ function checkExer(idx,resposta,certa,btn){
     fb.className='exer-feedback sh '+(ok?'ok':'err');
     fb.innerHTML=ok?'✅ Correto! +3 pts':`❌ Errado. Certa: <strong>${certa}</strong> <button class="lb-btn" onclick="_speakTranslation('${certa.replace(/'/g,"\\'")}')">🔊</button>`;
   }
-  if(ok){addPts(3);_exerScore+=3;}
+  if(ok){addPts(3,'exerOk');_exerScore+=3;}
   _exerTotal++;
   const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
 }
@@ -9911,7 +10281,7 @@ function checkExerEscrita(idx, certa){
     fb.className='exer-feedback sh '+(ok?'ok':'err');
     fb.innerHTML=(ok?`✅ Correto! +5 pts`:`❌ Resposta: <strong>${certa}</strong> <button class="lb-btn" onclick="_speakTranslation('${certa.replace(/'/g,"\\'")}')">🔊</button>`);
   }
-  if(ok){addPts(5);_exerScore+=5;}
+  if(ok){addPts(5,'exerOk');_exerScore+=5;}
   _exerTotal++;
   const sc=document.getElementById('exer-score-txt'); if(sc)sc.textContent=_exerScore+' pts';
 }
@@ -9945,10 +10315,14 @@ function _saveProgressDay(pts){
     localStorage.setItem(key,JSON.stringify(trimmed));
   }catch(e){}
 }
-// Hook addPts to also save daily progress
-const _origAddPts=window.addPts||function(){};
-window.addPts=function(n){
-  _streakPts+=n; _saveStreak(); updateStreakUI();
+// addPts agora é a função completa da gamificação (definida no módulo GAMIFICAÇÃO)
+// Wrapper mantido apenas para compatibilidade — salva progresso no gráfico de barras
+const _origAddPts = window.addPts || function(){};
+const _addPtsWithChart = function(n, action) {
+  // Chama a função real de gamificação se disponível
+  if(typeof addPts === 'function' && addPts !== _addPtsWithChart) {
+    addPts(n, action);
+  }
   _saveProgressDay(n);
 };
 
@@ -10195,7 +10569,7 @@ async function livreRespostaIA(userMsg, isFirst){
     let html=mainResp.replace(/\n/g,'<br>');
     if(dica) html+=`<div class="lb-correcao">💡 Dica: ${dica[1].trim()}</div>`;
     livreAddBubble('ai', html, true, true);
-    addPts(1);
+    addPts(1,'vocabSave');
   }catch(e){
     if(thinking)thinking.remove();
     livreAddBubble('ai','⚠️ Erro de conexão. Tente novamente.',false,false);
@@ -10292,7 +10666,7 @@ function setLivreNivel(el){
   function _updateMicUI(rec){const btn=document.getElementById('pronunc-mic-btn'),wave=document.getElementById('pronunc-wave'),status=document.getElementById('pronunc-mic-status');if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,var(--accent2),var(--accent))';btn.textContent=rec?'⏹':'🎤';}if(wave)wave.style.display=rec?'flex':'none';if(status)status.textContent=rec?'Gravando... toque para parar':'Analisando...';}
   async function _processRec(){const status=document.getElementById('pronunc-mic-status');if(status)status.textContent='IA avaliando...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_pLang]||'en-US';rec.interimResults=false;rec.maxAlternatives=3;rec.onresult=(e)=>{const alts=Array.from(e.results[0]).map(r=>r.transcript.trim().toLowerCase());_evalWithAI(alts.join('|'));};rec.onerror=()=>{_evalWithAI('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},3500);}else{_evalWithAI('');}}
   async function _evalWithAI(transcript){const word=_pCurrentWord;if(!word)return;const prompt=transcript?`Você é avaliador de pronúncia. O estudante devia pronunciar "${word.w}" em ${_pLang} (tradução: "${word.t}", fonética: "${word.ph}"). O reconhecimento captou: "${transcript}". Avalie de 0 a 100 com feedback motivador em português. Retorne APENAS JSON: {"score":85,"label":"Muito Bom!","desc":"Sua pronúncia ficou clara.","tips":"Dica de melhoria."}`:`Avalie a prática da palavra "${word.w}" em ${_pLang} (fonética: "${word.ph}"). Microfone não captou claramente. Dê dicas de pronúncia. Retorne APENAS JSON: {"score":60,"label":"Tente novamente!","desc":"Não captei sua voz.","tips":"Dica: ${word.ph}"}`;try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Ouça e repita em voz alta.'};}_showFeedback(result);}catch(e){_showFeedback({score:65,label:'Erro de conexão',desc:'Verifique sua conexão.',tips:'Tente novamente.'});}}
-  function _showFeedback(r){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const ring=document.getElementById('pronunc-score-ring'),label=document.getElementById('pronunc-score-label'),desc=document.getElementById('pronunc-score-desc'),detail=document.getElementById('pronunc-detail'),fb=document.getElementById('pronunc-feedback'),status=document.getElementById('pronunc-mic-status');if(ring){ring.textContent=score;ring.style.borderColor=color;ring.style.color=color;}if(label){label.textContent=r.label||'';label.style.color=color;}if(desc)desc.textContent=r.desc||'';if(detail)detail.innerHTML=`<strong style="color:var(--accent)">💡 Dica:</strong> ${r.tips||''}`;if(fb)fb.style.display='block';if(status)status.textContent='Toque para tentar novamente';const pts=Math.round(score/10);_pScore+=pts;_pHistory.unshift({word:_pCurrentWord.w,score,pts,lang:_pLang,time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});if(_pHistory.length>20)_pHistory.pop();document.getElementById('pronunc-score-badge').textContent=_pScore+' pts';_renderHistory();addPts(pts);}
+  function _showFeedback(r){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const ring=document.getElementById('pronunc-score-ring'),label=document.getElementById('pronunc-score-label'),desc=document.getElementById('pronunc-score-desc'),detail=document.getElementById('pronunc-detail'),fb=document.getElementById('pronunc-feedback'),status=document.getElementById('pronunc-mic-status');if(ring){ring.textContent=score;ring.style.borderColor=color;ring.style.color=color;}if(label){label.textContent=r.label||'';label.style.color=color;}if(desc)desc.textContent=r.desc||'';if(detail)detail.innerHTML=`<strong style="color:var(--accent)">💡 Dica:</strong> ${r.tips||''}`;if(fb)fb.style.display='block';if(status)status.textContent='Toque para tentar novamente';const pts=Math.round(score/10);_pScore+=pts;_pHistory.unshift({word:_pCurrentWord.w,score,pts,lang:_pLang,time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});if(_pHistory.length>20)_pHistory.pop();document.getElementById('pronunc-score-badge').textContent=_pScore+' pts';_renderHistory();addPts(pts,'pronunOk');}
   function _hideFeedback(){const fb=document.getElementById('pronunc-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('pronunc-wave');if(wave)wave.style.display='none';const btn=document.getElementById('pronunc-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,var(--accent2),var(--accent))';btn.textContent='🎤';}const s=document.getElementById('pronunc-mic-status');if(s)s.textContent='Toque para gravar';}
   function _renderHistory(){const cont=document.getElementById('pronunc-history');if(!cont)return;if(!_pHistory.length){cont.innerHTML='';return;}const color=s=>s>=80?'var(--green)':s>=55?'var(--yellow)':'var(--red)';cont.innerHTML=`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">HISTÓRICO RECENTE</div>`+_pHistory.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;"><div style="font-size:11px;font-family:var(--mono);color:${color(h.score)};font-weight:900;width:36px;text-align:center;">${h.score}</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">${h.word}</div><div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div></div><div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--yellow);">+${h.pts}pts</div></div>`).join('');}
 })();
@@ -10324,7 +10698,7 @@ function setLivreNivel(el){
   async function _processShadowRec(){const status=document.getElementById('shadow-mic-status');if(status)status.textContent='IA comparando com o original...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_sLang]||'en-US';rec.interimResults=false;rec.onresult=(e)=>{const transcript=e.results[0][0].transcript;_evalShadow(transcript);};rec.onerror=()=>{_evalShadow('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},4000);}else{_evalShadow('');}}
   async function _evalShadow(transcript){const phrase=_sCurrentPhrase;if(!phrase)return;const prompt=`Você avalia shadowing (imitação de frase nativa). A frase original era: "${phrase.p}" em ${_sLang}. O estudante disse: "${transcript||'(não captado)'}". Compare as frases, avalie fluência, ritmo e precisão de 0 a 100. Dê feedback motivador em português. Retorne APENAS JSON: {"score":80,"label":"Ótimo ritmo!","desc":"Você capturou bem o padrão.","tips":"Atenção na entonação da segunda parte."}`;
   try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Repita várias vezes para ganhar fluência.'};}_showShadowFeedback(result,transcript);}catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}}
-  function _showShadowFeedback(r,transcript){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const fb=document.getElementById('shadow-feedback');if(!fb)return;fb.style.display='block';fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div><div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div></div>${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}<div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:12px;">💡 ${r.tips||''}</div><button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;const pts=Math.round(score/10);_sScore+=pts;_sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';addPts(pts);const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';}
+  function _showShadowFeedback(r,transcript){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const fb=document.getElementById('shadow-feedback');if(!fb)return;fb.style.display='block';fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div><div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div></div>${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}<div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:12px;">💡 ${r.tips||''}</div><button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;const pts=Math.round(score/10);_sScore+=pts;_sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';addPts(pts,'shadowOk');const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';}
   function _hideShadowFeedback(){const fb=document.getElementById('shadow-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('shadow-wave');if(wave)wave.style.display='none';const btn=document.getElementById('shadow-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,#00b360,var(--green))';btn.textContent='🎤';}}
 })();
 
@@ -10346,7 +10720,7 @@ function setLivreNivel(el){
   <div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;font-family:var(--mono);">💡 FEEDBACK</div><div style="font-size:13px;line-height:1.6;color:var(--text);">${r.feedback||''}</div></div>
   ${r.pontos?.length?`<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:6px;font-family:var(--mono);">👍 PONTOS POSITIVOS</div>${r.pontos.map(p=>`<div style="font-size:12px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);">✓ ${p}</div>`).join('')}</div>`:''}
   ${r.melhorias?.length?`<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--yellow);margin-bottom:6px;font-family:var(--mono);">⚡ SUGESTÕES</div>${r.melhorias.map(m=>`<div style="font-size:12px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);">→ ${m}</div>`).join('')}</div>`:''}`;
-  _dHistory.unshift({text:r.original?.substring(0,50)||'...',translated:r.traduzido?.substring(0,50)||'',lang:_dLang,time:new Date().toLocaleDateString('pt-BR')});if(_dHistory.length>10)_dHistory.pop();_renderDiarioHistory();addPts(5);}
+  _dHistory.unshift({text:r.original?.substring(0,50)||'...',translated:r.traduzido?.substring(0,50)||'',lang:_dLang,time:new Date().toLocaleDateString('pt-BR')});if(_dHistory.length>10)_dHistory.pop();_renderDiarioHistory();addPts(5,'diarioOk');}
   function _renderDiarioHistory(){const cont=document.getElementById('diario-history');if(!cont)return;if(!_dHistory.length){cont.innerHTML='';return;}cont.innerHTML=`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">ENTRADAS ANTERIORES</div>`+_dHistory.map(h=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;"><div style="font-size:12px;font-weight:700;margin-bottom:2px;">${h.text}...</div><div style="font-size:11px;color:var(--accent);margin-bottom:2px;">${h.translated}...</div><div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div></div>`).join('');}
 })();
 

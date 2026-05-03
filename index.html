@@ -3738,6 +3738,41 @@ input, textarea, select {
 
         </div>
 
+        <!-- ─── SEÇÃO: LANÇADO ─────────────────────────────────── -->
+        <div class="nov-section-header" style="margin-top:28px;">
+          <div class="nov-section-line"></div>
+          <div class="nov-section-title" style="color:#00ff88;">🚀 Recém lançado — Já disponível!</div>
+          <div class="nov-section-line"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;">Funcionalidades novas que acabaram de chegar ao AIVOX. Experimente agora!</div>
+
+        <div class="sug-grid">
+          <div class="sug-card srs">
+            <div class="sug-num">🆕 · IA Avançada</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <div class="sug-title" style="margin:0;">🤖 Assistente Pessoal de Idiomas</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">✅ DISPONÍVEL</span>
+            </div>
+            <div class="sug-desc">IA que conhece seu histórico, nível e objetivos. Sugere o que praticar hoje, lembra de palavras esquecidas e adapta as lições automaticamente ao longo dos meses.</div>
+            <span class="sug-tag alto">🚀 Alto impacto</span>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+              <button onclick="navApp('learn');setTimeout(()=>{const tabs=document.querySelectorAll('.learn-tab');tabs.forEach(t=>t.classList.remove('active'));const t=Array.from(tabs).find(t=>t.textContent.includes('ASSISTENTE'));if(t){t.classList.add('active');learnTab('assistente',t);}},300);" style="background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.3);color:#00ff88;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;">Experimentar →</button>
+            </div>
+          </div>
+          <div class="sug-card pronun">
+            <div class="sug-num">🆕 · Social</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <div class="sug-title" style="margin:0;">🌍 Grupos de Conversação</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">✅ DISPONÍVEL</span>
+            </div>
+            <div class="sug-desc">Salas temáticas abertas por idioma e nível — ex: "Inglês B2 · Negócios". Moderação por IA, tradução simultânea para todos os participantes e ranking de participação.</div>
+            <span class="sug-tag unico">⭐ Diferencial único</span>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+              <button onclick="navApp('sala');" style="background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.3);color:#00ff88;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;">Ver grupos →</button>
+            </div>
+          </div>
+        </div>
+
         <!-- ─── SEÇÃO: EM BREVE ─────────────────────────────────── -->
         <div class="nov-section-header" style="margin-top:28px;">
           <div class="nov-section-line"></div>
@@ -3747,55 +3782,29 @@ input, textarea, select {
         <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;">Clique em 👍 para votar nas funcionalidades que você mais quer ver no AIVOX!</div>
 
         <div class="sug-grid">
-          <div class="sug-card srs">
-            <div class="sug-num">01 · IA Avançada</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <div class="sug-title" style="margin:0;">🤖 Assistente Pessoal de Idiomas</div>
-              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(168,85,247,.18);color:#a855f7;border:1px solid rgba(168,85,247,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">🚧 EM DEV</span>
-            </div>
-            <div class="sug-desc">IA que conhece seu histórico, nível e objetivos. Sugere o que praticar hoje, lembra de palavras esquecidas e adapta as lições automaticamente ao longo dos meses.</div>
-            <span class="sug-tag alto">🚀 Alto impacto</span>
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-              <button onclick="amiVoteSugestao(this,'assistente')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button>
-              <button onclick="navApp('learn');setTimeout(()=>{const tabs=document.querySelectorAll('.learn-tab');tabs.forEach(t=>t.classList.remove('active'));const t=Array.from(tabs).find(t=>t.textContent.includes('ASSISTENTE'));if(t){t.classList.add('active');learnTab('assistente',t);}},300);" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#a855f7;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;">Experimentar →</button>
-            </div>
-          </div>
-          <div class="sug-card pronun">
-            <div class="sug-num">02 · Social</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <div class="sug-title" style="margin:0;">🌍 Grupos de Conversação</div>
-              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(168,85,247,.18);color:#a855f7;border:1px solid rgba(168,85,247,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">🚧 EM DEV</span>
-            </div>
-            <div class="sug-desc">Salas temáticas abertas por idioma e nível — ex: "Inglês B2 · Negócios". Moderação por IA, tradução simultânea para todos os participantes e ranking de participação.</div>
-            <span class="sug-tag unico">⭐ Diferencial único</span>
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-              <button onclick="amiVoteSugestao(this,'grupos')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button>
-              <button onclick="navApp('sala');" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#a855f7;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;">Ver grupos →</button>
-            </div>
-          </div>
           <div class="sug-card escuta">
-            <div class="sug-num">03 · Integração</div>
+            <div class="sug-num">01 · Integração</div>
             <div class="sug-title">📺 Tradução de Vídeo em Tempo Real</div>
             <div class="sug-desc">Assista vídeos do YouTube ou reuniões do Meet/Zoom com legenda traduzida ao vivo pela AIVOX. Sem extensões — funciona direto pelo app.</div>
             <span class="sug-tag facil">✅ Alta demanda</span>
             <div><button onclick="amiVoteSugestao(this,'video')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card gamif">
-            <div class="sug-num">04 · Certificação</div>
+            <div class="sug-num">02 · Certificação</div>
             <div class="sug-title">🏅 Certificado de Fluência AIVOX</div>
             <div class="sug-desc">Teste seu nível em conversação real com IA. Ao atingir a pontuação mínima, receba um certificado digital compartilhável no LinkedIn e redes sociais.</div>
             <span class="sug-tag retencao">🔒 Retenção de usuário</span>
             <div><button onclick="amiVoteSugestao(this,'certificado')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card shadow">
-            <div class="sug-num">05 · Mobile</div>
+            <div class="sug-num">03 · Mobile</div>
             <div class="sug-title">📱 App Nativo (iOS & Android)</div>
             <div class="sug-desc">App nativo com notificações push, widget de tradução rápida na tela inicial, acesso offline ampliado e integração com fones Bluetooth para tradução em tempo real.</div>
             <span class="sug-tag medio">⏳ Médio prazo</span>
             <div><button onclick="amiVoteSugestao(this,'appnativo')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card diario">
-            <div class="sug-num">06 · Empresa</div>
+            <div class="sug-num">04 · Empresa</div>
             <div class="sug-title">🏢 AIVOX para Empresas</div>
             <div class="sug-desc">Dashboard corporativo com múltiplos usuários, relatórios de uso por equipe, integração com Slack/Teams e tradução em reuniões empresariais com transcrição automática.</div>
             <span class="sug-tag premium">💎 Plano Enterprise</span>
@@ -4988,9 +4997,6 @@ async function astChatSend() {
     _astAddChatMsg('assistant', '⚠️ Erro ao responder. Tente novamente.');
   }
 }
-
-// Hook para carregar stats ao entrar na aba
-const _origLearnTab = typeof learnTab === 'function' ? learnTab : null;
 
 // ════════════════════════════════════════════════════════
 //  GRUPOS DE CONVERSAÇÃO

@@ -1045,8 +1045,8 @@ input, textarea, select {
   transition: all .2s; position: relative; overflow: hidden;
 }
 .friend-card:hover { border-color: rgba(0,229,255,.2); }
-.friend-card.online { border-left: 3px solid var(--green); }
-.friend-card.offline { opacity: .75; }
+.friend-card.online { border-left: 3px solid var(--green); background: rgba(0,255,136,.03); }
+.friend-card.offline { border-left: 3px solid rgba(255,68,102,.5); opacity: .85; }
 
 /* Avatar com dot de presença */
 .friend-av-wrap { position: relative; flex-shrink: 0; }
@@ -1062,6 +1062,7 @@ input, textarea, select {
   border: 2px solid var(--card); background: var(--muted);
 }
 .friend-presence-dot.online { background: var(--green); box-shadow: 0 0 6px rgba(0,255,136,.5); }
+.friend-presence-dot.offline { background: var(--red); box-shadow: 0 0 6px rgba(255,68,102,.5); }
 .friend-presence-dot.away   { background: var(--orange); }
 .friend-presence-dot.busy   { background: var(--red); }
 
@@ -1069,7 +1070,8 @@ input, textarea, select {
 .friend-info { flex: 1; min-width: 0; }
 .friend-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .friend-status-text { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.friend-status-text.online { color: var(--green); font-weight: 600; }
+.friend-status-text.online  { color: var(--green); font-weight: 600; }
+.friend-status-text.offline { color: var(--red); font-weight: 600; }
 
 /* Ações rápidas do card */
 .friend-actions { display: flex; gap: 6px; flex-shrink: 0; }
@@ -1130,12 +1132,14 @@ input, textarea, select {
 .fchat-title { flex: 1; }
 .fchat-name  { font-size: 15px; font-weight: 800; }
 .fchat-status { font-size: 11px; color: var(--muted); }
-.fchat-status.online { color: var(--green); }
+.fchat-status.online  { color: var(--green); font-weight: 600; }
+.fchat-status.offline { color: var(--red); font-weight: 600; }
 .fchat-msgs {
   flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column;
   gap: 8px; -webkit-overflow-scrolling: touch;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
+@media(max-width:767px){ .fchat-msgs { padding-bottom: 20px; } }
 .fchat-msgs::-webkit-scrollbar { display: none; }
 .fchat-bubble {
   max-width: 82%; padding: 9px 13px; border-radius: 13px;
@@ -1158,6 +1162,14 @@ input, textarea, select {
   border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
   padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   align-items: flex-end;
+  flex-wrap: nowrap;
+}
+@media(max-width:767px){
+  .fchat-input-area {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    position: sticky; bottom: 0; z-index: 10;
+  }
+  .fchat-mic-btn, .fchat-send-btn { flex-shrink: 0; min-width: 38px; }
 }
 .fchat-input {
   flex: 1; background: var(--card); border: 1px solid var(--border);
@@ -2068,7 +2080,6 @@ input, textarea, select {
               <button onclick="gamifTab('missoes',this)" id="gtab-missoes" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;letter-spacing:1px;">📋 MISSÕES</button>
               <button onclick="gamifTab('conquistas',this)" id="gtab-conquistas" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">🏅 CONQUISTAS</button>
               <button onclick="gamifTab('nivel',this)" id="gtab-nivel" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">⭐ NÍVEL</button>
-              <button onclick="gamifTab('ranking',this)" id="gtab-ranking" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">🏆 RANKING</button>
             </div>
             <!-- Content -->
             <div id="gamif-content" style="padding:16px;min-height:300px;"></div>
@@ -3765,32 +3776,41 @@ function _amiListenPresence() {
     }
   };
   _doPresence();
-  // Escuta presença dos amigos via Firestore
+  // Escuta presença dos amigos via Firestore — escuta doc a doc para evitar permission-denied na query
+  const _presenceUnsubs = [];
   const _listenFriendsPresence = () => {
     const uid = window._fbUser?.uid;
     if (!uid || !db || !_ami.friends || _ami.friends.length === 0) {
       setTimeout(_listenFriendsPresence, 2000); return;
     }
-    const friendUids = _ami.friends.map(f => f.uid).slice(0, 10); // Firestore in[] max 10
-    db.collection('presence').where('uid','in', friendUids)
-      .onSnapshot(snap => {
-        snap.docs.forEach(d => {
-          const data = d.data();
-          const fUid = data.uid;
-          const wasOnline = !!_ami.online[fUid];
-          // Considera online se lastSeen < 2 min atrás
-          const lastSeen = data.lastSeen?.toMillis?.() || 0;
-          const isRecent = (Date.now() - lastSeen) < 120000;
-          const isOnline = data.online && isRecent;
-          if (isOnline) { _ami.online[fUid] = true; }
-          else { delete _ami.online[fUid]; }
-          if (isOnline && !wasOnline) {
-            const friend = _ami.friends.find(f => f.uid === fUid);
-            if (friend) _amiShowLoginNotif(friend.name || data.name, fUid);
-          }
-        });
-        _amiRenderFriends(); _amiUpdateOnlineCount();
-      });
+    // Cancela listeners anteriores
+    _presenceUnsubs.forEach(u => { try { u(); } catch(e){} });
+    _presenceUnsubs.length = 0;
+    _ami.friends.forEach(f => {
+      const fUid = f.uid;
+      try {
+        const unsub = db.collection('presence').doc(fUid)
+          .onSnapshot(doc => {
+            if (!doc.exists) { delete _ami.online[fUid]; _amiRenderFriends(); _amiUpdateOnlineCount(); return; }
+            const data = doc.data();
+            const wasOnline = !!_ami.online[fUid];
+            const lastSeen = data.lastSeen?.toMillis?.() || 0;
+            const isRecent = (Date.now() - lastSeen) < 120000;
+            const isOnline = data.online === true && isRecent;
+            if (isOnline) { _ami.online[fUid] = true; }
+            else { delete _ami.online[fUid]; }
+            if (isOnline && !wasOnline) {
+              const friend = _ami.friends.find(ff => ff.uid === fUid);
+              if (friend) _amiShowLoginNotif(friend.name || data.name, fUid);
+            }
+            _amiRenderFriends(); _amiUpdateOnlineCount();
+          }, err => {
+            // Ignora silenciosamente permission-denied — amigo não configurou presença
+            if (err?.code !== 'permission-denied') console.warn('[PRESENCE]', fUid, err?.code);
+          });
+        _presenceUnsubs.push(unsub);
+      } catch(e) { /* ignorar */ }
+    });
   };
   setTimeout(_listenFriendsPresence, 1500);
   // Registra listeners do socket com retry seguro (evita ReferenceError: s is not defined)
@@ -3840,8 +3860,8 @@ function _renderFriendList(containerId, list, isOnline) {
   el.innerHTML = list.map(f => {
     const letter = (f.name||f.displayName||'A')[0].toUpperCase();
     return `<div class="friend-card ${isOnline?'online':'offline'}" onclick="openFriendChat('${f.uid}','${_esc(f.name||f.displayName||'Amigo')}')">
-      <div class="friend-av-wrap"><div class="friend-av">${letter}</div><div class="friend-presence-dot ${isOnline?'online':''}"></div></div>
-      <div class="friend-info"><div class="friend-name">${_esc(f.name||f.displayName||'Amigo')}</div><div class="friend-status-text ${isOnline?'online':''}">${isOnline?'● Online agora':'Offline'}</div></div>
+      <div class="friend-av-wrap"><div class="friend-av">${letter}</div><div class="friend-presence-dot ${isOnline?'online':'offline'}"></div></div>
+      <div class="friend-info"><div class="friend-name">${_esc(f.name||f.displayName||'Amigo')}</div><div class="friend-status-text ${isOnline?'online':'offline'}">${isOnline?'● Online agora':'● Offline'}</div></div>
       <div class="friend-actions" onclick="event.stopPropagation()">
         ${isOnline?`<button class="friend-btn call" onclick="event.stopPropagation();startCallTo('${f.uid}','${_esc(f.name||'Amigo')}')">📞</button>`:''}
         <button class="friend-btn" onclick="event.stopPropagation();openFriendChat('${f.uid}','${_esc(f.name||f.displayName||'Amigo')}')">💬</button>
@@ -3999,7 +4019,7 @@ function openFriendChat(uid, name) {
   const avEl=document.getElementById('fchat-av'), nameEl=document.getElementById('fchat-name'), statusEl=document.getElementById('fchat-status');
   if (avEl) avEl.textContent=letter;
   if (nameEl) nameEl.textContent=name;
-  if (statusEl) { statusEl.textContent=isOnline?'● Online agora':'Offline'; statusEl.className='fchat-status'+(isOnline?' online':''); }
+  if (statusEl) { statusEl.textContent=isOnline?'● Online agora':'● Offline'; statusEl.className='fchat-status'+(isOnline?' online':' offline'); }
   const callBtn=document.getElementById('fchat-call-btn');
   if (callBtn) callBtn.style.opacity=isOnline?'1':'.4';
   _amiLoadChatMsgs(uid);
@@ -4331,6 +4351,20 @@ async function _amiLoadVotes() {
 }
 
 function _esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/*
+  ⚠️ REGRAS FIRESTORE NECESSÁRIAS para presença funcionar:
+  Adicione no Firebase Console → Firestore → Rules:
+
+  match /presence/{uid} {
+    allow read: if request.auth != null;
+    allow write: if request.auth != null && request.auth.uid == uid;
+  }
+  match /leaderboard/{uid} {
+    allow read: if request.auth != null;
+    allow write: if request.auth != null && request.auth.uid == uid;
+  }
+*/
 
 console.log('✅ AIVOX Módulo Amigos carregado');
 </script>
@@ -9458,8 +9492,7 @@ async function loadStreak() {
     // Streak logic
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now()-86400000).toDateString();
-    const practiceToday = _gamif.lastDay === today;
-    if(!practiceToday) {
+    if(_gamif.lastDay !== today) {
       if(_gamif.lastDay === yesterday) { _gamif.streakDays++; }
       else if(_gamif.lastDay) { _gamif.streakDays=1; }
       else { _gamif.streakDays=1; }
@@ -9479,10 +9512,9 @@ async function loadStreak() {
     _streakDays = _gamif.streakDays;
     _streakPts  = _gamif.xp;
     updateStreakUI();
-    _gamifPublishLeaderboard();
     // Aviso de streak em risco: se já é fim de dia e ainda não praticou hoje
     const hour = new Date().getHours();
-    if(hour >= 20 && _gamif.streakDays > 2 && !practiceToday) {
+    if(hour >= 20 && _gamif.streakDays > 2 && _gamif.lastDay !== today) {
       setTimeout(()=>{
         _gamifToast('⚠️ Seu streak de '+_gamif.streakDays+'🔥 dias está em risco! Pratique agora!','#f97316');
       }, 3000);
@@ -9535,7 +9567,6 @@ function addPts(n, action) {
   }
   updateStreakUI();
   _gamifSave();
-  _gamifPublishLeaderboard();
 }
 
 // ── Toast especial gamif ────────────────────────────────────────
@@ -9583,7 +9614,6 @@ function gamifTab(tab, btn) {
   if(tab==='missoes')    c.innerHTML=_gamifRenderMissoes();
   if(tab==='conquistas') c.innerHTML=_gamifRenderConquistas();
   if(tab==='nivel')      c.innerHTML=_gamifRenderNivel();
-  if(tab==='ranking')    { c.innerHTML=_gamifRenderRankingLoading(); _gamifLoadRanking(); }
 }
 
 function _gamifRenderMissoes() {
@@ -9692,100 +9722,6 @@ function _gamifRenderNivel() {
       <span style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text);">${v}</span>
     </div>`).join('')}
   </div>`;
-}
-
-// ── LEADERBOARD ─────────────────────────────────────────────────
-function _gamifRenderRankingLoading() {
-  return `<div style="text-align:center;padding:40px 0;">
-    <div style="font-size:32px;margin-bottom:12px;animation:pulse 1.5s ease infinite;">🏆</div>
-    <div style="font-size:13px;color:var(--muted);">Carregando ranking...</div>
-  </div>`;
-}
-
-async function _gamifLoadRanking() {
-  const uid = window._fbUser?.uid;
-  const c = document.getElementById('gamif-content');
-  if (!c || !db) return;
-  try {
-    // Publica XP do usuário atual no leaderboard público
-    if (uid) {
-      const myName = window._fbUser?.displayName || window._fbUser?.email?.split('@')[0] || 'Usuário';
-      const myLevel = GAMIF_LEVELS[_gamifGetLevelNum()].label.split(' ').slice(1).join(' ');
-      const myBadges = (_gamif.badges||[]).length;
-      await db.collection('leaderboard').doc(uid).set({
-        uid, name: myName,
-        xp: _gamif.xp || 0,
-        streakDays: _gamif.streakDays || 0,
-        badges: myBadges,
-        level: myLevel,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    }
-    // Busca top 50 por XP
-    const snap = await db.collection('leaderboard').orderBy('xp','desc').limit(50).get();
-    const entries = [];
-    snap.forEach(doc => entries.push(doc.data()));
-    c.innerHTML = _gamifRenderRanking(entries, uid);
-  } catch(e) {
-    console.warn('[LEADERBOARD] err', e);
-    if(c) c.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px;">⚠️ Erro ao carregar ranking.<br>Verifique sua conexão.</div>`;
-  }
-}
-
-function _gamifRenderRanking(entries, myUid) {
-  const medals = ['🥇','🥈','🥉'];
-  let myPos = entries.findIndex(e => e.uid === myUid);
-  let html = `<div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">🏆 TOP ESTUDANTES — XP TOTAL</div>`;
-  if(myPos >= 0) {
-    html += `<div style="font-size:12px;color:var(--accent);margin-bottom:14px;font-family:var(--mono);">Sua posição: <strong>#${myPos+1}</strong> de ${entries.length} usuários</div>`;
-  } else {
-    html += `<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Continue praticando para entrar no ranking!</div>`;
-  }
-  if(!entries.length) {
-    return html + `<div style="text-align:center;padding:30px 0;color:var(--muted);">Nenhum dado ainda — seja o primeiro! 🚀</div>`;
-  }
-  entries.forEach((e, i) => {
-    const isMe = e.uid === myUid;
-    const medal = i < 3 ? medals[i] : `<span style="font-size:12px;font-weight:800;font-family:var(--mono);color:var(--muted);">#${i+1}</span>`;
-    const xp = (e.xp||0).toLocaleString('pt-BR');
-    const streak = e.streakDays||0;
-    const bg = isMe ? 'rgba(0,229,255,.07)' : 'var(--surface)';
-    const border = isMe ? '1.5px solid rgba(0,229,255,.4)' : '1px solid var(--border)';
-    const nameColor = isMe ? 'var(--accent)' : 'var(--text)';
-    html += `<div style="background:${bg};border:${border};border-radius:13px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:11px;">
-      <div style="width:28px;text-align:center;flex-shrink:0;font-size:${i<3?'20':'14'}px;">${medal}</div>
-      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:#000;">
-        ${(e.name||'?').charAt(0).toUpperCase()}
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:700;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name||'Usuário'}${isMe?' <span style="font-size:9px;background:var(--adim);color:var(--accent);padding:1px 5px;border-radius:5px;font-family:var(--mono);">VOCÊ</span>':''}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:1px;">${e.level||'Iniciante'} · 🔥${streak} dias</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:14px;font-weight:900;font-family:var(--mono);color:${i===0?'#ffd000':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text)'};">${xp}</div>
-        <div style="font-size:9px;color:var(--muted);">XP</div>
-      </div>
-    </div>`;
-  });
-  html += `<div style="text-align:center;margin-top:12px;font-size:10px;color:var(--muted);font-family:var(--mono);">Atualizado em tempo real · Top 50 usuários</div>`;
-  return html;
-}
-
-// ── Publicar XP no leaderboard ao ganhar pontos ─────────────────
-async function _gamifPublishLeaderboard() {
-  const uid = window._fbUser?.uid; if(!uid||!db) return;
-  try {
-    const myName = window._fbUser?.displayName || window._fbUser?.email?.split('@')[0] || 'Usuário';
-    const myLevel = GAMIF_LEVELS[_gamifGetLevelNum()].label.split(' ').slice(1).join(' ');
-    await db.collection('leaderboard').doc(uid).set({
-      uid, name: myName,
-      xp: _gamif.xp || 0,
-      streakDays: _gamif.streakDays || 0,
-      badges: (_gamif.badges||[]).length,
-      level: myLevel,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-  } catch(e){ /* silencioso */ }
 }
 
 // ── PROFESSOR ─────────────────────────────────────────────────

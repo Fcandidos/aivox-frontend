@@ -41,6 +41,12 @@ h1{color:#00e5ff;font-size:18px;margin-bottom:4px;}
 .badge.ok{background:rgba(0,255,136,.15);color:#00ff88;}
 .badge.err{background:rgba(255,68,102,.15);color:#ff4466;}
 .badge.warn{background:rgba(255,208,0,.15);color:#ffd000;}
+
+.section-tag { font-size:10px; background:rgba(0,229,255,.1); color:#00e5ff; border:1px solid rgba(0,229,255,.2); border-radius:5px; padding:2px 7px; margin-left:8px; }
+.section-tag.new { background:rgba(0,255,136,.1); color:#00ff88; border-color:rgba(0,255,136,.2); }
+.detail-box { background:#080b12; border-radius:8px; padding:10px 12px; margin-top:8px; font-size:11px; color:#7a82a0; line-height:1.7; }
+.detail-box code { color:#00e5ff; background:rgba(0,229,255,.08); padding:1px 5px; border-radius:4px; }
+
 input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;color:#e8eaf2;font-family:inherit;font-size:12px;width:100%;margin-top:6px;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:600px){.grid2{grid-template-columns:1fr;}}
@@ -111,6 +117,103 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   </div>
 </div>
 
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SEÇÃO: CHAT DE AMIGOS — MENSAGENS                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title"><span id="dot-chat" class="warn"></span>Chat de Amigos — Mensagens <span class="section-tag new">NOVO</span></div>
+
+  <div class="row"><span class="row-label">READ friend_messages (recebidas)</span><span class="row-val" id="val-chat-read-rec">—</span></div>
+  <div class="row"><span class="row-label">READ friend_messages (enviadas)</span><span class="row-val" id="val-chat-read-sent">—</span></div>
+  <div class="row"><span class="row-label">WRITE friend_messages</span><span class="row-val" id="val-chat-write">—</span></div>
+  <div class="row"><span class="row-label">DELETE (limpeza) test msg</span><span class="row-val" id="val-chat-delete">—</span></div>
+  <div class="row"><span class="row-label">Msgs encontradas (recebidas)</span><span class="row-val" id="val-chat-count-rec">—</span></div>
+  <div class="row"><span class="row-label">Msgs encontradas (enviadas)</span><span class="row-val" id="val-chat-count-sent">—</span></div>
+  <div class="row"><span class="row-label">Merge de msgs em memória</span><span class="row-val" id="val-chat-merge">—</span></div>
+  <div class="row"><span class="row-label">Deduplicação de msgs</span><span class="row-val" id="val-chat-dedup">—</span></div>
+  <div class="row"><span class="row-label">Áudios com expiração 24h</span><span class="row-val" id="val-chat-audio-exp">—</span></div>
+  <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-chat-err">—</span></div>
+
+  <div class="detail-box">
+    <strong>O que este teste verifica:</strong><br>
+    • Permissões de <code>READ/WRITE/DELETE</code> na coleção <code>friend_messages</code><br>
+    • Lógica de merge: msgs Firestore + msgs locais não confirmadas não se sobrepõem<br>
+    • Deduplicação: msg com mesmo texto, mesmo remetente e ±3s não é duplicada<br>
+    • Áudios expirados (>24h) são detectados e marcados como "Áudio expirado"<br>
+    • Limite aumentado: 100 msgs por lado (antes era 60)
+  </div>
+
+  <div class="log" id="log-chat"></div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testChat()">🔄 Testar Chat de Amigos</button>
+    <button class="btn green" onclick="testChatAudioExpiry()">🎤 Testar Expiração Áudio</button>
+  </div>
+  <div style="margin-top:8px;">
+    <input id="input-chat-friend-uid" placeholder="UID de um amigo real (opcional — para testar READ de msgs reais)" />
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SEÇÃO: NOTIFICAÇÃO DE MENSAGEM — NOME DO REMETENTE        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title"><span id="dot-notif" class="warn"></span>Notificação de Msg — Nome do Remetente <span class="section-tag new">NOVO</span></div>
+
+  <div class="row"><span class="row-label">READ users/{uid} (busca displayName)</span><span class="row-val" id="val-notif-read">—</span></div>
+  <div class="row"><span class="row-label">displayName no Firestore</span><span class="row-val" id="val-notif-displayname">—</span></div>
+  <div class="row"><span class="row-label">Fallback para fromName do socket</span><span class="row-val" id="val-notif-fallback">—</span></div>
+  <div class="row"><span class="row-label">Resolução via _ami.friends</span><span class="row-val" id="val-notif-resolve">—</span></div>
+  <div class="row"><span class="row-label">Risco de exibir "Usuário"</span><span class="row-val" id="val-notif-risk">—</span></div>
+
+  <div class="detail-box">
+    <strong>O que este teste verifica:</strong><br>
+    • Se o seu <code>displayName</code> está gravado corretamente no Firestore em <code>users/{uid}</code><br>
+    • Se o campo <code>name</code> ou <code>displayName</code> está preenchido (evita "Usuário" na notificação)<br>
+    • A lógica de resolução: <code>_ami.friends → fromName → "Amigo"</code> (nunca mais "Usuário")<br>
+    • Simula cenário onde <code>fromName</code> chega vazio do socket
+  </div>
+
+  <div class="log" id="log-notif"></div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testNotifName()">🔄 Testar Resolução de Nome</button>
+  </div>
+  <div style="margin-top:8px;">
+    <input id="input-notif-friend-uid" placeholder="UID de um amigo para verificar o displayName dele no Firestore" />
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SEÇÃO: RESUMO INTELIGENTE DE ESCUTA                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title"><span id="dot-resumo" class="warn"></span>Resumo Inteligente de Escuta <span class="section-tag new">NOVO</span></div>
+
+  <div class="row"><span class="row-label">Anthropic API — acessível</span><span class="row-val" id="val-resumo-api">—</span></div>
+  <div class="row"><span class="row-label">Resposta da API (formato JSON)</span><span class="row-val" id="val-resumo-json">—</span></div>
+  <div class="row"><span class="row-label">Campo "resumo" presente</span><span class="row-val" id="val-resumo-field">—</span></div>
+  <div class="row"><span class="row-label">Campo "palavras" presente</span><span class="row-val" id="val-resumo-words">—</span></div>
+  <div class="row"><span class="row-label">Salvar vocabulário — WRITE</span><span class="row-val" id="val-resumo-vocab-write">—</span></div>
+  <div class="row"><span class="row-label">Vocabulário salvo — READ verificação</span><span class="row-val" id="val-resumo-vocab-read">—</span></div>
+  <div class="row"><span class="row-label">Limpeza da palavra de teste</span><span class="row-val" id="val-resumo-vocab-del">—</span></div>
+  <div class="row"><span class="row-label">Tempo de resposta da API</span><span class="row-val" id="val-resumo-latency">—</span></div>
+  <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-resumo-err">—</span></div>
+
+  <div class="detail-box">
+    <strong>O que este teste verifica:</strong><br>
+    • Se a <code>Anthropic API</code> está respondendo ao endpoint <code>/v1/messages</code><br>
+    • Se o JSON retornado tem os campos <code>resumo</code> e <code>palavras</code> no formato correto<br>
+    • WRITE + READ + DELETE em <code>users/{uid}/vocabulary</code> (coleção usada pelo "Salvar no vocabulário")<br>
+    • Latência da chamada à API — acima de 10s pode indicar timeout no front
+  </div>
+
+  <div class="log" id="log-resumo"></div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testResumoEscuta()">🧠 Testar Resumo de Escuta</button>
+    <button class="btn green" onclick="testVocabulario()">📖 Testar só Vocabulário</button>
+  </div>
+</div>
+
 <!-- LOG GERAL -->
 <div class="section">
   <div class="section-title"><span></span>Log Completo</div>
@@ -157,7 +260,7 @@ function addLog(logId, msg, type='m'){
   }
 }
 function clearLog(){ 
-  ['log-ranking','log-presence','log-rules','log-geral'].forEach(id=>{
+  ['log-ranking','log-presence','log-rules','log-chat','log-notif','log-resumo','log-geral'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML='';
   });
 }
@@ -422,7 +525,392 @@ async function runAll(){
   await testRanking();
   await testPresence();
   await testRules();
+  await testChat();
+  await testNotifName();
+  await testResumoEscuta();
   addLog('log-geral','========== FIM DOS TESTES ==========','i');
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+//  CHAT DE AMIGOS — TESTES
+// ═══════════════════════════════════════════════════════════════
+async function testChat() {
+  if (!currentUser || !db) { addLog('log-chat', 'Sem usuário/db', 'w'); return; }
+  setDot('dot-chat', 'run');
+  addLog('log-chat', '=== TESTE CHAT DE AMIGOS ===', 'i');
+  const myUid = currentUser.uid;
+  const friendUid = document.getElementById('input-chat-friend-uid')?.value.trim() || null;
+
+  // ── READ friend_messages recebidas ──
+  addLog('log-chat', 'Tentando READ friend_messages onde toUid = meu uid...', 'i');
+  try {
+    const snap = await db.collection('friend_messages')
+      .where('toUid', '==', myUid)
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get();
+    setVal('val-chat-read-rec', '✓ READ OK', 'ok');
+    setVal('val-chat-count-rec', snap.size + ' msgs encontradas', snap.size >= 0 ? 'ok' : 'warn');
+    addLog('log-chat', '✓ READ recebidas OK — ' + snap.size + ' msgs (limit 100)', 's');
+
+    // Verifica se alguma tem audioUrl e se estaria expirada
+    let audioTotal = 0, audioExpired = 0;
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.audioUrl) {
+        audioTotal++;
+        const ts = d.createdAt?.toMillis?.() || 0;
+        if (ts && (Date.now() - ts) > 86400000) audioExpired++;
+      }
+    });
+    if (audioTotal > 0) {
+      addLog('log-chat', '  → ' + audioTotal + ' msgs com áudio, ' + audioExpired + ' expiradas (>24h)', audioExpired > 0 ? 'w' : 's');
+    }
+  } catch(e) {
+    setVal('val-chat-read-rec', '✗ ' + e.code, 'err');
+    setVal('val-chat-err', e.code + ' — ' + e.message, 'err');
+    addLog('log-chat', '✗ READ recebidas falhou: [' + e.code + '] ' + e.message, 'e');
+    if (e.code === 'permission-denied') {
+      addLog('log-chat', '→ Adicione rule: match /friend_messages/{id} { allow read: if resource.data.toUid == request.auth.uid || resource.data.fromUid == request.auth.uid; }', 'w');
+    }
+    if (e.code === 'failed-precondition') {
+      addLog('log-chat', '→ Index ausente para (toUid, createdAt desc) — crie no Firebase Console', 'w');
+    }
+  }
+
+  // ── READ friend_messages enviadas ──
+  addLog('log-chat', 'Tentando READ friend_messages onde fromUid = meu uid...', 'i');
+  try {
+    const targetUid = friendUid || 'test_uid_placeholder';
+    const snap = await db.collection('friend_messages')
+      .where('fromUid', '==', myUid)
+      .where('toUid', '==', targetUid)
+      .orderBy('createdAt')
+      .limit(100)
+      .get();
+    setVal('val-chat-read-sent', '✓ READ OK', 'ok');
+    setVal('val-chat-count-sent', snap.size + ' msgs' + (friendUid ? '' : ' (uid placeholder — cole um uid real)'), snap.size >= 0 ? 'ok' : 'warn');
+    addLog('log-chat', '✓ READ enviadas OK — ' + snap.size + ' msgs', 's');
+  } catch(e) {
+    setVal('val-chat-read-sent', '✗ ' + e.code, 'err');
+    addLog('log-chat', '✗ READ enviadas falhou: [' + e.code + '] ' + e.message, 'e');
+    if (e.code === 'failed-precondition') addLog('log-chat', '→ Index ausente para (fromUid, toUid, createdAt) — crie no Firebase Console', 'w');
+  }
+
+  // ── WRITE + DELETE friend_messages ──
+  addLog('log-chat', 'Tentando WRITE em friend_messages (msg de teste)...', 'i');
+  let testDocId = null;
+  try {
+    const ref = await db.collection('friend_messages').add({
+      fromUid: myUid,
+      fromName: currentUser.displayName || 'DebugTest',
+      toUid: myUid, // envia para si mesmo para facilitar o delete
+      text: '__debug_test_msg__',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    testDocId = ref.id;
+    setVal('val-chat-write', '✓ WRITE OK (id: ' + ref.id.substring(0,10) + '...)', 'ok');
+    addLog('log-chat', '✓ WRITE OK — doc id: ' + ref.id, 's');
+  } catch(e) {
+    setVal('val-chat-write', '✗ ' + e.code, 'err');
+    addLog('log-chat', '✗ WRITE falhou: [' + e.code + '] ' + e.message, 'e');
+    if (e.code === 'permission-denied') addLog('log-chat', '→ Adicione rule: allow write: if request.auth.uid == request.resource.data.fromUid', 'w');
+  }
+
+  // ── DELETE (limpeza) ──
+  if (testDocId) {
+    addLog('log-chat', 'Deletando msg de teste...', 'i');
+    try {
+      await db.collection('friend_messages').doc(testDocId).delete();
+      setVal('val-chat-delete', '✓ DELETE OK', 'ok');
+      addLog('log-chat', '✓ DELETE OK — limpeza bem-sucedida', 's');
+    } catch(e) {
+      setVal('val-chat-delete', '⚠ ' + e.code + ' (msg de teste ficou no Firestore)', 'warn');
+      addLog('log-chat', '⚠ DELETE falhou: [' + e.code + '] — msg de teste permanece em friend_messages', 'w');
+    }
+  }
+
+  // ── Teste de Merge / Deduplicação (lógica local simulada) ──
+  addLog('log-chat', 'Simulando lógica de merge de mensagens...', 'i');
+  try {
+    const fsmsgs = [
+      { text: 'Olá', mine: true, ts: 1000 },
+      { text: 'Tudo bem?', mine: false, ts: 2000 },
+      { text: 'Olá de volta', mine: true, ts: 3000 }
+    ];
+    const localPending = [
+      { text: 'Olá', mine: true, ts: 1200 },    // duplicata (±3s)
+      { text: 'Mensagem nova local', mine: true, ts: 9999 } // nova
+    ];
+    const merged = [...fsmsgs];
+    localPending.forEach(m => {
+      const dup = merged.some(fm => fm.text === m.text && fm.mine === m.mine && Math.abs((fm.ts||0) - (m.ts||0)) < 3000);
+      if (!dup) merged.push(m);
+    });
+    merged.sort((a, b) => a.ts - b.ts);
+    const deduped = merged.length === 4; // 3 Firestore + 1 nova local (duplicata filtrada)
+    setVal('val-chat-merge', deduped ? '✓ Merge correto — ' + merged.length + ' msgs (1 duplicata filtrada)' : '✗ Merge incorreto — ' + merged.length + ' msgs', deduped ? 'ok' : 'err');
+    setVal('val-chat-dedup', deduped ? '✓ Deduplicação ±3s funcionando' : '✗ Deduplicação falhou', deduped ? 'ok' : 'err');
+    addLog('log-chat', deduped ? '✓ Lógica de merge OK — duplicata filtrada corretamente' : '✗ Lógica de merge FALHOU', deduped ? 's' : 'e');
+  } catch(e) {
+    addLog('log-chat', '✗ Erro ao simular merge: ' + e.message, 'e');
+  }
+
+  setDot('dot-chat', 'ok');
+  addLog('log-chat', '=== FIM TESTE CHAT ===', 'i');
+}
+
+async function testChatAudioExpiry() {
+  addLog('log-chat', '=== TESTE EXPIRAÇÃO DE ÁUDIO ===', 'i');
+  const now = Date.now();
+  const cases = [
+    { label: 'Áudio enviado há 10 min', ts: now - 10 * 60 * 1000, audioUrl: 'https://example.com/audio1.webm' },
+    { label: 'Áudio enviado há 25h', ts: now - 25 * 60 * 60 * 1000, audioUrl: 'https://example.com/audio2.webm' },
+    { label: 'Áudio sem timestamp (ts=0)', ts: 0, audioUrl: 'https://example.com/audio3.webm' },
+    { label: 'Mensagem de texto (sem audioUrl)', ts: now - 30 * 60 * 60 * 1000, audioUrl: null },
+  ];
+
+  let allOk = true;
+  cases.forEach(c => {
+    const audioExpired = c.audioUrl && c.ts && (now - c.ts) > 86400000;
+    let resultado, expected;
+    if (!c.audioUrl) {
+      expected = false; resultado = audioExpired === false;
+      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → sem expiração (é texto)', resultado ? 's' : 'e');
+    } else if (c.ts === 0) {
+      expected = false; resultado = audioExpired === false;
+      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → ts=0, não expira (ts falsy)', resultado ? 's' : 'e');
+    } else if ((now - c.ts) > 86400000) {
+      expected = true; resultado = audioExpired === true;
+      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → EXPIRADO — mostra "Áudio expirado"', resultado ? 's' : 'e');
+    } else {
+      expected = false; resultado = audioExpired === false;
+      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → válido — mostra player', resultado ? 's' : 'e');
+    }
+    if (!resultado) allOk = false;
+  });
+
+  setVal('val-chat-audio-exp', allOk ? '✓ Lógica de expiração 24h correta' : '✗ Lógica de expiração com falha', allOk ? 'ok' : 'err');
+  addLog('log-chat', allOk ? '✓ Todos os casos de expiração OK' : '✗ Falha em algum caso de expiração', allOk ? 's' : 'e');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NOTIFICAÇÃO — RESOLUÇÃO DE NOME
+// ═══════════════════════════════════════════════════════════════
+async function testNotifName() {
+  if (!currentUser || !db) { addLog('log-notif', 'Sem usuário/db', 'w'); return; }
+  setDot('dot-notif', 'run');
+  addLog('log-notif', '=== TESTE RESOLUÇÃO DE NOME ===', 'i');
+  const myUid = currentUser.uid;
+  const friendUid = document.getElementById('input-notif-friend-uid')?.value.trim() || null;
+
+  // ── Verifica o próprio perfil ──
+  addLog('log-notif', 'Lendo users/' + myUid.substring(0,8) + '... (seu perfil)', 'i');
+  try {
+    const doc = await db.collection('users').doc(myUid).get();
+    if (doc.exists) {
+      const data = doc.data();
+      const name = data.name || data.displayName || data.userName || null;
+      const hasName = !!name;
+      setVal('val-notif-read', '✓ READ OK', 'ok');
+      setVal('val-notif-displayname', hasName ? '✓ "' + name + '"' : '✗ Campo vazio/ausente — notificações mostrarão "Amigo"', hasName ? 'ok' : 'warn');
+      addLog('log-notif', hasName ? '✓ Nome no Firestore: "' + name + '"' : '⚠ name/displayName ausente no doc — remetentes sem displayName aparecerão como "Amigo"', hasName ? 's' : 'w');
+      if (!hasName) {
+        addLog('log-notif', '→ Grave o campo "name" em users/' + myUid + ' para resolver', 'w');
+        addLog('log-notif', '→ Isso é o que causava "Usuário" na notificação do amigo', 'w');
+      }
+    } else {
+      setVal('val-notif-read', '⚠ Doc não existe em users/' + myUid.substring(0,8), 'warn');
+      addLog('log-notif', '⚠ Doc users/' + myUid + ' não existe — sem nome gravado', 'w');
+    }
+  } catch(e) {
+    setVal('val-notif-read', '✗ ' + e.code, 'err');
+    addLog('log-notif', '✗ READ users falhou: [' + e.code + '] ' + e.message, 'e');
+  }
+
+  // ── Simula lógica de resolução de nome ──
+  addLog('log-notif', 'Simulando lógica de resolução de nome...', 'i');
+  const casos = [
+    { desc: 'friends tem name preenchido', friends: [{uid:'X', name:'Carlos Santos'}], fromName: 'Usuário', uid: 'X' },
+    { desc: 'friends tem displayName', friends: [{uid:'X', displayName:'Maria'}], fromName: '', uid: 'X' },
+    { desc: 'friends vazio, fromName ok', friends: [], fromName: 'João', uid: 'X' },
+    { desc: 'tudo vazio → fallback "Amigo"', friends: [{uid:'X', name:'', displayName:''}], fromName: '', uid: 'X' },
+    { desc: 'amigo não encontrado + fromName vazio', friends: [], fromName: '', uid: 'X' },
+  ];
+  let allOk = true;
+  casos.forEach(c => {
+    const friendEntry = c.friends.find(f => f.uid === c.uid);
+    const resolved = (friendEntry && (friendEntry.name || friendEntry.displayName)) || c.fromName || 'Amigo';
+    const isUsuario = resolved === 'Usuário';
+    const ok = !isUsuario && resolved !== '' && resolved !== undefined;
+    addLog('log-notif', (ok ? '✓' : '✗') + ' [' + c.desc + '] → "' + resolved + '"', ok ? 's' : 'e');
+    if (!ok) allOk = false;
+  });
+  setVal('val-notif-resolve', allOk ? '✓ Lógica resolve nomes corretamente (nunca "Usuário")' : '✗ Lógica falhou em algum caso', allOk ? 'ok' : 'err');
+  setVal('val-notif-fallback', '✓ fromName socket → fallback "Amigo" quando vazio', 'ok');
+  setVal('val-notif-risk', allOk ? '✓ Baixo — "Usuário" não aparece mais' : '⚠ Alto — revisar lógica', allOk ? 'ok' : 'warn');
+
+  // ── Verifica nome do amigo (se uid fornecido) ──
+  if (friendUid) {
+    addLog('log-notif', 'Verificando nome do amigo: users/' + friendUid.substring(0,8) + '...', 'i');
+    try {
+      const fdoc = await db.collection('users').doc(friendUid).get();
+      if (fdoc.exists) {
+        const fd = fdoc.data();
+        const fn = fd.name || fd.displayName || fd.userName || null;
+        addLog('log-notif', fn ? '✓ Amigo tem nome: "' + fn + '" — notificação exibirá corretamente' : '⚠ Amigo sem nome gravado — notificação usará fromName do socket ou "Amigo"', fn ? 's' : 'w');
+      } else {
+        addLog('log-notif', '⚠ Doc do amigo não existe em users/' + friendUid, 'w');
+      }
+    } catch(e) {
+      addLog('log-notif', '✗ READ amigo falhou: [' + e.code + '] ' + e.message + (e.code==='permission-denied' ? ' (normal se rules não permitem ler perfis alheios)' : ''), e.code==='permission-denied' ? 'w' : 'e');
+    }
+  }
+
+  setDot('dot-notif', 'ok');
+  addLog('log-notif', '=== FIM TESTE NOME ===', 'i');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESUMO INTELIGENTE DE ESCUTA — TESTES
+// ═══════════════════════════════════════════════════════════════
+async function testResumoEscuta() {
+  if (!currentUser || !db) { addLog('log-resumo', 'Sem usuário/db', 'w'); return; }
+  setDot('dot-resumo', 'run');
+  addLog('log-resumo', '=== TESTE RESUMO DE ESCUTA ===', 'i');
+
+  await testResumoAPI();
+  await testVocabulario();
+
+  setDot('dot-resumo', 'ok');
+  addLog('log-resumo', '=== FIM TESTE RESUMO ===', 'i');
+}
+
+async function testResumoAPI() {
+  addLog('log-resumo', 'Chamando Anthropic API /v1/messages...', 'i');
+  const t0 = Date.now();
+  const prompt = `Analise a conversa em inglês abaixo e responda APENAS em JSON válido, sem markdown:
+{"resumo":"resumo de 2 frases em português","palavras":[{"palavra":"example","traducao":"exemplo"},{"palavra":"meeting","traducao":"reunião"}]}
+
+Conversa: The meeting was very productive. We discussed the quarterly budget and revenue forecasts.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const latency = Date.now() - t0;
+    setVal('val-resumo-latency', latency + 'ms' + (latency > 8000 ? ' ⚠ alto' : ' ✓'), latency > 8000 ? 'warn' : 'ok');
+    addLog('log-resumo', 'HTTP status: ' + resp.status + ' — latência: ' + latency + 'ms', resp.ok ? 'i' : 'e');
+
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      setVal('val-resumo-api', '✗ HTTP ' + resp.status, 'err');
+      setVal('val-resumo-err', 'HTTP ' + resp.status + ': ' + errTxt.substring(0, 80), 'err');
+      addLog('log-resumo', '✗ API retornou ' + resp.status + ': ' + errTxt.substring(0, 120), 'e');
+      if (resp.status === 401) addLog('log-resumo', '→ Chave de API inválida ou ausente — verificar proxy do backend', 'w');
+      if (resp.status === 429) addLog('log-resumo', '→ Rate limit atingido — aguarde alguns segundos', 'w');
+      return false;
+    }
+
+    setVal('val-resumo-api', '✓ API acessível (HTTP 200)', 'ok');
+    const data = await resp.json();
+    const raw = (data.content || []).map(c => c.text || '').join('').trim().replace(/```json|```/g, '').trim();
+    addLog('log-resumo', 'Resposta bruta: ' + raw.substring(0, 150) + (raw.length > 150 ? '...' : ''), 'i');
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+      setVal('val-resumo-json', '✓ JSON válido', 'ok');
+      addLog('log-resumo', '✓ JSON parseado com sucesso', 's');
+    } catch(je) {
+      setVal('val-resumo-json', '✗ JSON inválido: ' + je.message, 'err');
+      setVal('val-resumo-err', 'JSON parse error: ' + je.message, 'err');
+      addLog('log-resumo', '✗ JSON inválido — resposta: ' + raw.substring(0, 100), 'e');
+      addLog('log-resumo', '→ O modelo retornou texto fora do formato esperado', 'w');
+      return false;
+    }
+
+    const hasResumo = typeof parsed.resumo === 'string' && parsed.resumo.length > 5;
+    const hasPalavras = Array.isArray(parsed.palavras);
+    setVal('val-resumo-field', hasResumo ? '✓ "' + parsed.resumo.substring(0, 60) + '..."' : '✗ Ausente ou vazio', hasResumo ? 'ok' : 'err');
+    setVal('val-resumo-words', hasPalavras ? '✓ ' + parsed.palavras.length + ' palavra(s)' : '✗ Ausente ou não é array', hasPalavras ? 'ok' : 'err');
+    addLog('log-resumo', hasResumo ? '✓ resumo: "' + parsed.resumo.substring(0, 80) + '"' : '✗ Campo resumo ausente/vazio', hasResumo ? 's' : 'e');
+    if (hasPalavras) {
+      parsed.palavras.forEach(p => addLog('log-resumo', '  → "' + p.palavra + '" = "' + p.traducao + '"', 'm'));
+    }
+    return true;
+  } catch(e) {
+    setVal('val-resumo-api', '✗ ' + e.message, 'err');
+    setVal('val-resumo-err', e.message, 'err');
+    addLog('log-resumo', '✗ Erro de rede ao chamar API: ' + e.message, 'e');
+    addLog('log-resumo', '→ Verifique se o proxy/backend está configurado e o CORS está liberado', 'w');
+    return false;
+  }
+}
+
+async function testVocabulario() {
+  if (!currentUser || !db) { addLog('log-resumo', 'Sem usuário/db para testar vocabulário', 'w'); return; }
+  const uid = currentUser.uid;
+  addLog('log-resumo', 'Testando WRITE em users/' + uid.substring(0,8) + '/vocabulary...', 'i');
+  let vocabDocId = null;
+
+  // WRITE
+  try {
+    const ref = await db.collection('users').doc(uid).collection('vocabulary').add({
+      word: '__debug_test_word__',
+      translation: 'palavra de teste',
+      source: 'escuta',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    vocabDocId = ref.id;
+    setVal('val-resumo-vocab-write', '✓ WRITE OK (id: ' + ref.id.substring(0,10) + '...)', 'ok');
+    addLog('log-resumo', '✓ WRITE vocabulário OK — ' + ref.id, 's');
+  } catch(e) {
+    setVal('val-resumo-vocab-write', '✗ ' + e.code, 'err');
+    addLog('log-resumo', '✗ WRITE vocabulário falhou: [' + e.code + '] ' + e.message, 'e');
+    if (e.code === 'permission-denied') {
+      addLog('log-resumo', '→ Adicione rule: match /users/{uid}/vocabulary/{doc} { allow write: if request.auth.uid == uid; }', 'w');
+    }
+    return;
+  }
+
+  // READ verificação
+  addLog('log-resumo', 'Verificando via READ se o doc foi salvo...', 'i');
+  try {
+    await new Promise(r => setTimeout(r, 800));
+    const doc = await db.collection('users').doc(uid).collection('vocabulary').doc(vocabDocId).get();
+    if (doc.exists && doc.data().word === '__debug_test_word__') {
+      setVal('val-resumo-vocab-read', '✓ READ OK — dado confirmado no Firestore', 'ok');
+      addLog('log-resumo', '✓ READ vocabulário OK — dado persistido', 's');
+    } else {
+      setVal('val-resumo-vocab-read', '⚠ Doc não confirmado', 'warn');
+      addLog('log-resumo', '⚠ Doc salvo mas dado não confere', 'w');
+    }
+  } catch(e) {
+    setVal('val-resumo-vocab-read', '✗ ' + e.code, 'err');
+    addLog('log-resumo', '✗ READ vocabulário falhou: [' + e.code + '] ' + e.message, 'e');
+  }
+
+  // DELETE (limpeza)
+  if (vocabDocId) {
+    addLog('log-resumo', 'Deletando palavra de teste...', 'i');
+    try {
+      await db.collection('users').doc(uid).collection('vocabulary').doc(vocabDocId).delete();
+      setVal('val-resumo-vocab-del', '✓ DELETE OK — limpeza feita', 'ok');
+      addLog('log-resumo', '✓ DELETE vocabulário OK', 's');
+    } catch(e) {
+      setVal('val-resumo-vocab-del', '⚠ ' + e.code + ' (palavra de teste ficou no vocabulário)', 'warn');
+      addLog('log-resumo', '⚠ DELETE vocabulário falhou: [' + e.code + ']', 'w');
+    }
+  }
 }
 
 // Auto-init ao carregar

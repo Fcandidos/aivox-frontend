@@ -1439,6 +1439,57 @@ input, textarea, select {
 .feat-card.pronun-f:hover { box-shadow: 0 0 40px rgba(168,85,247,.26); }
 .feat-card.pronun-f .feat-card-badge { background: rgba(168,85,247,.16); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
 /* Resumo Escuta */
+/* ── Painel Resumo de Escuta ── */
+.escuta-resumo-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 8000;
+  display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.escuta-resumo-overlay.sh { display: flex; }
+.escuta-resumo-panel {
+  width: 100%; max-width: 560px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 env(safe-area-inset-bottom,0px);
+  max-height: 85vh; display: flex; flex-direction: column;
+  animation: slideUpPanel .35s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes slideUpPanel {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.erp-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 12px auto 0; }
+.erp-header {
+  padding: 14px 20px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.erp-title { font-size: 16px; font-weight: 900; flex: 1; }
+.erp-close { background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 16px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.erp-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 20px 20px; }
+.erp-section-title { font-size: 10px; font-family: var(--mono); color: var(--muted); letter-spacing: 2px; margin-bottom: 8px; margin-top: 16px; }
+.erp-section-title:first-child { margin-top: 0; }
+.erp-summary-box {
+  background: linear-gradient(135deg, rgba(16,185,129,.1), rgba(0,229,255,.07));
+  border: 1px solid rgba(16,185,129,.25); border-radius: 12px;
+  padding: 13px 15px; font-size: 14px; line-height: 1.6; color: var(--text);
+}
+.erp-word-list { display: flex; flex-direction: column; gap: 8px; }
+.erp-word-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: 11px;
+  padding: 10px 13px; display: flex; align-items: center; gap: 10px;
+}
+.erp-word-text { font-size: 14px; font-weight: 700; flex: 1; }
+.erp-word-trans { font-size: 12px; color: var(--muted); }
+.erp-save-btn {
+  background: none; border: 1px solid rgba(0,229,255,.3); border-radius: 8px;
+  color: var(--accent); font-size: 11px; font-weight: 700; padding: 4px 10px;
+  cursor: pointer; white-space: nowrap; transition: all .2s;
+}
+.erp-save-btn:hover { background: var(--adim); }
+.erp-save-btn.saved { border-color: rgba(0,255,136,.3); color: var(--green); }
+.erp-loading { text-align: center; color: var(--muted); font-size: 13px; padding: 28px 0; }
+.erp-loading .erp-spinner { font-size: 26px; animation: spin 1s linear infinite; display: inline-block; margin-bottom: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .feat-card.resumo-f {
   background: linear-gradient(135deg, rgba(16,185,129,.14) 0%, rgba(0,229,255,.08) 60%, rgba(15,20,32,.95) 100%);
   border-color: rgba(16,185,129,.38);
@@ -3888,7 +3939,12 @@ function _amiListenPresence() {
       if (wasOffline) _amiShowLoginNotif(name, uid);
     });
     s.on('ami-friend-offline', ({ uid }) => { delete _ami.online[uid]; _amiRenderFriends(); _amiUpdateOnlineCount(); });
-    s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, ts }) => { _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts); });
+    s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, ts }) => {
+      // Resolve o nome real do amigo a partir da lista local (evita "Usuário" quando displayName não foi definido)
+      const friendEntry = _ami.friends.find(f => f.uid === fromUid);
+      const resolvedName = (friendEntry && (friendEntry.name || friendEntry.displayName)) || fromName || 'Amigo';
+      _amiReceiveMsg(fromUid, resolvedName, text, audioUrl, ts);
+    });
     s.on('ami-typing', ({ fromUid }) => {
       if (_ami.currentChat?.uid === fromUid) {
         const el = document.getElementById('fchat-typing');
@@ -4117,7 +4173,7 @@ function _amiListenMessages() {
           const msgTs = d.createdAt?.toMillis?.() || 0;
           // fromFirestore=true suprime o toast; só é false para msgs realmente novas
           const isHistorical = msgTs < _listenStart - 2000;
-          _amiReceiveMsg(d.fromUid,d.fromName,d.text,d.audioUrl,msgTs||Date.now(), isHistorical);
+          const _fEntry2=_ami.friends.find(f=>f.uid===d.fromUid);const _rName=(_fEntry2&&(_fEntry2.name||_fEntry2.displayName))||d.fromName||'Amigo';_amiReceiveMsg(d.fromUid,_rName,d.text,d.audioUrl,msgTs||Date.now(), isHistorical);
         }
       });
     });
@@ -4128,16 +4184,29 @@ async function _amiLoadChatMsgs(friendUid) {
   if (!myUid||!db) return;
   const msgsEl=document.getElementById('fchat-msgs');
   if (!msgsEl) return;
-  msgsEl.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa</div>`;
+  // Só mostra placeholder se não há msgs em memória ainda
+  if (!_ami.chatMessages[friendUid]) {
+    msgsEl.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa</div>`;
+  } else {
+    _amiRenderChat(friendUid); // mostra o que já tem enquanto carrega
+  }
   try {
     const [snapSent,snapRec]=await Promise.all([
-      db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).orderBy('createdAt').limit(60).get(),
-      db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).orderBy('createdAt').limit(60).get(),
+      db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).orderBy('createdAt').limit(100).get(),
+      db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).orderBy('createdAt').limit(100).get(),
     ]);
-    const msgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
-    _ami.chatMessages[friendUid]=msgs;
+    const fsmsgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
+    // Mescla com msgs em memória (ex: enviadas localmente ainda não confirmadas)
+    const existing=_ami.chatMessages[friendUid]||[];
+    const merged=[...fsmsgs];
+    existing.forEach(m=>{
+      const dup=merged.some(fm=>fm.text===m.text&&fm.mine===m.mine&&Math.abs((fm.ts||0)-(m.ts||0))<3000);
+      if(!dup)merged.push(m);
+    });
+    merged.sort((a,b)=>a.ts-b.ts);
+    _ami.chatMessages[friendUid]=merged;
     _amiRenderChat(friendUid);
-  } catch(e) { console.warn('_amiLoadChatMsgs',e); }
+  } catch(e) { console.warn('_amiLoadChatMsgs',e); _amiRenderChat(friendUid); }
 }
 
 function _amiRenderChat(friendUid) {
@@ -4149,7 +4218,13 @@ function _amiRenderChat(friendUid) {
     const div=document.createElement('div');
     div.className='fchat-bubble '+(m.mine?'mine':'theirs');
     const time=m.ts?new Date(m.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
-    div.innerHTML=m.audioUrl?`<audio controls src="${m.audioUrl}" style="max-width:200px;height:32px;"></audio><span class="btime">${time}</span>`:`${_esc(m.text||'')}<span class="btime">${time}</span>`;
+    // Áudios expiram após 24h
+    const audioExpired = m.audioUrl && m.ts && (Date.now() - m.ts) > 86400000;
+    div.innerHTML=m.audioUrl
+      ? (audioExpired
+          ? `<span style="opacity:.45;font-size:11px;font-style:italic;">🎤 Áudio expirado</span><span class="btime">${time}</span>`
+          : `<audio controls src="${m.audioUrl}" style="max-width:200px;height:32px;"></audio><span class="btime">${time}</span>`)
+      : `${_esc(m.text||'')}<span class="btime">${time}</span>`;
     msgsEl.appendChild(div);
   });
   msgsEl.scrollTop=msgsEl.scrollHeight;
@@ -6146,6 +6221,10 @@ async function _speakTranslation(text){
 
 function stopEscuta(){
   if(!_escutaActive&&!_escutaStream)return;
+  // Captura linhas transcritas antes de limpar
+  const linesEl=document.getElementById('escuta-lines');
+  // Usa _escutaLines (array em memória) para capturar o transcript completo
+  const transcriptText=_escutaLines.map(l=>(l.original||'')+' | '+(l.translation||'')).join('\n');
   _escutaActive=false;
   clearInterval(_escutaVADTimer);_escutaVADTimer=null;
   try{_escutaRecorder?.stop();}catch(e){}
@@ -6158,6 +6237,105 @@ function stopEscuta(){
   if(btn){btn.textContent='🎧 Iniciar escuta';btn.style.background='linear-gradient(135deg,#7c3aed,#a855f7)';btn.style.borderColor='#7c3aed';btn.style.color='#fff';}
   document.getElementById('escuta-live-pill')?.style.setProperty('display','none');
   document.getElementById('escuta-current')?.style.setProperty('display','none');
+  // Abre painel de resumo se houver conteúdo
+  if(transcriptText&&transcriptText.trim().length>20){
+    openEscutaResumo(transcriptText.trim());
+  }
+}
+
+// ── Resumo Inteligente de Escuta ────────────────────────────────
+function openEscutaResumo(transcript) {
+  const overlay=document.getElementById('escuta-resumo-overlay');
+  const body=document.getElementById('escuta-resumo-body');
+  if(!overlay||!body)return;
+  body.innerHTML=`<div class="erp-loading"><div class="erp-spinner">🔄</div><div>Analisando o que foi dito...</div></div>`;
+  overlay.classList.add('sh');
+  // Chama Claude para gerar resumo e palavras novas
+  _gerarResumoEscuta(transcript);
+}
+
+function closeEscutaResumo() {
+  document.getElementById('escuta-resumo-overlay')?.classList.remove('sh');
+}
+
+async function _gerarResumoEscuta(transcript) {
+  const body=document.getElementById('escuta-resumo-body');
+  if(!body)return;
+  const fromLang=document.getElementById('escuta-lang-from')?.value||'en';
+  const langNames={en:'inglês',es:'espanhol',fr:'francês',de:'alemão',it:'italiano',zh:'chinês',ja:'japonês',ru:'russo',ko:'coreano',ar:'árabe'};
+  const langName=langNames[fromLang]||fromLang;
+  const prompt=`Você é um assistente de idiomas. O usuário acabou de escutar uma conversa em ${langName}. Analise o trecho transcrito abaixo e responda APENAS em JSON válido, sem markdown, sem explicação:
+
+{"resumo":"2-3 frases resumindo o que foi discutido, em português","palavras":[{"palavra":"word","traducao":"tradução em português"},{"palavra":"word2","traducao":"tradução"}]}
+
+Inclua de 3 a 8 palavras/expressões que o usuário provavelmente não conhecia. Se não houver palavras relevantes, retorne lista vazia.
+
+Transcrito:
+${transcript.substring(0,1500)}`;
+
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await resp.json();
+    const raw=(data.content||[]).map(c=>c.text||'').join('').trim().replace(/```json|```/g,'').trim();
+    let parsed;
+    try{parsed=JSON.parse(raw);}catch(e){throw new Error('JSON inválido');}
+    _renderResumoEscuta(parsed);
+  } catch(e) {
+    console.warn('Resumo escuta error:',e);
+    if(body) body.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px 0;">❌ Não foi possível gerar o resumo.<br><span style="font-size:11px;">Verifique se há transcrições suficientes.</span></div>`;
+  }
+}
+
+function _renderResumoEscuta(data) {
+  const body=document.getElementById('escuta-resumo-body');
+  if(!body)return;
+  let html=`<div class="erp-section-title">🧠 RESUMO</div>
+  <div class="erp-summary-box">${_esc(data.resumo||'Sem resumo disponível.')}</div>`;
+  if(data.palavras&&data.palavras.length>0){
+    html+=`<div class="erp-section-title" style="margin-top:18px;">📋 PALAVRAS NOVAS</div>
+    <div class="erp-word-list">`;
+    data.palavras.forEach((p,i)=>{
+      html+=`<div class="erp-word-item">
+        <div>
+          <div class="erp-word-text">${_esc(p.palavra||'')}</div>
+          <div class="erp-word-trans">${_esc(p.traducao||'')}</div>
+        </div>
+        <button class="erp-save-btn" onclick="salvarPalavraEscuta(this,'${_esc(p.palavra||'')}','${_esc(p.traducao||'')}')">+ Vocabulário</button>
+      </div>`;
+    });
+    html+=`</div>`;
+  } else {
+    html+=`<div class="erp-section-title" style="margin-top:18px;">📋 PALAVRAS NOVAS</div>
+    <div style="color:var(--muted);font-size:13px;padding:10px 0;">Nenhuma palavra nova identificada nesta escuta.</div>`;
+  }
+  body.innerHTML=html;
+}
+
+async function salvarPalavraEscuta(btn, palavra, traducao) {
+  if(btn.classList.contains('saved'))return;
+  btn.textContent='Salvando...'; btn.disabled=true;
+  try {
+    const uid=window._fbUser?.uid;
+    if(uid&&db){
+      await db.collection('users').doc(uid).collection('vocabulary').add({
+        word:palavra, translation:traducao, source:'escuta',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    btn.textContent='✓ Salvo!'; btn.classList.add('saved');
+    showToast(`✅ "${palavra}" adicionada ao vocabulário`,'success');
+  } catch(e) {
+    btn.textContent='+ Vocabulário'; btn.disabled=false;
+    showToast('Erro ao salvar palavra','error');
+  }
 }
 
 function clearEscuta(){
@@ -11611,6 +11789,25 @@ function _salaMostrarUIVideo(show){
   </div>
 </div>
 
+
+
+<!-- ====== ESCUTA RESUMO PANEL ====== -->
+<div class="escuta-resumo-overlay" id="escuta-resumo-overlay" onclick="if(event.target===this)closeEscutaResumo()">
+  <div class="escuta-resumo-panel" id="escuta-resumo-panel">
+    <div class="erp-handle"></div>
+    <div class="erp-header">
+      <div style="font-size:20px;">🧠</div>
+      <div class="erp-title">Resumo da Escuta</div>
+      <button class="erp-close" onclick="closeEscutaResumo()">✕</button>
+    </div>
+    <div class="erp-body" id="escuta-resumo-body">
+      <div class="erp-loading">
+        <div class="erp-spinner">⏳</div>
+        <div>Analisando o que foi dito...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

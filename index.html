@@ -5018,7 +5018,26 @@ function _esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;
     allow delete: if false;
   }
 
-  ⚠️ ÍNDICE COMPOSTO NECESSÁRIO para friend_messages (histórico de chat):
+  match /group_messages/{msgId} {
+    allow read: if request.auth != null;
+    allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    allow delete: if false;
+  }
+  match /group_presence/{groupId}/online/{uid} {
+    allow read: if request.auth != null;
+    allow write: if request.auth != null && request.auth.uid == uid;
+  }
+  match /conversation_groups/{docId} {
+    allow read: if request.auth != null;
+    allow create: if request.auth != null;
+    allow update, delete: if false;
+  }
+
+  ⚠️ ÍNDICE COMPOSTO NECESSÁRIO para group_messages:
+  Firebase Console → Firestore → Índices → Composto → Adicionar:
+    Coleção: group_messages
+    Campos: groupId (Crescente) · createdAt (Crescente)
+    Escopo: Coleção
   Firebase Console → Firestore → Índices → Composto → Adicionar:
     Coleção: friend_messages
     Campos: fromUid (Crescente) · toUid (Crescente) · createdAt (Crescente)
@@ -5325,39 +5344,113 @@ async function grpCriar() {
   }
 }
 
+// ── Estado do chat de grupo ──────────────────────────────────
+let _grpChatAtual = null;
+let _grpChatListener = null;
+let _grpOnlineRef = null;
+const _langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' };
+
 function grpEntrar(grupo) {
-  // Usa o sistema de salas existente, passando o código do grupo como sala
-  const codigo = (grupo.id || grupo.tema).substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
-  showToast(`🌍 Entrando em "${grupo.tema}"...`, 'info');
-  // Coloca o código na input de sala e valida
-  const inp = document.getElementById('sala-code-input');
-  if (inp) {
-    inp.value = codigo;
-    // Tenta via socket
-    if (window._salaSocket) {
-      window._salaSocket.emit('join-group', { groupId: grupo.id || grupo.tema, groupName: grupo.tema, lang: grupo.lang, nivel: grupo.nivel });
-    }
-    // Navega para a sala ativa com contexto de grupo
-    window._grpAtual = grupo;
-    navApp('sala');
-    setTimeout(() => {
-      // Se socket conectado, entra direto; caso contrário informa
-      if (window._salaSocket?.connected) {
-        document.getElementById('sala-code-input').value = codigo;
-        onSalaCodeInput(document.getElementById('sala-code-input'));
-      } else {
-        showToast('⚠️ Servidor offline — grupos precisam do backend ativo', 'error');
+  const uid  = window._fbUser?.uid;
+  const nome = window._fbUser?.name || window._fbUser?.displayName || 'Usuário';
+  if (!uid) { showToast('Faça login para entrar no grupo', 'error'); return; }
+  if (!db)  { showToast('Firestore não disponível', 'error'); return; }
+  _grpChatAtual = grupo;
+  const emoji = _langEmoji[grupo.lang] || '🌍';
+  const nivelCor = _nivelCor[grupo.nivel] || 'var(--muted)';
+  document.getElementById('grp-chat-avatar').textContent = emoji;
+  document.getElementById('grp-chat-title').textContent  = grupo.tema;
+  document.getElementById('grp-chat-meta').innerHTML =
+    `<span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};">${grupo.nivel}</span>
+     <span id="grp-online-count" style="color:var(--muted);">● calculando...</span>`;
+  const ov = document.getElementById('grp-chat-overlay');
+  ov.style.display = 'flex';
+  document.getElementById('grp-chat-msgs').innerHTML =
+    '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Carregando mensagens...</div>';
+  document.getElementById('grp-chat-inp').placeholder = `Escreva em ${grupo.lang} aqui...`;
+  // Presença
+  try {
+    _grpOnlineRef = db.collection('group_presence').doc(grupo.id).collection('online').doc(uid);
+    _grpOnlineRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    db.collection('group_presence').doc(grupo.id).collection('online').onSnapshot(snap => {
+      const el = document.getElementById('grp-online-count');
+      if (el) el.textContent = `● ${snap.size} online`;
+      if (window._grpData) { const g = window._grpData.find(g2=>g2.id===grupo.id); if(g){g.membros=snap.size;_grpRender();} }
+    });
+  } catch(e) {}
+  // Listener mensagens
+  if (_grpChatListener) { _grpChatListener(); _grpChatListener = null; }
+  const startQuery = () => db.collection('group_messages').where('groupId','==',grupo.id).orderBy('createdAt','asc').limitToLast(80);
+  const fallbackQuery = () => db.collection('group_messages').where('groupId','==',grupo.id).limit(80);
+  try {
+    _grpChatListener = startQuery().onSnapshot(snap => {
+      _grpRenderMsgs(snap.docs.map(d=>({id:d.id,...d.data()})), uid);
+    }, err => {
+      if (err.code==='failed-precondition'||err.message?.includes('index')) {
+        _grpChatListener = fallbackQuery().onSnapshot(snap2 => {
+          const msgs = snap2.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.toMillis?.()??0)-(b.createdAt?.toMillis?.()??0));
+          _grpRenderMsgs(msgs, uid);
+        });
       }
-    }, 400);
+    });
+  } catch(e) {
+    document.getElementById('grp-chat-msgs').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Erro ao carregar. Tente novamente.</div>';
   }
+  setTimeout(() => {
+    const el = document.getElementById('grp-chat-msgs');
+    if (el && el.textContent.includes('Carregando')) {
+      el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">🌍 Bem-vindo(a) a <strong style="color:var(--text);">${grupo.tema}</strong>!<br>Seja o(a) primeiro(a) a escrever 👇</div>`;
+    }
+  }, 3500);
+}
+
+function _grpRenderMsgs(msgs, myUid) {
+  const el = document.getElementById('grp-chat-msgs');
+  if (!el) return;
+  if (!msgs.length) { el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">Seja o(a) primeiro(a) a escrever! 👋</div>'; return; }
+  const wasAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+  el.innerHTML = '';
+  msgs.forEach(m => {
+    const mine = m.uid === myUid;
+    const ts = m.createdAt?.toDate?.() || new Date();
+    const hora = ts.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const bubble = document.createElement('div');
+    bubble.style.cssText = `display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;`;
+    if (!mine) bubble.innerHTML = `<div style="font-size:10px;color:var(--muted);margin-left:4px;">${_esc(m.nome||'Usuário')}</div>`;
+    const inner = document.createElement('div');
+    inner.style.cssText = `max-width:78%;padding:9px 13px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};font-size:13px;line-height:1.5;background:${mine?'rgba(168,85,247,.18)':'rgba(255,255,255,.06)'};border:1px solid ${mine?'rgba(168,85,247,.3)':'rgba(255,255,255,.08)'};color:${mine?'#d8b4fe':'var(--text)'};`;
+    inner.innerHTML = `${_esc(m.text)}<span style="font-size:9px;color:var(--muted);margin-left:8px;opacity:.7;">${hora}</span>`;
+    bubble.appendChild(inner);
+    el.appendChild(bubble);
+  });
+  if (wasAtBottom) el.scrollTop = el.scrollHeight;
+}
+
+async function grpChatSend() {
+  const inp = document.getElementById('grp-chat-inp');
+  const text = inp?.value?.trim();
+  if (!text || !_grpChatAtual || !db) return;
+  const uid  = window._fbUser?.uid;
+  const nome = window._fbUser?.name || window._fbUser?.displayName || 'Usuário';
+  if (!uid) { showToast('Faça login para enviar','error'); return; }
+  inp.value = '';
+  try {
+    await db.collection('group_messages').add({ groupId:_grpChatAtual.id, uid, nome, text, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+  } catch(e) { showToast('Erro ao enviar mensagem','error'); inp.value = text; }
+}
+
+function grpChatClose() {
+  try { _grpOnlineRef?.delete(); } catch(e) {}
+  if (_grpChatListener) { _grpChatListener(); _grpChatListener = null; }
+  _grpChatAtual = null;
+  document.getElementById('grp-chat-overlay').style.display = 'none';
 }
 
 // Carrega grupos do Firestore ao abrir Salas
 function grpInit() {
-  _grpRender(_grpSeeds); // Mostra seeds imediatamente
+  _grpRender(_grpSeeds);
   if (!db) return;
   const now = Date.now();
-  // Carrega grupos criados nas últimas 24h
   db.collection('conversation_groups')
     .where('ts', '>', now - 86400000)
     .orderBy('ts', 'desc').limit(20).get()
@@ -5367,11 +5460,9 @@ function grpInit() {
       window._grpData = all;
       _grpRender(all);
     })
-    .catch(() => { /* mantém seeds */ });
+    .catch(() => {});
 }
 
-console.log('✅ AIVOX Módulo Amigos carregado');
-</script>
 
     <!-- BOTTOM NAV -->
     <div class="bnav" id="bnav">
@@ -12544,6 +12635,28 @@ function _salaMostrarUIVideo(show){
 </div>
 
 <!-- PROFESSOR IA — overlay fullscreen (controlado por professor-ia.js) -->
+<!-- ====== GRUPO CHAT OVERLAY ====== -->
+<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#131825;border:1px solid rgba(255,255,255,.08);border-radius:24px;width:100%;max-width:520px;height:min(88vh,640px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.7);">
+    <!-- Header -->
+    <div id="grp-chat-header" style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(0,229,255,.08));">
+      <div id="grp-chat-avatar" style="width:42px;height:42px;border-radius:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌍</div>
+      <div style="flex:1;min-width:0;">
+        <div id="grp-chat-title" style="font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Grupo</div>
+        <div id="grp-chat-meta" style="font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;"><span id="grp-online-count">● 1 online</span></div>
+      </div>
+      <button onclick="grpChatClose()" style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <!-- Messages -->
+    <div id="grp-chat-msgs" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent;"></div>
+    <!-- Input -->
+    <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;align-items:flex-end;">
+      <input id="grp-chat-inp" class="input-field" placeholder="Escreva em inglês aqui..." style="flex:1;border-radius:12px;font-size:13px;padding:10px 14px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();grpChatSend();}">
+      <button onclick="grpChatSend()" style="width:42px;height:42px;border-radius:12px;border:none;background:linear-gradient(135deg,#a855f7,var(--accent));color:white;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">→</button>
+    </div>
+  </div>
+</div>
+
 <div id="profIA-overlay" style="display:none;position:fixed;inset:0;z-index:9999;"></div>
 
 <script src="professor-ia.js"></script>

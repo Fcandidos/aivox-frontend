@@ -612,7 +612,7 @@ function profIA_buildOverlayHTML() {
   return `
 <svg id="profIA-scene" viewBox="0 0 ${ww} ${window.innerHeight}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;">
   <!-- Wall -->
-  <rect width="${ww}" height="65%" fill="#1a1a12"/>
+  <rect width="${ww}" height="${Math.round(window.innerHeight * 0.65)}" fill="#1a1a12"/>
   <!-- Wall texture lines -->
   <line x1="0" y1="33%" x2="${ww}" y2="33%" stroke="rgba(255,255,255,.025)" stroke-width="1"/>
   <!-- Left window -->
@@ -1127,36 +1127,59 @@ async function profIA_processInput(text) {
   if (btn) { btn.classList.remove('processing'); btn.textContent = '🎤'; }
 }
 
-// ── API call ──────────────────────────────────────────────────
+// ── API call (com retry automático para 502/503 do Render free tier) ─────
 async function profIA_callAPI(messages) {
   const system = profIA_buildSystemPrompt();
-  try {
-    const token = await auth.currentUser?.getIdToken();
-    const resp = await fetch(window.BACKEND_URL + '/api/professor', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
-      },
-      body: JSON.stringify({ system, messages }),
-      signal: AbortSignal.timeout(30000),
-    });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-    const raw = (data.answer || '').trim();
-    let parsed;
+  const MAX_RETRIES = 2;
+  const RETRY_DELAYS = [4000, 8000];
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const jsonStr = raw.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
-      parsed = JSON.parse(jsonStr);
-    } catch(_) {
-      parsed = { fala: raw, lousaConteudo: null, gestoProfessora: 'neutro', expressaoRosto: 'sorrindo', correcao: null, palavraNova: null };
+      if (attempt > 0) {
+        await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
+      }
+      const token = await auth.currentUser?.getIdToken();
+      const resp = await fetch(window.BACKEND_URL + '/api/professor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+        },
+        body: JSON.stringify({ system, messages }),
+        signal: AbortSignal.timeout(35000),
+      });
+
+      // 502/503 = backend cold-starting (Render free tier) — retry silencioso
+      if (resp.status === 502 || resp.status === 503) {
+        if (attempt < MAX_RETRIES) {
+          profIA_toast('Servidor iniciando... aguarde (' + (attempt+1) + '/' + MAX_RETRIES + ') 🔄', 'info');
+          continue;
+        }
+        throw new Error('HTTP ' + resp.status);
+      }
+
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+      const data = await resp.json();
+      const raw = (data.answer || '').trim();
+      let parsed;
+      try {
+        const jsonStr = raw.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
+        parsed = JSON.parse(jsonStr);
+      } catch(_) {
+        parsed = { fala: raw, lousaConteudo: null, gestoProfessora: 'neutro', expressaoRosto: 'sorrindo', correcao: null, palavraNova: null };
+      }
+      await profIA_orchestrate(parsed);
+      return; // sucesso
+
+    } catch(e) {
+      console.error('[profIA] API error (tentativa ' + (attempt+1) + '):', e);
+      if (attempt === MAX_RETRIES) {
+        profIA_toast('Conexão instável. Tente novamente em instantes.', 'warn');
+        profIA_setExpression('aguardando');
+        profIA_addBubble('Sorry, connection issue. Please try again in a moment! 🙏', 'prof');
+      }
     }
-    await profIA_orchestrate(parsed);
-  } catch(e) {
-    console.error('[profIA] API error:', e);
-    profIA_toast('Erro de conexão. Tente novamente.', 'warn');
-    profIA_setExpression('aguardando');
-    profIA_addBubble('One moment please! Let me try that again... 🙏', 'prof');
   }
 }
 

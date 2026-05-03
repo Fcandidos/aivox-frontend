@@ -3642,7 +3642,17 @@ function _amiListenPresence() {
   }
   const s = window._salaSocket || window._presenceSocket;
   if (!s) { setTimeout(_amiListenPresence, 2000); return; }
-  s.emit('ami-online', { uid: window._fbUser?.uid, name: window._fbUser?.displayName || 'Usuário' });
+  // Garante que _fbUser está pronto antes de emitir presença
+  const _emitOnline = () => {
+    const uid = window._fbUser?.uid;
+    const name = window._fbUser?.displayName || 'Usuário';
+    if (!uid) { setTimeout(_emitOnline, 1000); return; }
+    s.emit('ami-online', { uid, name });
+    window._amiDebug = window._amiDebug || {};
+    window._amiDebug.presenceEmitted = { uid, name, ts: new Date().toISOString(), socket: s.id };
+    console.log('[AIVOX DEBUG] ami-online emitido:', { uid, name, socketId: s.id });
+  };
+  _emitOnline();
   s.on('ami-friend-online', ({ uid, name }) => {
     if (!_ami.friends.find(f => f.uid === uid)) return;
     const wasOffline = !_ami.online[uid];
@@ -3884,6 +3894,8 @@ function _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts, fromFirestore) {
   if (!_ami.chatMessages[fromUid]) _ami.chatMessages[fromUid]=[];
   const isDup=_ami.chatMessages[fromUid].some(m=>!m.mine&&m.text===text&&Math.abs((m.ts||0)-(ts||0))<2000);
   if (!isDup) _ami.chatMessages[fromUid].push({mine:false,text,audioUrl,ts:ts||Date.now()});
+  // fromFirestore=true = msg histórica carregada no login, nunca exibir toast
+  if (fromFirestore) return;
   if (_ami.currentChat?.uid===fromUid) {
     _amiRenderChat(fromUid);
     document.getElementById('fchat-typing').style.display='none';
@@ -10223,6 +10235,135 @@ function setLivreNivel(el){
   _dHistory.unshift({text:r.original?.substring(0,50)||'...',translated:r.traduzido?.substring(0,50)||'',lang:_dLang,time:new Date().toLocaleDateString('pt-BR')});if(_dHistory.length>10)_dHistory.pop();_renderDiarioHistory();addPts(5);}
   function _renderDiarioHistory(){const cont=document.getElementById('diario-history');if(!cont)return;if(!_dHistory.length){cont.innerHTML='';return;}cont.innerHTML=`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">ENTRADAS ANTERIORES</div>`+_dHistory.map(h=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;"><div style="font-size:12px;font-weight:700;margin-bottom:2px;">${h.text}...</div><div style="font-size:11px;color:var(--accent);margin-bottom:2px;">${h.translated}...</div><div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div></div>`).join('');}
 })();
+
+// ══════════════════════════════════════════════════════════
+//  AIVOX DEBUG PANEL — acesse via: aivoxDebug() no console
+// ══════════════════════════════════════════════════════════
+window.aivoxDebug = function() {
+  const fbUser = window._fbUser;
+  const salaSocket = window._salaSocket;
+  const presSocket = window._presenceSocket;
+  const ami = window._ami;
+  
+  const lines = [];
+  lines.push('%c━━━ AIVOX DEBUG PANEL ━━━', 'color:#00e5ff;font-size:14px;font-weight:bold');
+  
+  // Auth
+  lines.push('%c
+🔐 AUTENTICAÇÃO', 'color:#a855f7;font-weight:bold');
+  if (fbUser) {
+    console.log('%c🔐 AUTENTICAÇÃO', 'color:#a855f7;font-weight:bold');
+    console.log('  UID:', fbUser.uid);
+    console.log('  Nome:', fbUser.displayName);
+    console.log('  Email:', fbUser.email);
+    console.log('  Plan:', fbUser.plan || window._userPlan || 'N/A');
+  } else {
+    console.log('%c🔐 AUTENTICAÇÃO', 'color:#a855f7;font-weight:bold');
+    console.log('  ❌ _fbUser NÃO definido!');
+  }
+  
+  // Sockets
+  console.log('%c
+🔌 SOCKETS', 'color:#00ff88;font-weight:bold');
+  if (salaSocket) {
+    console.log('  SalaSocket:', salaSocket.connected ? '✅ Conectado' : '❌ Desconectado', '| ID:', salaSocket.id);
+  } else {
+    console.log('  SalaSocket: ❌ Não existe');
+  }
+  if (presSocket) {
+    console.log('  PresenceSocket:', presSocket.connected ? '✅ Conectado' : '❌ Desconectado', '| ID:', presSocket.id);
+  } else {
+    console.log('  PresenceSocket: ❌ Não existe (normal se usa SalaSocket)');
+  }
+  const activeSocket = salaSocket || presSocket;
+  if (!activeSocket) {
+    console.log('  ⚠️ NENHUM socket ativo — presença NÃO está sendo emitida!');
+  }
+  
+  // Presence
+  console.log('%c
+👤 PRESENÇA (ami-online)', 'color:#ffd700;font-weight:bold');
+  const dbg = window._amiDebug;
+  if (dbg?.presenceEmitted) {
+    console.log('  ✅ ami-online emitido em:', dbg.presenceEmitted.ts);
+    console.log('  UID enviado:', dbg.presenceEmitted.uid);
+    console.log('  Nome enviado:', dbg.presenceEmitted.name);
+    console.log('  Socket ID usado:', dbg.presenceEmitted.socket);
+  } else {
+    console.log('  ❌ ami-online NUNCA foi emitido!');
+    console.log('  Possível causa: _fbUser não estava pronto quando socket conectou');
+  }
+  
+  // Amigos
+  console.log('%c
+👥 AMIGOS', 'color:#ec4899;font-weight:bold');
+  if (ami) {
+    console.log('  Total amigos:', ami.friends?.length || 0);
+    console.log('  Online (local):', Object.keys(ami.online || {}).length);
+    console.log('  IDs online:', Object.keys(ami.online || {}));
+    console.log('  Chat atual:', ami.currentChat?.uid || 'nenhum');
+    const msgCount = Object.values(ami.chatMessages || {}).reduce((a,b) => a + b.length, 0);
+    console.log('  Mensagens em cache:', msgCount);
+  } else {
+    console.log('  ❌ _ami não encontrado');
+  }
+  
+  // Mensagens
+  console.log('%c
+💬 MENSAGENS RECENTES (cache)', 'color:#fb923c;font-weight:bold');
+  if (ami?.chatMessages) {
+    Object.entries(ami.chatMessages).forEach(([uid, msgs]) => {
+      const last = msgs[msgs.length - 1];
+      console.log(`  UID ${uid}: ${msgs.length} msgs | última: "${last?.text?.substring(0,40) || '🎤 áudio'}" (mine:${last?.mine})`);
+    });
+  }
+  
+  // Firestore / DB
+  console.log('%c
+🔥 FIRESTORE', 'color:#f97316;font-weight:bold');
+  if (window.db) {
+    console.log('  ✅ db definido');
+  } else {
+    console.log('  ❌ db NÃO definido');
+  }
+  
+  // Diagnóstico automático
+  console.log('%c
+🩺 DIAGNÓSTICO', 'color:#00e5ff;font-weight:bold');
+  const issues = [];
+  if (!fbUser) issues.push('❌ Usuário não autenticado');
+  if (!activeSocket || !activeSocket.connected) issues.push('❌ Nenhum socket conectado — presença offline');
+  if (!dbg?.presenceEmitted) issues.push('⚠️ ami-online não emitido ainda');
+  if (fbUser && activeSocket?.connected && !dbg?.presenceEmitted) issues.push('⚠️ Socket conectado mas ami-online não foi emitido — chame: _amiForceOnline()');
+  if (issues.length === 0) {
+    console.log('  ✅ Tudo parece normal');
+  } else {
+    issues.forEach(i => console.log(' ', i));
+  }
+  
+  console.log('%c
+💡 COMANDOS ÚTEIS:', 'color:#94a3b8;font-weight:bold');
+  console.log('  _amiForceOnline()  — força emissão de ami-online agora');
+  console.log('  _amiDebug         — objeto com histórico de debug');
+  console.log('  _ami              — estado completo do módulo de amigos');
+  console.log('  _fbUser           — usuário Firebase atual');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+};
+
+// Função utilitária para forçar presença online
+window._amiForceOnline = function() {
+  const s = window._salaSocket || window._presenceSocket;
+  const uid = window._fbUser?.uid;
+  const name = window._fbUser?.displayName || 'Usuário';
+  if (!s) { console.log('[AIVOX] ❌ Nenhum socket disponível'); return; }
+  if (!uid) { console.log('[AIVOX] ❌ _fbUser não disponível'); return; }
+  s.emit('ami-online', { uid, name });
+  window._amiDebug = window._amiDebug || {};
+  window._amiDebug.presenceEmitted = { uid, name, ts: new Date().toISOString(), socket: s.id, forced: true };
+  console.log('[AIVOX] ✅ ami-online forçado:', { uid, name });
+};
+
+console.log('%c[AIVOX] Debug carregado. Digite aivoxDebug() no console para diagnóstico completo.', 'color:#00e5ff;font-style:italic');
 
 // ── Override learnTab to init livre ──────────────────────────
 const _origLearnTab=window.learnTab;

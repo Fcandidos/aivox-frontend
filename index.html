@@ -1003,6 +1003,329 @@ input, textarea, select {
 }
 /* ====== BOTTOM NAV ====== */
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:100;}
+
+/* ====== AMIGOS — ESTRUTURA GERAL ====== */
+#page-amigos { overflow: hidden; flex: 1; flex-direction: column; min-height: 0; }
+
+/* Tabs internas da página */
+.ami-tabs {
+  display: flex; gap: 0; background: var(--surface);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.ami-tab {
+  flex: 1; padding: 13px 8px; border: none; border-bottom: 2px solid transparent;
+  background: transparent; font-family: var(--font); font-size: 12px; font-weight: 700;
+  color: var(--muted); cursor: pointer; transition: all .2s; display: flex;
+  align-items: center; justify-content: center; gap: 5px;
+}
+.ami-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--adim); }
+.ami-tab-badge {
+  background: var(--red); color: #fff; font-size: 9px; font-weight: 800;
+  padding: 1px 5px; border-radius: 8px; font-family: var(--mono); min-width: 16px; text-align: center;
+  display: none;
+}
+.ami-tab-badge.show { display: inline-block; }
+
+/* Scroll interno */
+.ami-scroll {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px; overscroll-behavior: contain;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Card de amigo na lista */
+.friend-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.friend-card:hover { border-color: rgba(0,229,255,.2); }
+.friend-card.online { border-left: 3px solid var(--green); }
+.friend-card.offline { opacity: .75; }
+
+/* Avatar com dot de presença */
+.friend-av-wrap { position: relative; flex-shrink: 0; }
+.friend-av {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+}
+.friend-presence-dot {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--card); background: var(--muted);
+}
+.friend-presence-dot.online { background: var(--green); box-shadow: 0 0 6px rgba(0,255,136,.5); }
+.friend-presence-dot.away   { background: var(--orange); }
+.friend-presence-dot.busy   { background: var(--red); }
+
+/* Info do amigo */
+.friend-info { flex: 1; min-width: 0; }
+.friend-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.friend-status-text { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.friend-status-text.online { color: var(--green); font-weight: 600; }
+
+/* Ações rápidas do card */
+.friend-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.friend-btn {
+  width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .18s; padding: 0;
+}
+.friend-btn:hover { border-color: rgba(0,229,255,.3); color: var(--accent); background: var(--adim); }
+.friend-btn.call { border-color: rgba(0,255,136,.25); color: var(--green); background: var(--gdim); }
+.friend-btn.call:hover { background: var(--green); color: #000; border-color: var(--green); }
+.friend-btn.danger:hover { border-color: rgba(255,68,102,.3); color: var(--red); background: var(--rdim); }
+
+/* ====== BUSCA DE AMIGOS ====== */
+.add-friend-box {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px;
+  margin-bottom: 14px;
+}
+.add-friend-result {
+  margin-top: 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; display: none;
+}
+.add-friend-result.show { display: block; }
+.search-result-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border-bottom: 1px solid var(--border); transition: background .15s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: rgba(255,255,255,.03); }
+
+/* ====== SOLICITAÇÕES PENDENTES ====== */
+.req-card {
+  background: linear-gradient(135deg, rgba(0,229,255,.05), rgba(124,58,237,.05));
+  border: 1px solid rgba(0,229,255,.2); border-radius: 14px;
+  padding: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+}
+.req-actions { display: flex; gap: 7px; margin-left: auto; flex-shrink: 0; }
+
+/* ====== CHAT PRIVADO DE AMIGO ====== */
+.friend-chat-modal {
+  position: absolute; inset: 0; z-index: 80;
+  background: var(--bg); display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+.friend-chat-modal.sh { transform: translateX(0); pointer-events: all; }
+.fchat-header {
+  display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface);
+}
+.fchat-title { flex: 1; }
+.fchat-name  { font-size: 15px; font-weight: 800; }
+.fchat-status { font-size: 11px; color: var(--muted); }
+.fchat-status.online { color: var(--green); }
+.fchat-msgs {
+  flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column;
+  gap: 8px; -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+.fchat-msgs::-webkit-scrollbar { display: none; }
+.fchat-bubble {
+  max-width: 82%; padding: 9px 13px; border-radius: 13px;
+  font-size: 13px; line-height: 1.45; animation: fadeUp .2s ease both;
+}
+.fchat-bubble.mine {
+  align-self: flex-end; background: var(--adim);
+  border: 1px solid rgba(0,229,255,.2);
+}
+.fchat-bubble.theirs {
+  align-self: flex-start; background: var(--card);
+  border: 1px solid var(--border);
+}
+.fchat-bubble .btime {
+  font-size: 9px; color: var(--muted); margin-top: 4px;
+  font-family: var(--mono); display: block;
+}
+.fchat-input-area {
+  display: flex; gap: 8px; padding: 10px 14px;
+  border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  align-items: flex-end;
+}
+.fchat-input {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  border-radius: 11px; padding: 10px 13px; font-family: var(--font); font-size: 13px;
+  color: var(--text); outline: none; resize: none; max-height: 80px;
+  transition: border-color .18s; min-height: 40px;
+}
+.fchat-input:focus { border-color: rgba(0,229,255,.35); }
+.fchat-send-btn {
+  width: 38px; height: 38px; background: var(--adim); border: 1px solid rgba(0,229,255,.25);
+  border-radius: 10px; color: var(--accent); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .18s;
+}
+.fchat-send-btn:hover { background: var(--accent); color: #000; }
+.fchat-mic-btn {
+  width: 38px; height: 38px; background: var(--gdim); border: 1px solid rgba(0,255,136,.25);
+  border-radius: 10px; color: var(--green); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .18s;
+}
+.fchat-mic-btn.recording {
+  background: var(--rdim); border-color: rgba(255,68,102,.4); color: var(--red);
+  animation: ctPulse 1s ease infinite;
+}
+
+/* ====== CHAMADA DE ÁUDIO (P2P WebRTC) ====== */
+.fcall-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: linear-gradient(135deg, #080b12, #0f1a2e);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+}
+.fcall-overlay.sh { display: flex; }
+.fcall-av-big {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; font-weight: 700; margin-bottom: 18px;
+  box-shadow: 0 0 40px rgba(0,229,255,.3);
+  animation: callPulse 2s ease infinite;
+}
+@keyframes callPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,229,255,.2); }
+  50%       { box-shadow: 0 0 50px rgba(0,229,255,.5), 0 0 80px rgba(0,229,255,.2); }
+}
+.fcall-name   { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+.fcall-status { font-size: 14px; color: var(--muted); margin-bottom: 40px; }
+.fcall-timer  { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--accent); margin-bottom: 48px; display: none; }
+.fcall-btns { display: flex; gap: 20px; }
+.fcall-btn {
+  width: 60px; height: 60px; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer; transition: all .2s;
+}
+.fcall-btn.mute   { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.fcall-btn.mute.active { background: var(--rdim); border-color: rgba(255,68,102,.4); color: var(--red); }
+.fcall-btn.hangup { background: var(--red); color: #fff; box-shadow: 0 4px 20px rgba(255,68,102,.5); }
+.fcall-btn.hangup:hover { transform: scale(1.1); }
+.fcall-btn.speaker { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+/* ====== NOTIFICAÇÃO DE ENTRADA DE AMIGO ====== */
+.friend-login-notif {
+  position: fixed; top: 80px; right: 16px; z-index: 9990;
+  background: var(--surface); border: 1px solid rgba(0,255,136,.35);
+  border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+  min-width: 240px; max-width: 300px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.4), 0 0 20px rgba(0,255,136,.1);
+  animation: notifSlide .4s cubic-bezier(.22,1,.36,1) both;
+  cursor: pointer;
+}
+@keyframes notifSlide {
+  from { opacity: 0; transform: translateX(120%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.friend-login-notif .fn-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--green);
+  flex-shrink: 0; box-shadow: 0 0 8px rgba(0,255,136,.6);
+}
+.friend-login-notif .fn-text { flex: 1; }
+.friend-login-notif .fn-name { font-size: 13px; font-weight: 700; }
+.friend-login-notif .fn-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.friend-login-notif .fn-close {
+  background: none; border: none; color: var(--muted); font-size: 14px;
+  cursor: pointer; padding: 0 0 0 4px; line-height: 1;
+}
+
+/* ====== SUGESTÕES ====== */
+.sug-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;
+}
+@media (max-width: 640px) { .sug-grid { grid-template-columns: 1fr; } }
+.sug-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px; position: relative; overflow: hidden;
+  transition: transform .2s, border-color .2s;
+}
+.sug-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.12); }
+.sug-card::before {
+  content: ''; position: absolute; inset: 0; opacity: .06;
+  pointer-events: none;
+}
+.sug-card.srs::before    { background: #8b5e12; }
+.sug-card.pronun::before { background: #4a2080; }
+.sug-card.escuta::before { background: #0a6640; }
+.sug-card.gamif::before  { background: #6b1a10; }
+.sug-card.shadow::before { background: #1a3a6b; }
+.sug-card.diario::before { background: #2e2e2e; }
+.sug-num {
+  font-size: 11px; font-family: var(--mono); font-weight: 700;
+  color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;
+}
+.sug-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; }
+.sug-desc  { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.sug-tag {
+  display: inline-block; margin-top: 10px; font-size: 10px; font-weight: 700;
+  font-family: var(--mono); padding: 3px 8px; border-radius: 20px;
+}
+.sug-tag.alto    { background: rgba(0,255,136,.12);  color: var(--green);  border: 1px solid rgba(0,255,136,.25); }
+.sug-tag.unico   { background: rgba(124,58,237,.12); color: #a855f7;       border: 1px solid rgba(124,58,237,.25); }
+.sug-tag.facil   { background: rgba(255,208,0,.1);   color: var(--yellow); border: 1px solid rgba(255,208,0,.25); }
+.sug-tag.retencao{ background: rgba(255,68,102,.1);  color: var(--red);    border: 1px solid rgba(255,68,102,.2); }
+.sug-tag.medio   { background: rgba(0,229,255,.1);   color: var(--accent); border: 1px solid rgba(0,229,255,.2); }
+.sug-tag.premium { background: rgba(255,140,0,.1);   color: var(--orange); border: 1px solid rgba(255,140,0,.2); }
+
+/* Empty state amigos */
+.ami-empty {
+  text-align: center; padding: 52px 24px; color: var(--muted);
+  display: none; flex-direction: column; align-items: center; gap: 8px;
+}
+.ami-empty.sh { display: flex; }
+.ami-empty-icon { font-size: 48px; opacity: .35; margin-bottom: 4px; }
+.ami-empty-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.ami-empty-sub   { font-size: 12px; line-height: 1.6; max-width: 240px; }
+
+/* Input de busca de usuário */
+.ami-search-wrap { display: flex; gap: 8px; }
+.ami-search-wrap input { flex: 1; }
+
+/* Online counter badge na sidebar */
+#friends-online-count {
+  background: var(--green); color: #000; font-size: 9px; font-weight: 800;
+  padding: 1px 6px; border-radius: 6px; margin-left: 4px;
+  font-family: var(--mono); display: none;
+}
+#friends-online-count.show { display: inline-block; }
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex; gap: 4px; align-items: center; padding: 10px 14px;
+  align-self: flex-start;
+}
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
+  animation: typingBounce 1.2s ease infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: .2s; }
+.typing-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%            { transform: translateY(-5px); }
+}
+
+/* Voz: barra de amplitude durante gravação */
+.voice-level-bar {
+  display: flex; align-items: center; gap: 2px; height: 24px;
+  padding: 0 4px; display: none;
+}
+.voice-level-bar.sh { display: flex; }
+.vlbar {
+  width: 3px; background: var(--green); border-radius: 2px;
+  animation: voicePulse 0.6s ease-in-out infinite alternate;
+}
+.vlbar:nth-child(2) { animation-delay: .1s; }
+.vlbar:nth-child(3) { animation-delay: .2s; height: 18px; }
+.vlbar:nth-child(4) { animation-delay: .15s; }
+.vlbar:nth-child(5) { animation-delay: .05s; }
+@keyframes voicePulse {
+  from { height: 4px; }
+  to   { height: 20px; }
+}
 </style>
 </head>
 <body>
@@ -1165,6 +1488,7 @@ input, textarea, select {
       <div class="snav-item" id="snav-chat" onclick="navApp('chat')"><span class="sni">🆘</span> Suporte</div>
       <div class="snav-item" id="snav-faq" onclick="navApp('faq')"><span class="sni">❓</span> Ajuda</div>
       <div class="snav-item" id="snav-sala" onclick="navApp('sala')"><span class="sni">👥</span> Salas</div>
+      <div class="snav-item" id="snav-amigos" onclick="navApp('amigos')"><span class="sni">👫</span> Amigos <span id="friends-online-count">0</span></div>
       <div class="snav-item admin-only-nav" id="snav-settings" onclick="navApp('settings')" style="display:none;"><span class="sni">⚙️</span> Configurações</div>
       <div class="snav-item" id="snav-admin" onclick="navApp('admin')" style="display:none;"><span class="sni">🛡️</span> Admin <span id="payment-notify-badge" style="display:none;background:var(--green);color:#000;font-size:9px;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:4px;font-family:var(--mono);">0</span></div>
     </div>
@@ -2588,6 +2912,7 @@ input, textarea, select {
     <div class="bnav" id="bnav">
       <div class="ni active" id="bn-home" onclick="navApp('home')"><span>🏠</span><span class="nl">Início</span></div>
       <div class="ni" id="bn-history" onclick="navApp('history')"><span>💬</span><span class="nl">Histórico</span></div>
+      <div class="ni" id="bn-amigos" onclick="navApp('amigos')"><span>👫</span><span class="nl">Amigos</span></div>
       <div class="ni" id="bn-faq" onclick="navApp('faq')"><span>❓</span><span class="nl">Ajuda</span></div>
       <div class="ni" id="bn-profile" onclick="navApp('profile')"><span>👤</span><span class="nl">Conta</span></div>
     </div>
@@ -2763,7 +3088,7 @@ async function runFullDiagnose(){
 
   // ── 4. PÁGINAS DOM ──
   console.group('📄 DOM');
-  const pages=['page-home','page-admin','page-settings','page-sala','page-chat','page-learn','page-profile'];
+  const pages=['page-home','page-admin','page-settings','page-sala','page-chat','page-learn','page-profile','page-amigos'];
   const missing=pages.filter(p=>!document.getElementById(p));
   missing.length===0 ? ok('DOM: todas as '+pages.length+' páginas presentes') : err('DOM: páginas ausentes → '+missing.join(', '));
   pages.forEach(p=>console.log(p+':', document.getElementById(p)?'✅':'❌ AUSENTE'));
@@ -2943,6 +3268,8 @@ function enterApp(data){
       if(url)fetch(url+'/api/ping').catch(()=>{});
     },9*60*1000);
   }
+  // ── MÓDULO AMIGOS ──
+  setTimeout(()=>{ if(typeof initAmigoModule==='function') initAmigoModule(); }, 1000);
 }
 function navApp(name){
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));
@@ -2955,7 +3282,7 @@ function navApp(name){
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const bn=document.getElementById('bn-'+name);if(bn)bn.classList.add('active');
-  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem'};
+  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem',amigos:'Amigos'};
   const tb=document.getElementById('topbar-title');if(tb)tb.textContent=titles[name]||'';
   if(name==='history'){renderHist(histData);_histTab='sess';switchHistTab('sess');}
   if(name==='faq'){renderFaq('todos');setTimeout(()=>goSlide(0),100);}
@@ -9001,5 +9328,687 @@ function _salaMostrarUIVideo(show){
     </div>
   </div>
 </div>
+<!-- ================================================================
+     MÓDULO AMIGOS — Page + Overlays de chamada
+     ================================================================ -->
+<div class="page" id="page-amigos" style="overflow:hidden;flex:1;flex-direction:column;min-height:0;">
+
+  <!-- Header interno -->
+  <div class="fchat-header" style="padding:14px 16px;background:var(--surface);flex-shrink:0;">
+    <div style="font-size:22px;">👫</div>
+    <div style="flex:1;">
+      <div style="font-size:16px;font-weight:900;">Amigos</div>
+      <div style="font-size:11px;color:var(--muted);" id="ami-header-sub">Carregando...</div>
+    </div>
+    <button class="friend-btn" onclick="amiSwitchTab('buscar')" title="Adicionar amigo" style="width:38px;height:38px;font-size:18px;">➕</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ami-tabs">
+    <button class="ami-tab active" id="ami-tab-amigos" onclick="amiSwitchTab('amigos')">👫 Meus Amigos</button>
+    <button class="ami-tab" id="ami-tab-pending" onclick="amiSwitchTab('pending')">🔔 Pendentes <span class="ami-tab-badge" id="ami-pending-badge">0</span></button>
+    <button class="ami-tab" id="ami-tab-buscar" onclick="amiSwitchTab('buscar')">🔍 Buscar</button>
+    <button class="ami-tab" id="ami-tab-sugestoes" onclick="amiSwitchTab('sugestoes')">💡 Novidades</button>
+  </div>
+
+  <!-- TAB: MEUS AMIGOS -->
+  <div id="ami-panel-amigos" class="ami-scroll">
+    <div id="ami-online-section">
+      <div class="section-label" style="margin-bottom:10px;">🟢 Online agora</div>
+      <div id="ami-list-online"></div>
+    </div>
+    <div id="ami-offline-section">
+      <div class="section-label" style="margin:14px 0 10px;">⚫ Offline</div>
+      <div id="ami-list-offline"></div>
+    </div>
+    <div class="ami-empty" id="ami-empty-friends">
+      <div class="ami-empty-icon">👫</div>
+      <div class="ami-empty-title">Nenhum amigo ainda</div>
+      <div class="ami-empty-sub">Busque usuários pelo nome ou e-mail para adicionar amigos e praticar junto!</div>
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="amiSwitchTab('buscar')">🔍 Buscar amigos</button>
+    </div>
+  </div>
+
+  <!-- TAB: PENDENTES -->
+  <div id="ami-panel-pending" class="ami-scroll" style="display:none;">
+    <div class="section-label" style="margin-bottom:10px;">Solicitações recebidas</div>
+    <div id="ami-list-received"></div>
+    <div class="section-label" style="margin:16px 0 10px;">Solicitações enviadas</div>
+    <div id="ami-list-sent"></div>
+    <div class="ami-empty sh" id="ami-empty-pending">
+      <div class="ami-empty-icon">🔔</div>
+      <div class="ami-empty-title">Nenhuma pendência</div>
+      <div class="ami-empty-sub">Você não tem solicitações de amizade pendentes.</div>
+    </div>
+  </div>
+
+  <!-- TAB: BUSCAR -->
+  <div id="ami-panel-buscar" class="ami-scroll" style="display:none;">
+    <div class="add-friend-box">
+      <div style="font-size:14px;font-weight:800;margin-bottom:4px;">🔍 Encontrar usuário</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Busque pelo nome de usuário ou e-mail cadastrado.</div>
+      <div class="ami-search-wrap">
+        <input class="input-field" id="ami-search-input" placeholder="Nome ou e-mail..." type="text"
+          oninput="amiSearchDebounce()" onkeydown="if(event.key==='Enter')amiDoSearch()">
+        <button class="btn btn-primary btn-sm" onclick="amiDoSearch()" id="ami-search-btn">Buscar</button>
+      </div>
+      <div id="ami-search-result" class="add-friend-result"><div id="ami-search-items"></div></div>
+      <div id="ami-search-empty" style="display:none;padding:20px;text-align:center;color:var(--muted);font-size:13px;">😕 Nenhum usuário encontrado.</div>
+    </div>
+    <div class="section-label" style="margin-bottom:10px;">✨ Sugestões</div>
+    <div id="ami-suggestions-list">
+      <div style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0;">As sugestões aparecem depois que você tiver alguns amigos.</div>
+    </div>
+  </div>
+
+  <!-- TAB: NOVIDADES -->
+  <div id="ami-panel-sugestoes" class="ami-scroll" style="display:none;">
+    <div style="margin-bottom:16px;">
+      <div style="font-size:18px;font-weight:900;margin-bottom:4px;">💡 Sugestões Prioritárias</div>
+      <div style="font-size:12px;color:var(--muted);">Funcionalidades planejadas para o AIVOX — vote nas suas favoritas!</div>
+    </div>
+    <div class="sug-grid">
+      <div class="sug-card srs">
+        <div class="sug-num">01 · SRS</div>
+        <div class="sug-title">⏱ Repetição Espaçada (SRS)</div>
+        <div class="sug-desc">Algoritmo SM-2 (igual Anki) nos flashcards. Cada card ganha data de próxima revisão. Notificação push "5 cards para revisar". Retenção de vocabulário 3-5x maior.</div>
+        <span class="sug-tag alto">🚀 Alto impacto</span>
+        <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'srs')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+      </div>
+      <div class="sug-card pronun">
+        <div class="sug-num">02 · Pronúncia</div>
+        <div class="sug-title">🎤 Treino de Pronúncia com IA</div>
+        <div class="sug-desc">Você fala → Whisper transcreve → IA compara com a frase esperada e dá nota + dica. Ex: "você trocou 'th' por 'd' — tente assim:". ElevenLabs reproduz o modelo correto.</div>
+        <span class="sug-tag unico">⭐ Diferencial único</span>
+        <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'pronun')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+      </div>
+      <div class="sug-card escuta">
+        <div class="sug-num">03 · Escuta</div>
+        <div class="sug-title">🎧 Resumo Inteligente (Escuta)</div>
+        <div class="sug-desc">Ao parar a escuta, Claude resume o que foi dito + lista palavras novas captadas. Botão "Adicionar ao vocabulário" por item. 1 chamada Claude → muito valor percebido.</div>
+        <span class="sug-tag facil">✅ Fácil de implementar</span>
+        <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'escuta')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+      </div>
+      <div class="sug-card gamif">
+        <div class="sug-num">04 · Gamificação</div>
+        <div class="sug-title">🏆 Gamificação Profunda</div>
+        <div class="sug-desc">Conquistas: "100 frases praticadas", "7 dias". Ranking mensal por idioma/plano. Desafio semanal: "traduza 50 min esta semana". Compartilhar progresso (imagem gerada).</div>
+        <span class="sug-tag retencao">🔒 Retenção de usuário</span>
+        <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'gamif')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+      </div>
+      <div class="sug-card shadow">
+        <div class="sug-num">05 · Shadowing</div>
+        <div class="sug-title">🗣 Modo "Sombra" (Shadowing)</div>
+        <div class="sug-desc">Áudio nativo toca → usuário repete em seguida. IA compara a repetição com o original. Técnica usada por poliglotas avançados.</div>
+        <span class="sug-tag medio">⏳ Médio prazo</span>
+        <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'shadow')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+      </div>
+      <div class="sug-card diario">
+        <div class="sug-num">06 · Diário</div>
+        <div class="sug-title">📔 Diário de Idioma</div>
+        <div class="sug-desc">Usuário escreve em PT → IA corrige e reescreve no idioma alvo. Histórico salvo no Firebase. Claude dá feedback de gramática + estilo.</div>
+        <span class="sug-tag premium">💎 Diferencial premium</span>
+        <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'diario')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT PRIVADO MODAL -->
+  <div class="friend-chat-modal" id="fchat-modal">
+    <div class="fchat-header">
+      <button class="dcl" onclick="closeFriendChat()">‹</button>
+      <div class="friend-av" id="fchat-av" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">A</div>
+      <div class="fchat-title">
+        <div class="fchat-name" id="fchat-name">Amigo</div>
+        <div class="fchat-status" id="fchat-status">offline</div>
+      </div>
+      <button class="friend-btn call" id="fchat-call-btn" onclick="startFriendCall()" title="Chamada de áudio">📞</button>
+      <button class="friend-btn" onclick="startFriendPractice()" title="Praticar juntos" style="border-color:rgba(255,208,0,.25);color:var(--yellow);">🎓</button>
+    </div>
+    <div class="fchat-msgs" id="fchat-msgs">
+      <div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa · Tudo é ponta a ponta pelo servidor</div>
+    </div>
+    <div class="typing-indicator" id="fchat-typing" style="display:none;">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+    <div class="fchat-input-area">
+      <textarea class="fchat-input" id="fchat-input" placeholder="Escreva uma mensagem..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFriendMsg();}"
+        oninput="friendTypingHint()"></textarea>
+      <div class="voice-level-bar" id="fchat-voice-bar">
+        <div class="vlbar"></div><div class="vlbar"></div><div class="vlbar"></div>
+        <div class="vlbar"></div><div class="vlbar"></div>
+      </div>
+      <button class="fchat-mic-btn" id="fchat-mic" onclick="toggleFriendVoice()" title="Gravar áudio">🎤</button>
+      <button class="fchat-send-btn" onclick="sendFriendMsg()" title="Enviar">➤</button>
+    </div>
+  </div>
+
+</div><!-- /page-amigos -->
+
+<!-- ================================================================
+     MÓDULO AMIGOS — JavaScript completo
+     ================================================================ -->
+<script>
+// ════════════════════════════════════════════════════════════
+//  AIVOX · MÓDULO AMIGOS
+//  Comunicação via Socket.io (já presente no projeto)
+//  Áudio P2P via WebRTC (gratuito, sem custo de API)
+//  Chat via Firestore (gratuito no plano Spark)
+// ════════════════════════════════════════════════════════════
+
+const _ami = {
+  friends: [], online: {}, pending: { received: [], sent: [] },
+  currentChat: null, chatMessages: {},
+  pc: null, localStream: null, remoteStream: null,
+  callUid: null, callTimer: null, callSeconds: 0,
+  isMuted: false, isCaller: false, pendingIce: [],
+};
+
+let _amiTypingTO = null;
+let _amiSearchTO = null;
+let _amiCurrentTab = 'amigos';
+
+function initAmigoModule() {
+  if (!window._fbUser?.uid || !db) return;
+  _amiLoadFriends();
+  _amiListenPresence();
+  _amiListenMessages();
+  _amiLoadVotes();
+  _amiUpdateOnlineCount();
+}
+
+function amiSwitchTab(tab) {
+  _amiCurrentTab = tab;
+  ['amigos','pending','buscar','sugestoes'].forEach(t => {
+    document.getElementById('ami-tab-' + t)?.classList.remove('active');
+    const p = document.getElementById('ami-panel-' + t);
+    if (p) p.style.display = 'none';
+  });
+  document.getElementById('ami-tab-' + tab)?.classList.add('active');
+  const panel = document.getElementById('ami-panel-' + tab);
+  if (panel) panel.style.display = 'block';
+  if (tab === 'amigos')    _amiRenderFriends();
+  if (tab === 'pending')   _amiRenderPending();
+  if (tab === 'sugestoes') _amiLoadVotes();
+}
+
+async function _amiLoadFriends() {
+  try {
+    const uid = window._fbUser?.uid;
+    if (!uid || !db) return;
+    db.collection('users').doc(uid).collection('friends')
+      .where('status', '==', 'accepted')
+      .onSnapshot(snap => {
+        _ami.friends = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        _amiRenderFriends();
+        _amiUpdateOnlineCount();
+      });
+    db.collection('friend_requests').where('toUid','==',uid).where('status','==','pending')
+      .onSnapshot(snap => {
+        _ami.pending.received = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        _amiUpdatePendingBadge();
+        if (_amiCurrentTab === 'pending') _amiRenderPending();
+      });
+    db.collection('friend_requests').where('fromUid','==',uid).where('status','==','pending')
+      .onSnapshot(snap => {
+        _ami.pending.sent = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (_amiCurrentTab === 'pending') _amiRenderPending();
+      });
+  } catch (e) { console.warn('_amiLoadFriends', e); }
+}
+
+function _amiListenPresence() {
+  if (!window._salaSocket) { setTimeout(_amiListenPresence, 2000); return; }
+  const s = window._salaSocket;
+  s.emit('ami-online', { uid: window._fbUser?.uid, name: window._fbUser?.displayName || 'Usuário' });
+  s.on('ami-friend-online', ({ uid, name }) => {
+    if (!_ami.friends.find(f => f.uid === uid)) return;
+    const wasOffline = !_ami.online[uid];
+    _ami.online[uid] = true;
+    _amiRenderFriends(); _amiUpdateOnlineCount();
+    if (wasOffline) _amiShowLoginNotif(name, uid);
+  });
+  s.on('ami-friend-offline', ({ uid }) => { delete _ami.online[uid]; _amiRenderFriends(); _amiUpdateOnlineCount(); });
+  s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, ts }) => { _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts); });
+  s.on('ami-typing', ({ fromUid }) => {
+    if (_ami.currentChat?.uid === fromUid) {
+      const el = document.getElementById('fchat-typing');
+      if (el) { el.style.display='flex'; clearTimeout(_amiTypingTO); _amiTypingTO=setTimeout(()=>{if(el)el.style.display='none';},3000); }
+    }
+  });
+  s.on('ami-call-offer',  ({ fromUid, fromName, offer }) => _amiHandleOffer(fromUid, fromName, offer));
+  s.on('ami-call-answer', ({ answer }) => _amiHandleAnswer(answer));
+  s.on('ami-call-ice',    ({ candidate }) => _amiHandleIce(candidate));
+  s.on('ami-call-reject', () => _amiCallRejected());
+  s.on('ami-call-hangup', () => hangupFriendCall());
+}
+
+function _amiRenderFriends() {
+  const online  = _ami.friends.filter(f => _ami.online[f.uid]);
+  const offline = _ami.friends.filter(f => !_ami.online[f.uid]);
+  const isEmpty = _ami.friends.length === 0;
+  document.getElementById('ami-empty-friends').classList.toggle('sh', isEmpty);
+  document.getElementById('ami-online-section').style.display  = online.length  ? 'block' : 'none';
+  document.getElementById('ami-offline-section').style.display = offline.length ? 'block' : 'none';
+  const sub = document.getElementById('ami-header-sub');
+  if (sub) sub.textContent = isEmpty ? 'Adicione amigos para praticar' : `${_ami.friends.length} amigo${_ami.friends.length>1?'s':''} · ${online.length} online`;
+  _renderFriendList('ami-list-online',  online,  true);
+  _renderFriendList('ami-list-offline', offline, false);
+}
+
+function _renderFriendList(containerId, list, isOnline) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = list.map(f => {
+    const letter = (f.name||f.displayName||'A')[0].toUpperCase();
+    return `<div class="friend-card ${isOnline?'online':'offline'}" onclick="openFriendChat('${f.uid}','${_esc(f.name||f.displayName||'Amigo')}')">
+      <div class="friend-av-wrap"><div class="friend-av">${letter}</div><div class="friend-presence-dot ${isOnline?'online':''}"></div></div>
+      <div class="friend-info"><div class="friend-name">${_esc(f.name||f.displayName||'Amigo')}</div><div class="friend-status-text ${isOnline?'online':''}">${isOnline?'● Online agora':'Offline'}</div></div>
+      <div class="friend-actions" onclick="event.stopPropagation()">
+        ${isOnline?`<button class="friend-btn call" onclick="event.stopPropagation();startCallTo('${f.uid}','${_esc(f.name||'Amigo')}')">📞</button>`:''}
+        <button class="friend-btn" onclick="event.stopPropagation();openFriendChat('${f.uid}','${_esc(f.name||f.displayName||'Amigo')}')">💬</button>
+        <button class="friend-btn danger" onclick="event.stopPropagation();confirmRemoveFriend('${f.uid}','${_esc(f.name||'Amigo')}')">🗑</button>
+      </div></div>`;
+  }).join('');
+}
+
+function _amiRenderPending() {
+  const r = _ami.pending.received, s = _ami.pending.sent;
+  document.getElementById('ami-empty-pending').classList.toggle('sh', r.length===0 && s.length===0);
+  document.getElementById('ami-list-received').innerHTML = r.map(req => `
+    <div class="req-card">
+      <div class="friend-av" style="width:38px;height:38px;font-size:14px;flex-shrink:0;">${(req.fromName||'A')[0].toUpperCase()}</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(req.fromName||'Usuário')}</div><div style="font-size:11px;color:var(--muted);">Quer ser seu amigo</div></div>
+      <div class="req-actions">
+        <button class="btn btn-primary btn-sm" onclick="acceptFriendReq('${req.id}','${req.fromUid}','${_esc(req.fromName||'Amigo')}')">✓</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectFriendReq('${req.id}')">✕</button>
+      </div></div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhuma solicitação recebida.</div>';
+  document.getElementById('ami-list-sent').innerHTML = s.map(req => `
+    <div class="req-card" style="opacity:.8;">
+      <div class="friend-av" style="width:38px;height:38px;font-size:14px;flex-shrink:0;">${(req.toName||'A')[0].toUpperCase()}</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(req.toName||'Usuário')}</div><div style="font-size:11px;color:var(--muted);">Aguardando resposta...</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="cancelFriendReq('${req.id}')">Cancelar</button>
+    </div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhuma solicitação enviada.</div>';
+}
+
+function _amiUpdatePendingBadge() {
+  const count = _ami.pending.received.length;
+  const badge = document.getElementById('ami-pending-badge');
+  if (badge) { badge.textContent = count; badge.classList.toggle('show', count > 0); }
+}
+
+function amiSearchDebounce() { clearTimeout(_amiSearchTO); _amiSearchTO = setTimeout(amiDoSearch, 500); }
+
+async function amiDoSearch() {
+  const q = (document.getElementById('ami-search-input')?.value || '').trim().toLowerCase();
+  const resEl = document.getElementById('ami-search-result');
+  const itemsEl = document.getElementById('ami-search-items');
+  const emptyEl = document.getElementById('ami-search-empty');
+  if (!resEl || !itemsEl) return;
+  if (q.length < 2) { resEl.classList.remove('show'); emptyEl.style.display='none'; return; }
+  try {
+    const snap      = await db.collection('users').orderBy('displayNameLower').startAt(q).endAt(q+'\uf8ff').limit(8).get();
+    const snapEmail = await db.collection('users').where('email','==',q).limit(3).get();
+    const seen = new Set(), results = [];
+    [...snap.docs,...snapEmail.docs].forEach(d => {
+      if (seen.has(d.id)||d.id===window._fbUser?.uid) return;
+      seen.add(d.id); results.push({ uid:d.id, ...d.data() });
+    });
+    emptyEl.style.display = results.length===0 ? 'block':'none';
+    resEl.classList.toggle('show', results.length>0);
+    const myFriendUids = new Set(_ami.friends.map(f=>f.uid));
+    const sentUids     = new Set(_ami.pending.sent.map(r=>r.toUid));
+    itemsEl.innerHTML = results.map(u => {
+      const isFriend=myFriendUids.has(u.uid), isPending=sentUids.has(u.uid);
+      const letter=(u.displayName||u.email||'U')[0].toUpperCase();
+      const btn=isFriend?`<span style="font-size:11px;color:var(--green);">✓ Amigo</span>`:isPending?`<span style="font-size:11px;color:var(--muted);">⏳ Enviado</span>`:`<button class="btn btn-primary btn-sm" onclick="sendFriendRequest('${u.uid}','${_esc(u.displayName||u.email||'Usuário')}',this)">+ Adicionar</button>`;
+      return `<div class="search-result-item"><div class="friend-av" style="width:36px;height:36px;font-size:13px;flex-shrink:0;">${letter}</div><div style="flex:1;"><div style="font-size:13px;font-weight:700;">${_esc(u.displayName||'Usuário')}</div><div style="font-size:11px;color:var(--muted);">${_esc(u.email||'')}</div></div>${btn}</div>`;
+    }).join('');
+  } catch(e) { console.warn('amiDoSearch',e); }
+}
+
+async function sendFriendRequest(toUid, toName, btn) {
+  if (!window._fbUser?.uid||!db) return;
+  try {
+    if (btn) { btn.disabled=true; btn.textContent='⏳'; }
+    await db.collection('friend_requests').add({
+      fromUid: window._fbUser.uid, fromName: window._fbUser.displayName||'Usuário',
+      toUid, toName, status:'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    if (btn) { btn.textContent='✓ Enviado'; btn.style.background='var(--gdim)'; btn.style.color='var(--green)'; }
+    showToast('✉️ Solicitação enviada para '+toName,'success');
+  } catch(e) { showToast('Erro ao enviar solicitação','error'); if(btn){btn.disabled=false;btn.textContent='+ Adicionar';} }
+}
+
+async function acceptFriendReq(reqId, fromUid, fromName) {
+  if (!window._fbUser?.uid||!db) return;
+  try {
+    const batch=db.batch(), myUid=window._fbUser.uid, myName=window._fbUser.displayName||'Usuário';
+    batch.update(db.collection('friend_requests').doc(reqId),{status:'accepted'});
+    batch.set(db.collection('users').doc(myUid).collection('friends').doc(fromUid),{uid:fromUid,name:fromName,addedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    batch.set(db.collection('users').doc(fromUid).collection('friends').doc(myUid),{uid:myUid,name:myName,addedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await batch.commit();
+    showToast('🎉 '+fromName+' agora é seu amigo!','success');
+    if (window._salaSocket) window._salaSocket.emit('ami-friend-accepted',{toUid:fromUid,name:myName});
+  } catch(e) { showToast('Erro ao aceitar solicitação','error'); }
+}
+
+async function rejectFriendReq(reqId) { try { await db.collection('friend_requests').doc(reqId).update({status:'rejected'}); } catch(e){} }
+async function cancelFriendReq(reqId) { try { await db.collection('friend_requests').doc(reqId).delete(); showToast('Solicitação cancelada','info'); } catch(e){} }
+
+async function confirmRemoveFriend(uid, name) {
+  if (!confirm('Remover '+name+' da sua lista de amigos?')) return;
+  try {
+    const myUid=window._fbUser.uid, batch=db.batch();
+    batch.delete(db.collection('users').doc(myUid).collection('friends').doc(uid));
+    batch.delete(db.collection('users').doc(uid).collection('friends').doc(myUid));
+    await batch.commit(); showToast('Amigo removido','info');
+  } catch(e) { showToast('Erro ao remover','error'); }
+}
+
+function openFriendChat(uid, name) {
+  _ami.currentChat = { uid, name };
+  const letter=name[0].toUpperCase(), isOnline=!!_ami.online[uid];
+  const avEl=document.getElementById('fchat-av'), nameEl=document.getElementById('fchat-name'), statusEl=document.getElementById('fchat-status');
+  if (avEl) avEl.textContent=letter;
+  if (nameEl) nameEl.textContent=name;
+  if (statusEl) { statusEl.textContent=isOnline?'● Online agora':'Offline'; statusEl.className='fchat-status'+(isOnline?' online':''); }
+  const callBtn=document.getElementById('fchat-call-btn');
+  if (callBtn) callBtn.style.opacity=isOnline?'1':'.4';
+  _amiLoadChatMsgs(uid);
+  document.getElementById('fchat-modal')?.classList.add('sh');
+}
+
+function closeFriendChat() { document.getElementById('fchat-modal')?.classList.remove('sh'); _ami.currentChat=null; }
+
+function _amiListenMessages() {
+  const uid=window._fbUser?.uid;
+  if (!uid||!db) return;
+  db.collection('friend_messages').where('toUid','==',uid).orderBy('createdAt','desc').limit(100)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type==='added') { const d=change.doc.data(); _amiReceiveMsg(d.fromUid,d.fromName,d.text,d.audioUrl,d.createdAt?.toMillis?.()|| Date.now(),true); }
+      });
+    });
+}
+
+async function _amiLoadChatMsgs(friendUid) {
+  const myUid=window._fbUser?.uid;
+  if (!myUid||!db) return;
+  const msgsEl=document.getElementById('fchat-msgs');
+  if (!msgsEl) return;
+  msgsEl.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa</div>`;
+  try {
+    const [snapSent,snapRec]=await Promise.all([
+      db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).orderBy('createdAt').limit(60).get(),
+      db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).orderBy('createdAt').limit(60).get(),
+    ]);
+    const msgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
+    _ami.chatMessages[friendUid]=msgs;
+    _amiRenderChat(friendUid);
+  } catch(e) { console.warn('_amiLoadChatMsgs',e); }
+}
+
+function _amiRenderChat(friendUid) {
+  const msgsEl=document.getElementById('fchat-msgs');
+  if (!msgsEl||_ami.currentChat?.uid!==friendUid) return;
+  const msgs=_ami.chatMessages[friendUid]||[];
+  msgsEl.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px 0;opacity:.6;">Início da conversa</div>`;
+  msgs.forEach(m => {
+    const div=document.createElement('div');
+    div.className='fchat-bubble '+(m.mine?'mine':'theirs');
+    const time=m.ts?new Date(m.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+    div.innerHTML=m.audioUrl?`<audio controls src="${m.audioUrl}" style="max-width:200px;height:32px;"></audio><span class="btime">${time}</span>`:`${_esc(m.text||'')}<span class="btime">${time}</span>`;
+    msgsEl.appendChild(div);
+  });
+  msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+async function sendFriendMsg() {
+  const inp=document.getElementById('fchat-input');
+  const text=(inp?.value||'').trim();
+  if (!text||!_ami.currentChat) return;
+  inp.value='';
+  const myUid=window._fbUser?.uid, myName=window._fbUser?.displayName||'Usuário', toUid=_ami.currentChat.uid, ts=Date.now();
+  if (!_ami.chatMessages[toUid]) _ami.chatMessages[toUid]=[];
+  _ami.chatMessages[toUid].push({mine:true,text,ts});
+  _amiRenderChat(toUid);
+  try { await db.collection('friend_messages').add({fromUid:myUid,fromName:myName,toUid,text,createdAt:firebase.firestore.FieldValue.serverTimestamp()}); } catch(e){}
+  if (window._salaSocket) window._salaSocket.emit('ami-send-msg',{toUid,fromName:myName,text,ts});
+}
+
+function _amiReceiveMsg(fromUid, fromName, text, audioUrl, ts, fromFirestore) {
+  if (!_ami.chatMessages[fromUid]) _ami.chatMessages[fromUid]=[];
+  const isDup=_ami.chatMessages[fromUid].some(m=>!m.mine&&m.text===text&&Math.abs((m.ts||0)-(ts||0))<2000);
+  if (!isDup) _ami.chatMessages[fromUid].push({mine:false,text,audioUrl,ts:ts||Date.now()});
+  if (_ami.currentChat?.uid===fromUid) {
+    _amiRenderChat(fromUid);
+    document.getElementById('fchat-typing').style.display='none';
+  } else { showToast('💬 '+fromName+': '+(text||'🎤 Áudio').substring(0,30),'info'); }
+}
+
+function friendTypingHint() { if(!_ami.currentChat||!window._salaSocket)return; window._salaSocket.emit('ami-typing',{toUid:_ami.currentChat.uid}); }
+
+let _fchatMediaRec=null, _fchatAudioChunks=[];
+
+async function toggleFriendVoice() {
+  const btn=document.getElementById('fchat-mic'), bars=document.getElementById('fchat-voice-bar');
+  if (_fchatMediaRec&&_fchatMediaRec.state==='recording') {
+    _fchatMediaRec.stop(); if(btn)btn.classList.remove('recording'); if(bars)bars.classList.remove('sh'); return;
+  }
+  try {
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _fchatAudioChunks=[];
+    _fchatMediaRec=new MediaRecorder(stream);
+    _fchatMediaRec.ondataavailable=e=>{if(e.data.size)_fchatAudioChunks.push(e.data);};
+    _fchatMediaRec.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());await _amiSendAudioMsg(new Blob(_fchatAudioChunks,{type:'audio/webm'}));};
+    _fchatMediaRec.start();
+    if(btn)btn.classList.add('recording'); if(bars)bars.classList.add('sh');
+  } catch(e){ showToast('Microfone não autorizado','error'); }
+}
+
+async function _amiSendAudioMsg(blob) {
+  if (!_ami.currentChat) return;
+  try {
+    const myUid=window._fbUser?.uid, myName=window._fbUser?.displayName||'Usuário', toUid=_ami.currentChat.uid;
+    if (window.firebase?.storage) {
+      const storageRef=firebase.storage().ref(`voice_msgs/${myUid}_${Date.now()}.webm`);
+      const snap=await storageRef.put(blob);
+      const audioUrl=await snap.ref.getDownloadURL();
+      await db.collection('friend_messages').add({fromUid:myUid,fromName:myName,toUid,audioUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      if(!_ami.chatMessages[toUid])_ami.chatMessages[toUid]=[];
+      _ami.chatMessages[toUid].push({mine:true,audioUrl,ts:Date.now()});
+      _amiRenderChat(toUid);
+    } else {
+      const reader=new FileReader();
+      reader.onload=()=>{if(window._salaSocket)window._salaSocket.emit('ami-send-msg',{toUid,fromName:myName,audioData:reader.result,ts:Date.now()});};
+      reader.readAsDataURL(blob);
+      showToast('🎤 Áudio enviado','success');
+    }
+  } catch(e) { showToast('Erro ao enviar áudio','error'); }
+}
+
+// WebRTC
+const ICE_SERVERS=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}];
+
+async function startCallTo(uid, name) {
+  if (_ami.callUid) { showToast('Você já está em uma chamada','error'); return; }
+  try {
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    _ami.localStream=stream; _ami.callUid=uid; _ami.isCaller=true;
+    _ami.pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
+    stream.getTracks().forEach(t=>_ami.pc.addTrack(t,stream));
+    _ami.pc.ontrack=e=>{_ami.remoteStream=e.streams[0];const a=document.getElementById('fcall-remote-audio')||_createRemoteAudio();a.srcObject=_ami.remoteStream;};
+    _ami.pc.onicecandidate=({candidate})=>{if(candidate&&window._salaSocket)window._salaSocket.emit('ami-call-ice',{toUid:uid,candidate});};
+    const offer=await _ami.pc.createOffer({offerToReceiveAudio:true});
+    await _ami.pc.setLocalDescription(offer);
+    window._salaSocket?.emit('ami-call-offer',{toUid:uid,fromName:window._fbUser?.displayName||'Usuário',offer});
+    _amiShowCallOverlay(name,'Chamando...');
+  } catch(e) { showToast('Sem acesso ao microfone','error'); }
+}
+
+function startFriendCall() {
+  if (!_ami.currentChat) return;
+  const {uid,name}=_ami.currentChat;
+  if (!_ami.online[uid]) { showToast('Amigo está offline','error'); return; }
+  startCallTo(uid,name);
+}
+
+async function _amiHandleOffer(fromUid, fromName, offer) {
+  if (_ami.callUid) { window._salaSocket?.emit('ami-call-reject',{toUid:fromUid}); return; }
+  document.getElementById('fcall-incoming')?.classList.add('sh');
+  document.getElementById('finc-av').textContent=fromName[0].toUpperCase();
+  document.getElementById('finc-name').textContent=fromName;
+  _ami.callUid=fromUid; _ami.isCaller=false; _ami._pendingOffer={fromUid,fromName,offer};
+}
+
+async function acceptFriendCall() {
+  document.getElementById('fcall-incoming')?.classList.remove('sh');
+  const {fromUid,fromName,offer}=_ami._pendingOffer||{};
+  if (!fromUid) return;
+  try {
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _ami.localStream=stream;
+    _ami.pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
+    stream.getTracks().forEach(t=>_ami.pc.addTrack(t,stream));
+    _ami.pc.ontrack=e=>{_ami.remoteStream=e.streams[0];const a=document.getElementById('fcall-remote-audio')||_createRemoteAudio();a.srcObject=_ami.remoteStream;};
+    _ami.pc.onicecandidate=({candidate})=>{if(candidate&&window._salaSocket)window._salaSocket.emit('ami-call-ice',{toUid:fromUid,candidate});};
+    _ami.pendingIce.forEach(c=>_ami.pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{}));
+    _ami.pendingIce=[];
+    await _ami.pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer=await _ami.pc.createAnswer();
+    await _ami.pc.setLocalDescription(answer);
+    window._salaSocket?.emit('ami-call-answer',{toUid:fromUid,answer});
+    _amiShowCallOverlay(fromName,'Conectando...');
+    _ami.pc.onconnectionstatechange=()=>_amiCallStateChange();
+  } catch(e) { showToast('Erro ao atender chamada','error'); hangupFriendCall(); }
+}
+
+async function _amiHandleAnswer(answer) { try{await _ami.pc?.setRemoteDescription(new RTCSessionDescription(answer));}catch(e){} _ami.pc.onconnectionstatechange=()=>_amiCallStateChange(); }
+
+async function _amiHandleIce(candidate) {
+  if (_ami.pc?.remoteDescription) { try{await _ami.pc.addIceCandidate(new RTCIceCandidate(candidate));}catch(e){} }
+  else { _ami.pendingIce.push(candidate); }
+}
+
+function _amiCallStateChange() {
+  const state=_ami.pc?.connectionState;
+  if (state==='connected') {
+    document.getElementById('fcall-status').textContent='Em chamada';
+    document.getElementById('fcall-timer').style.display='block';
+    _ami.callSeconds=0; clearInterval(_ami.callTimer);
+    _ami.callTimer=setInterval(()=>{_ami.callSeconds++;const m=String(Math.floor(_ami.callSeconds/60)).padStart(2,'0'),s=String(_ami.callSeconds%60).padStart(2,'0');const el=document.getElementById('fcall-timer');if(el)el.textContent=m+':'+s;},1000);
+  } else if (['disconnected','failed','closed'].includes(state)) { hangupFriendCall(); }
+}
+
+function rejectFriendCall() {
+  document.getElementById('fcall-incoming')?.classList.remove('sh');
+  const uid=_ami._pendingOffer?.fromUid;
+  if (uid) window._salaSocket?.emit('ami-call-reject',{toUid:uid});
+  _ami.callUid=null; _ami._pendingOffer=null;
+}
+
+function _amiCallRejected() { hangupFriendCall(); showToast('Chamada recusada','info'); }
+
+function hangupFriendCall() {
+  clearInterval(_ami.callTimer); _ami.callTimer=null;
+  if (_ami.callUid&&window._salaSocket) window._salaSocket.emit('ami-call-hangup',{toUid:_ami.callUid});
+  try{_ami.localStream?.getTracks().forEach(t=>t.stop());}catch(e){}
+  try{_ami.pc?.close();}catch(e){}
+  _ami.pc=null; _ami.localStream=null; _ami.remoteStream=null;
+  _ami.callUid=null; _ami.isCaller=false; _ami.pendingIce=[]; _ami.isMuted=false; _ami.callSeconds=0;
+  document.getElementById('fcall-overlay')?.classList.remove('sh');
+  document.getElementById('fcall-incoming')?.classList.remove('sh');
+  const rem=document.getElementById('fcall-remote-audio');
+  if (rem){rem.srcObject=null;rem.remove();}
+}
+
+function toggleCallMute() {
+  _ami.isMuted=!_ami.isMuted;
+  _ami.localStream?.getAudioTracks().forEach(t=>{t.enabled=!_ami.isMuted;});
+  const btn=document.getElementById('fcall-mute');
+  if(btn){btn.classList.toggle('active',_ami.isMuted);btn.textContent=_ami.isMuted?'🔇':'🎤';}
+}
+
+function toggleSpeaker() { showToast('Use o volume do celular para ajustar','info'); }
+
+function _amiShowCallOverlay(name, status) {
+  const ov=document.getElementById('fcall-overlay');
+  if(!ov)return;
+  document.getElementById('fcall-av').textContent=name[0].toUpperCase();
+  document.getElementById('fcall-name').textContent=name;
+  document.getElementById('fcall-status').textContent=status;
+  document.getElementById('fcall-timer').style.display='none';
+  document.getElementById('fcall-mute').classList.remove('active');
+  document.getElementById('fcall-mute').textContent='🎤';
+  ov.classList.add('sh');
+}
+
+function _createRemoteAudio() { const a=document.createElement('audio');a.id='fcall-remote-audio';a.autoplay=true;document.body.appendChild(a);return a; }
+
+function startFriendPractice() { closeFriendChat(); navApp('sala'); showToast('💡 Compartilhe o código da sala com seu amigo!','info'); }
+
+const _amiNotifQueue=[]; let _amiNotifShowing=false;
+function _amiShowLoginNotif(name, uid) { _amiNotifQueue.push({name,uid}); if(!_amiNotifShowing)_amiShowNextNotif(); }
+function _amiShowNextNotif() {
+  if(!_amiNotifQueue.length){_amiNotifShowing=false;return;}
+  _amiNotifShowing=true;
+  const {name,uid}=_amiNotifQueue.shift();
+  const el=document.createElement('div');
+  el.className='friend-login-notif';
+  el.onclick=()=>{openFriendChat(uid,name);el.remove();navApp('amigos');};
+  el.innerHTML=`<div class="fn-dot"></div><div class="fn-text"><div class="fn-name">${_esc(name)}</div><div class="fn-sub">entrou agora · toque para chamar</div></div><button class="fn-close" onclick="event.stopPropagation();this.parentElement.remove()">✕</button>`;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.animation='notifSlide .3s reverse';setTimeout(()=>{el.remove();_amiShowNextNotif();},280);},5000);
+}
+
+function _amiUpdateOnlineCount() {
+  const online=_ami.friends.filter(f=>_ami.online[f.uid]).length;
+  const badge=document.getElementById('friends-online-count');
+  if(badge){badge.textContent=online;badge.classList.toggle('show',online>0);}
+}
+
+async function _amiLoadVotes() {
+  if(!db)return;
+  try {
+    const snap=await db.collection('feature_votes').get();
+    snap.docs.forEach(d=>{
+      const btn=document.querySelector(`[data-voted][onclick*="'${d.id}'"]`);
+      if(!btn)return;
+      const count=d.data().count||0;
+      btn.querySelector('.vote-count').textContent=count;
+      const myVote=(d.data().voters||[]).includes(window._fbUser?.uid);
+      if(myVote){btn.classList.add('btn-primary');btn.classList.remove('btn-ghost');btn.dataset.voted='1';}
+    });
+  } catch(e){}
+}
+
+async function amiVoteSugestao(btn, id) {
+  if(!window._fbUser?.uid||!db){showToast('Faça login para votar','error');return;}
+  const myUid=window._fbUser.uid;
+  if(btn.dataset.voted==='1'){showToast('Você já votou nesta sugestão','info');return;}
+  try {
+    btn.disabled=true;
+    const ref=db.collection('feature_votes').doc(id);
+    await db.runTransaction(async t=>{
+      const snap=await t.get(ref);
+      const data=snap.exists?snap.data():{count:0,voters:[]};
+      if((data.voters||[]).includes(myUid))return;
+      t.set(ref,{count:(data.count||0)+1,voters:[...(data.voters||[]),myUid]},{merge:true});
+    });
+    const countEl=btn.querySelector('.vote-count');
+    if(countEl)countEl.textContent=parseInt(countEl.textContent||0)+1;
+    btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.dataset.voted='1';
+    showToast('👍 Voto registrado!','success');
+  } catch(e){showToast('Erro ao registrar voto','error');}
+  finally{btn.disabled=false;}
+}
+
+function _esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+console.log('✅ AIVOX Módulo Amigos carregado');
+</script>
+
 </body>
 </html>

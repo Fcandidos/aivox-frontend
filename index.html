@@ -455,7 +455,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-lang-strip::-webkit-scrollbar{display:none;}
 .licoes-scroll{flex:1;overflow-y:auto;padding:12px 14px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;}
 .licao-cat{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;}
-.licao-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;}
+.licao-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:border-color .18s,transform .15s;display:flex;align-items:center;gap:12px;contain:layout style;}
 .licao-card:active{transform:scale(.98);}
 .licao-icon{font-size:26px;flex-shrink:0;}.licao-info{flex:1;}
 .licao-nome{font-size:14px;font-weight:700;margin-bottom:2px;}.licao-desc{font-size:11px;color:var(--muted);}
@@ -2065,24 +2065,25 @@ input, textarea, select {
         </div>
 
         <!-- MODAL GAMIFICAÇÃO -->
-        <div id="gamif-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);overflow-y:auto;padding:20px 16px;">
-          <div style="max-width:480px;margin:0 auto;background:var(--card);border:1.5px solid rgba(168,85,247,.3);border-radius:22px;overflow:hidden;">
+        <div id="gamif-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;">
+          <div style="max-width:480px;margin:0 auto;background:var(--card);border:1.5px solid rgba(168,85,247,.3);border-radius:22px;overflow:hidden;position:relative;">
             <!-- Header -->
-            <div style="background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(0,229,255,.1));padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div style="background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(0,229,255,.1));padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
               <div>
                 <div style="font-size:10px;font-family:var(--mono);color:#a855f7;letter-spacing:2px;text-transform:uppercase;">🎮 GAMIFICAÇÃO</div>
-                <div style="font-size:18px;font-weight:900;color:var(--text);margin-top:4px;">Seu Progresso</div>
+                <div style="font-size:18px;font-weight:900;color:var(--text);margin-top:2px;">Seu Progresso</div>
               </div>
-              <button onclick="gamifCloseModal()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+              <button onclick="gamifCloseModal()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
             </div>
-            <!-- Tabs -->
-            <div style="display:flex;border-bottom:1px solid var(--border);">
-              <button onclick="gamifTab('missoes',this)" id="gtab-missoes" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;letter-spacing:1px;">📋 MISSÕES</button>
-              <button onclick="gamifTab('conquistas',this)" id="gtab-conquistas" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">🏅 CONQUISTAS</button>
-              <button onclick="gamifTab('nivel',this)" id="gtab-nivel" style="flex:1;padding:12px 4px;font-size:11px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:1px;">⭐ NÍVEL</button>
+            <!-- Tabs — scroll horizontal no mobile -->
+            <div style="display:flex;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;">
+              <button onclick="gamifTab('missoes',this)" id="gtab-missoes" style="flex:1;min-width:70px;padding:11px 4px;font-size:10px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;letter-spacing:.5px;white-space:nowrap;">📋 MISSÕES</button>
+              <button onclick="gamifTab('conquistas',this)" id="gtab-conquistas" style="flex:1;min-width:70px;padding:11px 4px;font-size:10px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:.5px;white-space:nowrap;">🏅 CONQUISTAS</button>
+              <button onclick="gamifTab('nivel',this)" id="gtab-nivel" style="flex:1;min-width:70px;padding:11px 4px;font-size:10px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:.5px;white-space:nowrap;">⭐ NÍVEL</button>
+              <button onclick="gamifTab('ranking',this)" id="gtab-ranking" style="flex:1;min-width:70px;padding:11px 4px;font-size:10px;font-weight:800;font-family:var(--mono);background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;letter-spacing:.5px;white-space:nowrap;">🏆 RANKING</button>
             </div>
             <!-- Content -->
-            <div id="gamif-content" style="padding:16px;min-height:300px;"></div>
+            <div id="gamif-content" style="padding:16px;min-height:260px;max-height:65vh;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
           </div>
         </div>
         <!-- Abas -->
@@ -9567,9 +9568,8 @@ function addPts(n, action) {
   }
   updateStreakUI();
   _gamifSave();
+  _gamifPublishLeaderboard();
 }
-
-// ── Toast especial gamif ────────────────────────────────────────
 function _gamifToast(msg, color) {
   const t=document.createElement('div');
   t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1f2e;border:1.5px solid '+color+';color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:99999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);';
@@ -9614,6 +9614,7 @@ function gamifTab(tab, btn) {
   if(tab==='missoes')    c.innerHTML=_gamifRenderMissoes();
   if(tab==='conquistas') c.innerHTML=_gamifRenderConquistas();
   if(tab==='nivel')      c.innerHTML=_gamifRenderNivel();
+  if(tab==='ranking')    { c.innerHTML=_gamifRenderRankingLoading(); _gamifLoadRanking(); }
 }
 
 function _gamifRenderMissoes() {
@@ -9621,8 +9622,12 @@ function _gamifRenderMissoes() {
   const today = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   let html = '<div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">📅 '+today+'</div>';
   html += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Complete as missões diárias para ganhar XP bônus!</div>';
-  if(!missions.length) { html+='<div style="text-align:center;color:var(--muted);padding:40px 0;">Carregando missões...</div>'; return html; }
-  missions.forEach(m=>{
+  // Se não carregou ainda, gera missões locais temporárias
+  const activeMissions = missions.length ? missions : (() => {
+    const pool = [...DAILY_MISSIONS_POOL].sort(()=>Math.random()-.5).slice(0,3);
+    return pool.map(m=>({...m, done:false}));
+  })();
+  activeMissions.forEach(m=>{
     const prog = _gamif.dailyProgress[m.id]||0;
     const pct = Math.min(100, Math.round((prog/m.need)*100));
     const done = m.done;
@@ -9640,7 +9645,7 @@ function _gamifRenderMissoes() {
       </div>
     </div>`;
   });
-  const feitas = missions.filter(m=>m.done).length;
+  const feitas = activeMissions.filter(m=>m.done).length;
   html+=`<div style="margin-top:16px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:14px;padding:14px;text-align:center;">
     <div style="font-size:24px;margin-bottom:4px;">${feitas===3?'🎉':'⚡'}</div>
     <div style="font-size:13px;font-weight:700;color:#a855f7;">${feitas}/3 missões hoje</div>
@@ -9722,6 +9727,105 @@ function _gamifRenderNivel() {
       <span style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text);">${v}</span>
     </div>`).join('')}
   </div>`;
+}
+
+// ── LEADERBOARD / RANKING ───────────────────────────────────────
+function _gamifRenderRankingLoading() {
+  return `<div style="text-align:center;padding:48px 0;">
+    <div style="font-size:36px;margin-bottom:12px;animation:pulse 1.5s ease infinite;">🏆</div>
+    <div style="font-size:13px;color:var(--muted);">Carregando ranking...</div>
+  </div>`;
+}
+
+async function _gamifLoadRanking() {
+  const uid = window._fbUser?.uid;
+  const c = document.getElementById('gamif-content');
+  if (!c) return;
+  try {
+    // Publica dados do usuário atual no leaderboard público
+    if (uid && db) {
+      const myName = window._fbUser?.displayName || window._fbUser?.email?.split('@')[0] || 'Usuário';
+      const myLevel = GAMIF_LEVELS[_gamifGetLevelNum()].label.split(' ').slice(1).join(' ');
+      await db.collection('leaderboard').doc(uid).set({
+        uid, name: myName,
+        xp: _gamif.xp || 0,
+        streakDays: _gamif.streakDays || 0,
+        badges: (_gamif.badges||[]).length,
+        level: myLevel,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+    // Busca top 50 ordenado por XP
+    const snap = await db.collection('leaderboard').orderBy('xp','desc').limit(50).get();
+    const entries = [];
+    snap.forEach(doc => entries.push(doc.data()));
+    if (document.getElementById('gamif-content') === c) {
+      c.innerHTML = _gamifRenderRankingHTML(entries, uid);
+    }
+  } catch(e) {
+    console.warn('[LEADERBOARD]', e?.code || e);
+    if (document.getElementById('gamif-content') === c) {
+      c.innerHTML = `<div style="text-align:center;padding:40px 16px;">
+        <div style="font-size:28px;margin-bottom:10px;">⚠️</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Não foi possível carregar o ranking.</div>
+        <div style="font-size:11px;color:var(--muted);opacity:.7;">Verifique as Firestore Rules:<br>
+        <code style="background:var(--surface);padding:2px 6px;border-radius:5px;font-size:10px;">match /leaderboard/{uid} { allow read: if request.auth != null; allow write: if request.auth.uid == uid; }</code></div>
+        <button onclick="gamifTab('ranking',document.getElementById('gtab-ranking'))" style="margin-top:14px;padding:8px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:12px;font-weight:700;">🔄 Tentar novamente</button>
+      </div>`;
+    }
+  }
+}
+
+function _gamifRenderRankingHTML(entries, myUid) {
+  const medals = ['🥇','🥈','🥉'];
+  let myPos = entries.findIndex(e => e.uid === myUid);
+  let html = `<div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🏆 RANKING GLOBAL — XP TOTAL</div>`;
+  if (myPos >= 0) {
+    html += `<div style="font-size:12px;color:var(--accent);margin-bottom:14px;font-family:var(--mono);">Sua posição: <strong style="color:var(--accent);">#${myPos+1}</strong> de ${entries.length} ${entries.length===1?'usuário':'usuários'}</div>`;
+  } else {
+    html += `<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Continue praticando para aparecer no ranking! 🚀</div>`;
+  }
+  if (!entries.length) {
+    return html + `<div style="text-align:center;padding:30px 0;color:var(--muted);">Nenhum dado ainda — você pode ser o primeiro! 🚀</div>`;
+  }
+  entries.forEach((e, i) => {
+    const isMe = e.uid === myUid;
+    const medal = i < 3
+      ? `<span style="font-size:20px;">${medals[i]}</span>`
+      : `<span style="font-size:12px;font-weight:800;font-family:var(--mono);color:var(--muted);width:20px;text-align:center;">#${i+1}</span>`;
+    const xp = (e.xp||0).toLocaleString('pt-BR');
+    const streak = e.streakDays || 0;
+    const xpColor = i===0?'#ffd000':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--text)';
+    html += `<div style="background:${isMe?'rgba(0,229,255,.07)':'var(--surface)'};border:${isMe?'1.5px solid rgba(0,229,255,.4)':'1px solid var(--border)'};border-radius:13px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;">
+      <div style="width:24px;text-align:center;flex-shrink:0;">${medal}</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#000;">${(e.name||'?').charAt(0).toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:${isMe?'var(--accent)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name||'Usuário'}${isMe?' <span style="font-size:9px;background:var(--adim);color:var(--accent);padding:1px 5px;border-radius:5px;">VOCÊ</span>':''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px;">${e.level||'Iniciante'} · 🔥 ${streak} dias</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:14px;font-weight:900;font-family:var(--mono);color:${xpColor};">${xp}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);">XP</div>
+      </div>
+    </div>`;
+  });
+  html += `<div style="text-align:center;margin-top:10px;font-size:10px;color:var(--muted);font-family:var(--mono);">Atualizado em tempo real · Top 50 usuários</div>`;
+  return html;
+}
+
+// Publicar no leaderboard a cada ganho de XP
+async function _gamifPublishLeaderboard() {
+  const uid = window._fbUser?.uid; if(!uid||!db) return;
+  try {
+    const myName = window._fbUser?.displayName || window._fbUser?.email?.split('@')[0] || 'Usuário';
+    const myLevel = GAMIF_LEVELS[_gamifGetLevelNum()].label.split(' ').slice(1).join(' ');
+    await db.collection('leaderboard').doc(uid).set({
+      uid, name: myName,
+      xp: _gamif.xp||0, streakDays: _gamif.streakDays||0,
+      badges: (_gamif.badges||[]).length, level: myLevel,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch(e){ /* silencioso */ }
 }
 
 // ── PROFESSOR ─────────────────────────────────────────────────
@@ -9850,19 +9954,40 @@ function setLicaoLang(el){
   document.querySelectorAll('#licoes-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); _licaoLang=el.dataset.lang; renderLicoes();
 }
+// Cache de lookup para abrir lição em O(1)
+const _licaoIndex = {};
+(function _buildLicaoIndex(){
+  Object.entries(LICOES_DATA).forEach(([lang, grupos])=>{
+    grupos.forEach(grupo=>{
+      grupo.itens.forEach(l=>{ _licaoIndex[l.id]=l; });
+    });
+  });
+})();
+
 function renderLicoes(){
   const scroll=document.getElementById('licoes-scroll'); if(!scroll)return;
   const dados=LICOES_DATA[_licaoLang]||[];
-  const conc=_getLicoesConcluidas(); let html='';
-  dados.forEach(grupo=>{
-    html+=`<div class="licao-cat">${grupo.cat}</div>`;
-    grupo.itens.forEach(l=>{
-      const ok=conc.includes(l.id);
-      html+=`<div class="licao-card" onclick="openLicao('${l.id}')"><div class="licao-icon">${l.icon}</div><div class="licao-info"><div class="licao-nome">${l.nome}</div><div class="licao-desc">${l.desc}</div></div><div class="licao-badge ${ok?'ok':'novo'}">${ok?'✓ OK':'NOVO'}</div></div>`;
+  // Lê localStorage UMA vez só, fora do loop
+  const conc=_getLicoesConcluidas();
+  const concSet=new Set(conc);
+
+  // Mostra skeletons imediatamente enquanto monta o DOM real
+  scroll.innerHTML='<div class="licao-cat" style="background:var(--surface);border-radius:6px;height:12px;width:80px;margin:14px 0 12px;"></div>'
+    +'<div class="skeleton" style="height:62px;border-radius:14px;margin-bottom:9px;"></div>'.repeat(4);
+
+  // Monta o HTML real em microtask pra não travar o paint inicial
+  requestAnimationFrame(()=>{
+    let html='';
+    dados.forEach(grupo=>{
+      html+=`<div class="licao-cat">${grupo.cat}</div>`;
+      grupo.itens.forEach(l=>{
+        const ok=concSet.has(l.id);
+        html+=`<div class="licao-card" onclick="openLicao('${l.id}')"><div class="licao-icon">${l.icon}</div><div class="licao-info"><div class="licao-nome">${l.nome}</div><div class="licao-desc">${l.desc}</div></div><div class="licao-badge ${ok?'ok':'novo'}">${ok?'✓ OK':'NOVO'}</div></div>`;
+      });
     });
+    if(!html) html='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Mais lições em breve!</div>';
+    scroll.innerHTML=html;
   });
-  if(!html)html='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Mais lições em breve!</div>';
-  scroll.innerHTML=html;
 }
 function _getLicoesConcluidas(){
   try{return JSON.parse(localStorage.getItem('aivox_licoes_'+(window._fbUser?.uid||'x'))||'[]');}catch(e){return[];}
@@ -9872,8 +9997,8 @@ function _setLicaoConcluida(id){
   try{const arr=_getLicoesConcluidas();if(!arr.includes(id)){arr.push(id);localStorage.setItem(key,JSON.stringify(arr));}}catch(e){}
 }
 function openLicao(id){
-  let licao=null;
-  Object.values(LICOES_DATA).forEach(gs=>gs.forEach(g=>g.itens.forEach(l=>{if(l.id===id)licao=l;})));
+  // Lookup O(1) — sem percorrer todos os idiomas
+  const licao = _licaoIndex[id];
   if(!licao)return; _currentLicao=licao;
   document.getElementById('licao-modal-title').textContent=licao.icon+' '+licao.nome;
   document.getElementById('licao-modal-sub').textContent=licao.desc;

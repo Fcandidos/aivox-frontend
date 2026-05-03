@@ -1346,6 +1346,61 @@ input, textarea, select {
 .feat-card.suporte:hover { box-shadow: 0 0 40px rgba(244,63,94,.22); }
 .feat-card.suporte .feat-card-badge { background: rgba(244,63,94,.14); color: #fb7185; border: 1px solid rgba(244,63,94,.3); }
 
+/* SRS */
+.feat-card.srs-f {
+  background: linear-gradient(135deg, rgba(245,158,11,.14) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(245,158,11,.38);
+  box-shadow: 0 0 28px rgba(245,158,11,.10);
+  color: #fff0cc;
+}
+.feat-card.srs-f:hover { box-shadow: 0 0 40px rgba(245,158,11,.24); }
+.feat-card.srs-f .feat-card-badge { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+/* Pronúncia */
+.feat-card.pronun-f {
+  background: linear-gradient(135deg, rgba(168,85,247,.16) 0%, rgba(99,102,241,.10) 60%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(168,85,247,.40);
+  box-shadow: 0 0 28px rgba(168,85,247,.12);
+  color: #f0e0ff;
+}
+.feat-card.pronun-f:hover { box-shadow: 0 0 40px rgba(168,85,247,.26); }
+.feat-card.pronun-f .feat-card-badge { background: rgba(168,85,247,.16); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
+/* Resumo Escuta */
+.feat-card.resumo-f {
+  background: linear-gradient(135deg, rgba(16,185,129,.14) 0%, rgba(0,229,255,.08) 60%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(16,185,129,.38);
+  box-shadow: 0 0 28px rgba(16,185,129,.10);
+  color: #ccfff0;
+}
+.feat-card.resumo-f:hover { box-shadow: 0 0 40px rgba(16,185,129,.24); }
+.feat-card.resumo-f .feat-card-badge { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.3); }
+/* Gamificação */
+.feat-card.gamif-f {
+  background: linear-gradient(135deg, rgba(239,68,68,.14) 0%, rgba(249,115,22,.10) 60%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(239,68,68,.38);
+  box-shadow: 0 0 28px rgba(239,68,68,.10);
+  color: #ffe0e0;
+}
+.feat-card.gamif-f:hover { box-shadow: 0 0 40px rgba(239,68,68,.24); }
+.feat-card.gamif-f .feat-card-badge { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+/* Shadowing */
+.feat-card.shadow-f {
+  background: linear-gradient(135deg, rgba(59,130,246,.15) 0%, rgba(6,182,212,.10) 60%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(59,130,246,.38);
+  box-shadow: 0 0 28px rgba(59,130,246,.10);
+  color: #dbeafe;
+}
+.feat-card.shadow-f:hover { box-shadow: 0 0 40px rgba(59,130,246,.24); }
+.feat-card.shadow-f .feat-card-badge { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+/* Diário */
+.feat-card.diario-f {
+  background: linear-gradient(135deg, rgba(236,72,153,.14) 0%, rgba(168,85,247,.10) 60%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(236,72,153,.38);
+  box-shadow: 0 0 28px rgba(236,72,153,.10);
+  color: #ffe0f4;
+}
+.feat-card.diario-f:hover { box-shadow: 0 0 40px rgba(236,72,153,.24); }
+.feat-card.diario-f .feat-card-badge { background: rgba(236,72,153,.15); color: #f472b6; border: 1px solid rgba(236,72,153,.3); }
+
 /* ── cards de PRÓXIMAS FUNCIONALIDADES (votação) ── */
 .sug-card {
   background: var(--card); border: 1px solid var(--border);
@@ -3232,56 +3287,134 @@ input, textarea, select {
 
         </div>
 
-        <!-- ─── SEÇÃO: PRÓXIMAS FUNCIONALIDADES ──────────────── -->
+        <!-- ─── SEÇÃO: RECÉM LANÇADAS (ex-votações implementadas) ─── -->
         <div class="nov-section-header" style="margin-top:28px;">
           <div class="nov-section-line"></div>
-          <div class="nov-section-title" style="color:#ffd000;">⚡ Próximas funcionalidades — Vote!</div>
+          <div class="nov-section-title" style="color:#a855f7;">🚀 Recém lançadas — Votadas por você!</div>
+          <div class="nov-section-line"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;">Essas funcionalidades foram votadas pela comunidade e já estão disponíveis no AIVOX! ✅</div>
+
+        <div class="sug-grid">
+
+          <!-- SRS -->
+          <div class="feat-card srs-f">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">⏱</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Repetição Espaçada (SRS)</div>
+            <div class="feat-card-desc">Algoritmo SM-2 nos flashcards. Cada card ganha data de próxima revisão — retenção de vocabulário 3-5x maior. Disponível em Aprendizagem.</div>
+            <div class="feat-card-badge">🟡 Modo Aprendizagem → Flashcards</div>
+          </div>
+
+          <!-- Pronúncia -->
+          <div class="feat-card pronun-f">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">🎤</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Treino de Pronúncia com IA</div>
+            <div class="feat-card-desc">Você fala → IA transcreve → compara com a frase esperada e dá nota + dica personalizada. Modelo correto reproduzido em seguida.</div>
+            <div class="feat-card-badge">🟣 Modo Aprendizagem → Pronúncia</div>
+          </div>
+
+          <!-- Resumo Escuta -->
+          <div class="feat-card resumo-f">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">🧠</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Resumo Inteligente de Escuta</div>
+            <div class="feat-card-desc">Ao encerrar a escuta, a IA resume o que foi dito e lista palavras novas capturadas. Adicione ao vocabulário com um toque.</div>
+            <div class="feat-card-badge">🟢 Escuta ao Vivo → Resumo IA</div>
+          </div>
+
+          <!-- Gamificação -->
+          <div class="feat-card gamif-f">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">🏆</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Gamificação Profunda</div>
+            <div class="feat-card-desc">Conquistas, streak de dias, ranking mensal por idioma e desafios semanais. Compartilhe seu progresso com amigos.</div>
+            <div class="feat-card-badge">🔴 Aprendizagem → Conquistas</div>
+          </div>
+
+          <!-- Shadowing -->
+          <div class="feat-card shadow-f">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">🗣</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Modo Sombra (Shadowing)</div>
+            <div class="feat-card-desc">Áudio nativo toca e você repete em seguida. A IA compara sua repetição com o original e pontua. Técnica favorita de poliglotas.</div>
+            <div class="feat-card-badge">🔵 Aprendizagem → Shadowing</div>
+          </div>
+
+          <!-- Diário -->
+          <div class="feat-card diario-f">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">📔</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ LANÇADO</span>
+            </div>
+            <div class="feat-card-title">Diário de Idioma</div>
+            <div class="feat-card-desc">Escreva em PT-BR e a IA corrige, reescreve no idioma alvo e dá feedback de gramática e estilo. Histórico salvo no seu perfil.</div>
+            <div class="feat-card-badge">🩷 Aprendizagem → Diário</div>
+          </div>
+
+        </div>
+
+        <!-- ─── SEÇÃO: EM BREVE ─────────────────────────────────── -->
+        <div class="nov-section-header" style="margin-top:28px;">
+          <div class="nov-section-line"></div>
+          <div class="nov-section-title" style="color:#ffd000;">⚡ Em breve — Vote nas próximas!</div>
           <div class="nov-section-line"></div>
         </div>
         <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;">Clique em 👍 para votar nas funcionalidades que você mais quer ver no AIVOX!</div>
 
         <div class="sug-grid">
           <div class="sug-card srs">
-            <div class="sug-num">01 · SRS</div>
-            <div class="sug-title">⏱ Repetição Espaçada (SRS)</div>
-            <div class="sug-desc">Algoritmo SM-2 (igual Anki) nos flashcards. Cada card ganha data de próxima revisão. Notificação push "5 cards para revisar". Retenção de vocabulário 3-5x maior.</div>
+            <div class="sug-num">01 · IA Avançada</div>
+            <div class="sug-title">🤖 Assistente Pessoal de Idiomas</div>
+            <div class="sug-desc">IA que conhece seu histórico, nível e objetivos. Sugere o que praticar hoje, lembra de palavras esquecidas e adapta as lições automaticamente ao longo dos meses.</div>
             <span class="sug-tag alto">🚀 Alto impacto</span>
-            <div><button onclick="amiVoteSugestao(this,'srs')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'assistente')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card pronun">
-            <div class="sug-num">02 · Pronúncia</div>
-            <div class="sug-title">🎤 Treino de Pronúncia com IA</div>
-            <div class="sug-desc">Você fala → Whisper transcreve → IA compara com a frase esperada e dá nota + dica. Ex: "você trocou 'th' por 'd' — tente assim:". ElevenLabs reproduz o modelo correto.</div>
+            <div class="sug-num">02 · Social</div>
+            <div class="sug-title">🌍 Grupos de Conversação</div>
+            <div class="sug-desc">Salas temáticas abertas por idioma e nível — ex: "Inglês B2 · Negócios". Moderação por IA, tradução simultânea para todos os participantes e ranking de participação.</div>
             <span class="sug-tag unico">⭐ Diferencial único</span>
-            <div><button onclick="amiVoteSugestao(this,'pronun')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'grupos')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card escuta">
-            <div class="sug-num">03 · Escuta</div>
-            <div class="sug-title">🧠 Resumo Inteligente de Escuta</div>
-            <div class="sug-desc">Ao parar a escuta, Claude resume o que foi dito + lista palavras novas captadas. Botão "Adicionar ao vocabulário" por item. 1 chamada Claude → muito valor percebido.</div>
-            <span class="sug-tag facil">✅ Fácil de implementar</span>
-            <div><button onclick="amiVoteSugestao(this,'escuta')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div class="sug-num">03 · Integração</div>
+            <div class="sug-title">📺 Tradução de Vídeo em Tempo Real</div>
+            <div class="sug-desc">Assista vídeos do YouTube ou reuniões do Meet/Zoom com legenda traduzida ao vivo pela AIVOX. Sem extensões — funciona direto pelo app.</div>
+            <span class="sug-tag facil">✅ Alta demanda</span>
+            <div><button onclick="amiVoteSugestao(this,'video')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card gamif">
-            <div class="sug-num">04 · Gamificação</div>
-            <div class="sug-title">🏆 Gamificação Profunda</div>
-            <div class="sug-desc">Conquistas: "100 frases praticadas", "7 dias". Ranking mensal por idioma/plano. Desafio semanal: "traduza 50 min esta semana". Compartilhar progresso (imagem gerada).</div>
+            <div class="sug-num">04 · Certificação</div>
+            <div class="sug-title">🏅 Certificado de Fluência AIVOX</div>
+            <div class="sug-desc">Teste seu nível em conversação real com IA. Ao atingir a pontuação mínima, receba um certificado digital compartilhável no LinkedIn e redes sociais.</div>
             <span class="sug-tag retencao">🔒 Retenção de usuário</span>
-            <div><button onclick="amiVoteSugestao(this,'gamif')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'certificado')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card shadow">
-            <div class="sug-num">05 · Shadowing</div>
-            <div class="sug-title">🗣 Modo "Sombra" (Shadowing)</div>
-            <div class="sug-desc">Áudio nativo toca → usuário repete em seguida. IA compara a repetição com o original. Técnica usada por poliglotas avançados.</div>
+            <div class="sug-num">05 · Mobile</div>
+            <div class="sug-title">📱 App Nativo (iOS & Android)</div>
+            <div class="sug-desc">App nativo com notificações push, widget de tradução rápida na tela inicial, acesso offline ampliado e integração com fones Bluetooth para tradução em tempo real.</div>
             <span class="sug-tag medio">⏳ Médio prazo</span>
-            <div><button onclick="amiVoteSugestao(this,'shadow')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'appnativo')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card diario">
-            <div class="sug-num">06 · Diário</div>
-            <div class="sug-title">📔 Diário de Idioma</div>
-            <div class="sug-desc">Usuário escreve em PT → IA corrige e reescreve no idioma alvo. Histórico salvo no Firebase. Claude dá feedback de gramática + estilo.</div>
-            <span class="sug-tag premium">💎 Diferencial premium</span>
-            <div><button onclick="amiVoteSugestao(this,'diario')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div class="sug-num">06 · Empresa</div>
+            <div class="sug-title">🏢 AIVOX para Empresas</div>
+            <div class="sug-desc">Dashboard corporativo com múltiplos usuários, relatórios de uso por equipe, integração com Slack/Teams e tradução em reuniões empresariais com transcrição automática.</div>
+            <span class="sug-tag premium">💎 Plano Enterprise</span>
+            <div><button onclick="amiVoteSugestao(this,'enterprise')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
         </div>
 

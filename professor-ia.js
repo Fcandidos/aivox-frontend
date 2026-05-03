@@ -1127,19 +1127,29 @@ async function profIA_processInput(text) {
   if (btn) { btn.classList.remove('processing'); btn.textContent = '🎤'; }
 }
 
-// ── API call (com retry automático para 502/503 do Render free tier) ─────
+// ── API call (com retry automático para 502/503 e Failed to fetch) ────────
 async function profIA_callAPI(messages) {
   const system = profIA_buildSystemPrompt();
   const MAX_RETRIES = 2;
   const RETRY_DELAYS = [4000, 8000];
 
+  // Garante que o BACKEND_URL está configurado antes de tentar
+  const backendUrl = (window.AIVOX_BACKEND_URL || window.BACKEND_URL || '').trim();
+  if (!backendUrl) {
+    profIA_toast('Backend não configurado. Configure a URL nas Configurações.', 'warn');
+    profIA_setExpression('aguardando');
+    profIA_addBubble('Oops! The server is not configured yet. Please set the backend URL in Settings and try again. 🔧', 'prof');
+    return;
+  }
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       if (attempt > 0) {
+        profIA_toast('Reconectando... aguarde (' + attempt + '/' + MAX_RETRIES + ') 🔄', 'info');
         await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
       }
       const token = await auth.currentUser?.getIdToken();
-      const resp = await fetch(window.BACKEND_URL + '/api/professor', {
+      const resp = await fetch(backendUrl + '/api/professor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1149,7 +1159,7 @@ async function profIA_callAPI(messages) {
         signal: AbortSignal.timeout(35000),
       });
 
-      // 502/503 = backend cold-starting (Render free tier) — retry silencioso
+      // 502/503 = backend cold-starting — retry silencioso
       if (resp.status === 502 || resp.status === 503) {
         if (attempt < MAX_RETRIES) {
           profIA_toast('Servidor iniciando... aguarde (' + (attempt+1) + '/' + MAX_RETRIES + ') 🔄', 'info');
@@ -1173,11 +1183,13 @@ async function profIA_callAPI(messages) {
       return; // sucesso
 
     } catch(e) {
-      console.error('[profIA] API error (tentativa ' + (attempt+1) + '):', e);
+      const isFetchError = e.name === 'TypeError' || e.message?.includes('fetch') || e.message?.includes('network');
+      console.error('[profIA] API error (tentativa ' + (attempt+1) + '):', e.message);
+      if (attempt < MAX_RETRIES && isFetchError) continue; // retry em erros de rede
       if (attempt === MAX_RETRIES) {
-        profIA_toast('Conexão instável. Tente novamente em instantes.', 'warn');
+        profIA_toast('Servidor sem resposta. Verifique a URL do backend nas Configurações.', 'warn');
         profIA_setExpression('aguardando');
-        profIA_addBubble('Sorry, connection issue. Please try again in a moment! 🙏', 'prof');
+        profIA_addBubble('Hmm, I can\'t reach the server right now. Please check your connection and try again! 🙏', 'prof');
       }
     }
   }

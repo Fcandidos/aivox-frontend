@@ -2201,6 +2201,7 @@ input, textarea, select {
         </div>
         <!-- Abas -->
         <div class="learn-tabs">
+          <div class="learn-tab" onclick="learnTab('assistente',this)" style="position:relative;">🧠 ASSISTENTE<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:#a855f7;"></span></div>
           <div class="learn-tab active" onclick="learnTab('professor',this)">🤖 PROFESSOR</div>
           <div class="learn-tab" onclick="learnTab('licoes',this)">📚 LIÇÕES</div>
           <div class="learn-tab" onclick="learnTab('flash',this)">🃏 FLASHCARD</div>
@@ -2210,6 +2211,65 @@ input, textarea, select {
           <div class="learn-tab" onclick="learnTab('diario',this)" style="position:relative;">📔 DIÁRIO<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:#f472b6;"></span></div>
           <div class="learn-tab" onclick="learnTab('vocab',this)">📖 VOCABULÁRIO</div>
           <div class="learn-tab" id="tab-livre" onclick="learnTab('livre',this)" style="position:relative;">🗣️ LIVRE<span style="position:absolute;top:5px;right:1px;width:5px;height:5px;border-radius:50%;background:var(--green);"></span></div>
+        </div>
+
+        <!-- ── ABA ASSISTENTE PESSOAL ── -->
+        <div class="learn-tab-panel" id="ltp-assistente" style="flex-direction:column;overflow-y:auto;padding:16px;gap:14px;">
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(0,229,255,.08));border:1.5px solid rgba(168,85,247,.25);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;background:radial-gradient(circle,rgba(168,85,247,.2),transparent 70%);pointer-events:none;"></div>
+            <div style="font-size:10px;font-family:var(--mono);color:#a855f7;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">✦ NOVO</div>
+            <div style="font-size:18px;font-weight:900;margin-bottom:4px;">🧠 Assistente Pessoal</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.5;">A IA lê seu progresso real — XP, streak, nível e vocabulário — e monta um plano personalizado para hoje.</div>
+          </div>
+
+          <!-- Stats resumo do usuário -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="ast-stats-row">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:var(--yellow);" id="ast-stat-streak">—</div>
+              <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;">STREAK</div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:#a855f7;" id="ast-stat-xp">—</div>
+              <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;">XP TOTAL</div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:var(--accent);" id="ast-stat-vocab">—</div>
+              <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;">VOCABS</div>
+            </div>
+          </div>
+
+          <!-- Idioma alvo -->
+          <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;">
+            <span style="font-size:12px;color:var(--muted);font-family:var(--mono);">IDIOMA ALVO:</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="ast-lang-btns">
+              <button onclick="astSetLang(this,'inglês')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(0,229,255,.4);background:var(--adim);color:var(--accent);cursor:pointer;">🇺🇸 Inglês</button>
+              <button onclick="astSetLang(this,'espanhol')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇪🇸 Espanhol</button>
+              <button onclick="astSetLang(this,'francês')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇫🇷 Francês</button>
+            </div>
+          </div>
+
+          <!-- Área de plano gerado -->
+          <div id="ast-plan-area" style="display:none;background:var(--card);border:1px solid rgba(168,85,247,.25);border-radius:16px;padding:16px;line-height:1.7;font-size:13px;color:var(--text);white-space:pre-wrap;"></div>
+
+          <!-- Atividade sugerida em cards -->
+          <div id="ast-activities" style="display:none;flex-direction:column;gap:10px;"></div>
+
+          <!-- Botão gerar -->
+          <button id="ast-gen-btn" onclick="astGenerate()" style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:14px;padding:15px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(168,85,247,.3);">
+            <span id="ast-gen-icon">✦</span> <span id="ast-gen-label">Gerar meu plano de hoje</span>
+          </button>
+
+          <!-- Chat com assistente -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;" id="ast-chat-wrap" style="display:none;">
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;font-family:var(--mono);color:#a855f7;letter-spacing:1.5px;">💬 CONVERSE COM O ASSISTENTE</div>
+            <div id="ast-chat-msgs" style="padding:12px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+            <div style="display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);">
+              <input id="ast-chat-inp" class="input-field" style="flex:1;font-size:14px;" placeholder="Pergunte ao seu assistente..."
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();astChatSend();}">
+              <button onclick="astChatSend()" style="background:var(--adim);border:1px solid rgba(168,85,247,.3);color:#a855f7;border-radius:10px;padding:0 14px;cursor:pointer;font-size:16px;">→</button>
+            </div>
+          </div>
         </div>
 
         <!-- ── ABA PROFESSOR ── -->
@@ -3169,8 +3229,56 @@ input, textarea, select {
           </button>
         </div>
 
-      </div>
-    </div>
+      </div><!-- /sala-main -->
+
+      <!-- ── GRUPOS DE CONVERSAÇÃO ── -->
+      <div id="grupos-section" style="margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+          <div style="font-size:10px;font-family:var(--mono);color:#a855f7;letter-spacing:2px;white-space:nowrap;">🌍 GRUPOS DE CONVERSAÇÃO</div>
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center;">Salas temáticas abertas — entre e pratique com falantes do mundo todo</div>
+
+        <!-- Filtros por idioma -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="grp-lang-filter">
+          <button onclick="grpFilter(this,'todos')" class="grp-filter-btn active" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(0,229,255,.4);background:var(--adim);color:var(--accent);cursor:pointer;">🌐 Todos</button>
+          <button onclick="grpFilter(this,'inglês')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇺🇸 Inglês</button>
+          <button onclick="grpFilter(this,'espanhol')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇪🇸 Espanhol</button>
+          <button onclick="grpFilter(this,'francês')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇫🇷 Francês</button>
+        </div>
+
+        <!-- Lista de grupos -->
+        <div id="grp-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+        <!-- Criar grupo -->
+        <div style="margin-top:14px;background:var(--card);border:1.5px dashed rgba(168,85,247,.3);border-radius:16px;padding:16px;text-align:center;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px;">✦ Criar grupo temático</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Defina o tema, idioma e nível — seu grupo fica público por 24h</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <input id="grp-tema-inp" class="input-field" placeholder="Tema — ex: Inglês B2 · Negócios" style="font-size:14px;">
+            <div style="display:flex;gap:8px;">
+              <select id="grp-lang-sel" class="input-field" style="flex:1;font-size:13px;">
+                <option value="inglês">🇺🇸 Inglês</option>
+                <option value="espanhol">🇪🇸 Espanhol</option>
+                <option value="francês">🇫🇷 Francês</option>
+                <option value="alemão">🇩🇪 Alemão</option>
+                <option value="japonês">🇯🇵 Japonês</option>
+              </select>
+              <select id="grp-nivel-sel" class="input-field" style="flex:1;font-size:13px;">
+                <option value="A1">A1 · Iniciante</option>
+                <option value="A2">A2 · Básico</option>
+                <option value="B1" selected>B1 · Intermediário</option>
+                <option value="B2">B2 · Avançado</option>
+                <option value="C1">C1 · Fluente</option>
+              </select>
+            </div>
+            <button onclick="grpCriar()" style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;">🌍 Criar Grupo</button>
+          </div>
+        </div>
+      </div><!-- /grupos-section -->
+
+    </div><!-- /page-sala -->
 
     <!-- ====== SALA ATIVA (tradução em tempo real) ====== -->
     <div class="page" id="page-sala-ativa" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;">
@@ -3641,17 +3749,29 @@ input, textarea, select {
         <div class="sug-grid">
           <div class="sug-card srs">
             <div class="sug-num">01 · IA Avançada</div>
-            <div class="sug-title">🤖 Assistente Pessoal de Idiomas</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <div class="sug-title" style="margin:0;">🤖 Assistente Pessoal de Idiomas</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(168,85,247,.18);color:#a855f7;border:1px solid rgba(168,85,247,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">🚧 EM DEV</span>
+            </div>
             <div class="sug-desc">IA que conhece seu histórico, nível e objetivos. Sugere o que praticar hoje, lembra de palavras esquecidas e adapta as lições automaticamente ao longo dos meses.</div>
             <span class="sug-tag alto">🚀 Alto impacto</span>
-            <div><button onclick="amiVoteSugestao(this,'assistente')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+              <button onclick="amiVoteSugestao(this,'assistente')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button>
+              <button onclick="navApp('learn');setTimeout(()=>{const tabs=document.querySelectorAll('.learn-tab');tabs.forEach(t=>t.classList.remove('active'));const t=Array.from(tabs).find(t=>t.textContent.includes('ASSISTENTE'));if(t){t.classList.add('active');learnTab('assistente',t);}},300);" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#a855f7;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;">Experimentar →</button>
+            </div>
           </div>
           <div class="sug-card pronun">
             <div class="sug-num">02 · Social</div>
-            <div class="sug-title">🌍 Grupos de Conversação</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <div class="sug-title" style="margin:0;">🌍 Grupos de Conversação</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(168,85,247,.18);color:#a855f7;border:1px solid rgba(168,85,247,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">🚧 EM DEV</span>
+            </div>
             <div class="sug-desc">Salas temáticas abertas por idioma e nível — ex: "Inglês B2 · Negócios". Moderação por IA, tradução simultânea para todos os participantes e ranking de participação.</div>
             <span class="sug-tag unico">⭐ Diferencial único</span>
-            <div><button onclick="amiVoteSugestao(this,'grupos')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+              <button onclick="amiVoteSugestao(this,'grupos')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button>
+              <button onclick="navApp('sala');" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#a855f7;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;">Ver grupos →</button>
+            </div>
           </div>
           <div class="sug-card escuta">
             <div class="sug-num">03 · Integração</div>
@@ -3939,11 +4059,13 @@ function _amiListenPresence() {
       if (wasOffline) _amiShowLoginNotif(name, uid);
     });
     s.on('ami-friend-offline', ({ uid }) => { delete _ami.online[uid]; _amiRenderFriends(); _amiUpdateOnlineCount(); });
-    s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, ts }) => {
-      // Resolve o nome real do amigo a partir da lista local (evita "Usuário" quando displayName não foi definido)
+    s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, audioData, ts }) => {
+      // Resolve o nome real do amigo a partir da lista local
       const friendEntry = _ami.friends.find(f => f.uid === fromUid);
       const resolvedName = (friendEntry && (friendEntry.name || friendEntry.displayName)) || fromName || 'Amigo';
-      _amiReceiveMsg(fromUid, resolvedName, text, audioUrl, ts);
+      // audioData é fallback base64 quando Firebase Storage não está disponível
+      const finalAudioUrl = audioUrl || audioData || null;
+      _amiReceiveMsg(fromUid, resolvedName, text, finalAudioUrl, ts);
     });
     s.on('ami-typing', ({ fromUid }) => {
       if (_ami.currentChat?.uid === fromUid) {
@@ -4405,23 +4527,49 @@ async function toggleFriendVoice() {
 
 async function _amiSendAudioMsg(blob) {
   if (!_ami.currentChat) return;
+  const myUid=window._fbUser?.uid, myName=window._fbUser?.displayName||'Usuário', toUid=_ami.currentChat.uid;
+  if (!myUid) { showToast('Usuário não autenticado','error'); return; }
+  // Renderiza localmente com URL de objeto (feedback instantâneo ao remetente)
+  const localUrl=URL.createObjectURL(blob);
+  const ts=Date.now();
+  if (!_ami.chatMessages[toUid]) _ami.chatMessages[toUid]=[];
+  const localIdx=_ami.chatMessages[toUid].length;
+  _ami.chatMessages[toUid].push({mine:true,audioUrl:localUrl,ts,_pending:true});
+  _amiRenderChat(toUid);
+  showToast('🎤 Enviando áudio...','info');
   try {
-    const myUid=window._fbUser?.uid, myName=window._fbUser?.displayName||'Usuário', toUid=_ami.currentChat.uid;
-    if (window.firebase?.storage) {
-      const storageRef=firebase.storage().ref(`voice_msgs/${myUid}_${Date.now()}.webm`);
-      const snap=await storageRef.put(blob);
-      const audioUrl=await snap.ref.getDownloadURL();
-      await db.collection('friend_messages').add({fromUid:myUid,fromName:myName,toUid,audioUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-      if(!_ami.chatMessages[toUid])_ami.chatMessages[toUid]=[];
-      _ami.chatMessages[toUid].push({mine:true,audioUrl,ts:Date.now()});
-      _amiRenderChat(toUid);
-    } else {
-      const reader=new FileReader();
-      reader.onload=()=>{if(window._salaSocket)window._salaSocket.emit('ami-send-msg',{toUid,fromName:myName,audioData:reader.result,ts:Date.now()});};
-      reader.readAsDataURL(blob);
-      showToast('🎤 Áudio enviado','success');
+    let audioUrl=null;
+    // Tenta Firebase Storage (SDK agora carregado)
+    if (typeof firebase!=='undefined' && firebase.storage) {
+      try {
+        const storageRef=firebase.storage().ref('voice_msgs/'+myUid+'_'+ts+'.webm');
+        const snap=await storageRef.put(blob);
+        audioUrl=await snap.ref.getDownloadURL();
+      } catch(storageErr) { console.warn('Storage upload falhou, usando base64:',storageErr); }
     }
-  } catch(e) { showToast('Erro ao enviar áudio','error'); }
+    // Fallback: converte para base64 para transmitir via socket
+    if (!audioUrl) {
+      audioUrl=await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(blob);});
+    }
+    // Substitui blob local pela URL definitiva
+    _ami.chatMessages[toUid][localIdx]={mine:true,audioUrl,ts};
+    _amiRenderChat(toUid);
+    // Salva no Firestore apenas se for URL HTTP (base64 seria muito grande)
+    const isHttpUrl=audioUrl.startsWith('http');
+    if (isHttpUrl) {
+      try { await db.collection('friend_messages').add({fromUid:myUid,fromName:myName,toUid,audioUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()}); } catch(fsErr){ console.warn('Firestore audio save falhou:',fsErr); }
+    }
+    // Emite via socket para o destinatário receber em tempo real
+    if (window._salaSocket) {
+      if (isHttpUrl) window._salaSocket.emit('ami-send-msg',{toUid,fromName:myName,audioUrl,ts});
+      else window._salaSocket.emit('ami-send-msg',{toUid,fromName:myName,audioData:audioUrl,ts});
+    }
+    URL.revokeObjectURL(localUrl);
+    showToast('🎤 Áudio enviado','success');
+  } catch(e) {
+    console.error('_amiSendAudioMsg error:',e);
+    showToast('⚠️ Erro ao enviar áudio','error');
+  }
 }
 
 // WebRTC
@@ -4645,6 +4793,348 @@ function _esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;
   }
 */
 
+// ════════════════════════════════════════════════════════
+//  ASSISTENTE PESSOAL DE IDIOMAS
+// ════════════════════════════════════════════════════════
+let _astLang = 'inglês';
+let _astChatHistory = [];
+let _astGenerated = false;
+
+function astSetLang(btn, lang) {
+  _astLang = lang;
+  document.querySelectorAll('.ast-lang-btn').forEach(b => {
+    b.style.border = '1px solid var(--border)';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--muted)';
+  });
+  btn.style.border = '1.5px solid rgba(0,229,255,.4)';
+  btn.style.background = 'var(--adim)';
+  btn.style.color = 'var(--accent)';
+}
+
+function astLoadStats() {
+  const xp = _gamif?.xp || 0;
+  const streak = _gamif?.streakDays || 0;
+  const vocabEl = document.getElementById('ast-stat-vocab');
+  const xpEl = document.getElementById('ast-stat-xp');
+  const strEl = document.getElementById('ast-stat-streak');
+  if (xpEl) xpEl.textContent = xp;
+  if (strEl) strEl.textContent = streak + '🔥';
+  // Conta vocabulário salvo
+  const uid = window._fbUser?.uid;
+  if (vocabEl && uid && db) {
+    db.collection('users').doc(uid).collection('vocabulary').get()
+      .then(s => { vocabEl.textContent = s.size; })
+      .catch(() => { vocabEl.textContent = '—'; });
+  } else if (vocabEl) { vocabEl.textContent = '—'; }
+}
+
+async function astGenerate() {
+  const btn = document.getElementById('ast-gen-btn');
+  const label = document.getElementById('ast-gen-label');
+  const icon = document.getElementById('ast-gen-icon');
+  const planArea = document.getElementById('ast-plan-area');
+  const actArea = document.getElementById('ast-activities');
+  const chatWrap = document.getElementById('ast-chat-wrap');
+
+  if (!btn || !planArea) return;
+
+  // Estado carregando
+  btn.disabled = true;
+  if (label) label.textContent = 'Gerando plano...';
+  if (icon) icon.textContent = '⏳';
+
+  const xp = _gamif?.xp || 0;
+  const streak = _gamif?.streakDays || 0;
+  const nivel = xp < 200 ? 'A1 (Iniciante)' : xp < 600 ? 'A2 (Básico)' : xp < 1200 ? 'B1 (Intermediário)' : xp < 2500 ? 'B2 (Avançado)' : 'C1 (Fluente)';
+  const hora = new Date().getHours();
+  const periodo = hora < 12 ? 'manhã' : hora < 18 ? 'tarde' : 'noite';
+
+  // Busca últimas palavras do vocabulário
+  let palavrasRecentes = [];
+  try {
+    const uid = window._fbUser?.uid;
+    if (uid && db) {
+      const snap = await db.collection('users').doc(uid).collection('vocabulary')
+        .orderBy('createdAt', 'desc').limit(8).get();
+      palavrasRecentes = snap.docs.map(d => d.data().word || d.data().palavra).filter(Boolean);
+    }
+  } catch(_) {}
+
+  const prompt = `Você é o Assistente Pessoal de Idiomas do AIVOX. Responda APENAS com JSON válido, sem texto extra.
+
+Dados do usuário:
+- Idioma que está aprendendo: ${_astLang}
+- Nível estimado: ${nivel} (${xp} XP total)
+- Streak atual: ${streak} dias seguidos
+- Período do dia: ${periodo}
+- Palavras recentes no vocabulário: ${palavrasRecentes.length > 0 ? palavrasRecentes.join(', ') : 'nenhuma ainda'}
+
+Retorne JSON com esta estrutura exata:
+{
+  "saudacao": "Uma frase motivadora curta personalizada para o usuário (máx 120 chars)",
+  "diagnostico": "1-2 frases sobre o nível e progresso atual do usuário",
+  "atividades": [
+    {"id": "1", "icon": "emoji", "titulo": "Nome da atividade", "descricao": "O que fazer e por que", "duracao": "X min", "aba": "nome-da-aba", "prioridade": "alta|media|baixa"},
+    {"id": "2", "icon": "emoji", "titulo": "...", "descricao": "...", "duracao": "X min", "aba": "nome-da-aba", "prioridade": "alta|media|baixa"},
+    {"id": "3", "icon": "emoji", "titulo": "...", "descricao": "...", "duracao": "X min", "aba": "nome-da-aba", "prioridade": "alta|media|baixa"}
+  ],
+  "dica_dia": "Uma dica prática e específica para o nível e idioma do usuário"
+}
+
+Para o campo "aba", use exatamente um desses valores: professor, licoes, flash, exer, pronunc, shadowing, diario, vocab, livre
+Adapte as 3 atividades ao nível (${nivel}), ao idioma (${_astLang}) e ao período (${periodo}).`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const raw = (data.content || []).map(c => c.text || '').join('').trim().replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(raw);
+
+    // Renderiza plano
+    planArea.style.display = 'block';
+    planArea.innerHTML = `<div style="font-size:15px;font-weight:800;color:#a855f7;margin-bottom:8px;">${parsed.saudacao || ''}</div><div style="font-size:12px;color:var(--muted);line-height:1.6;">${parsed.diagnostico || ''}</div>${parsed.dica_dia ? `<div style="margin-top:10px;padding:10px 12px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);border-radius:10px;font-size:12px;color:var(--text);">💡 <strong>Dica do dia:</strong> ${parsed.dica_dia}</div>` : ''}`;
+
+    // Renderiza atividades
+    if (actArea && parsed.atividades?.length) {
+      actArea.style.display = 'flex';
+      actArea.innerHTML = '<div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:4px;">📋 ATIVIDADES SUGERIDAS PARA HOJE</div>';
+      const priorCor = { alta: '#ff4466', media: '#ffd000', baixa: '#00ff88' };
+      parsed.atividades.forEach(a => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .18s;';
+        card.onmouseover = () => { card.style.borderColor = 'rgba(168,85,247,.35)'; };
+        card.onmouseout = () => { card.style.borderColor = 'var(--border)'; };
+        card.onclick = () => { navApp('learn'); setTimeout(() => { const tabs = document.querySelectorAll('.learn-tab'); tabs.forEach(t => t.classList.remove('active')); const t = Array.from(tabs).find(t2 => t2.onclick?.toString().includes("'"+a.aba+"'")); if (t) { t.classList.add('active'); learnTab(a.aba, t); } }, 300); };
+        card.innerHTML = `<div style="font-size:28px;flex-shrink:0;">${a.icon}</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:800;margin-bottom:2px;">${a.titulo}</div><div style="font-size:11px;color:var(--muted);line-height:1.4;">${a.descricao}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;"><span style="font-size:10px;color:var(--muted);font-family:var(--mono);">${a.duracao}</span><span style="font-size:9px;font-weight:800;font-family:var(--mono);color:${priorCor[a.prioridade]||'var(--muted)'};">${a.prioridade?.toUpperCase()}</span></div>`;
+        actArea.appendChild(card);
+      });
+    }
+
+    // Inicia histórico do chat com contexto
+    _astChatHistory = [
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: raw }
+    ];
+    if (chatWrap) chatWrap.style.display = 'block';
+
+    // Adiciona msg inicial no chat
+    _astAddChatMsg('assistant', `Seu plano está pronto! 🎯 Você tem ${streak} dias de streak e já acumulou ${xp} XP. Quer que eu explique alguma atividade ou adapte o plano para você?`);
+
+    _astGenerated = true;
+    if (label) label.textContent = 'Atualizar plano';
+    if (icon) icon.textContent = '↻';
+
+  } catch(e) {
+    planArea.style.display = 'block';
+    planArea.innerHTML = `<div style="color:var(--red);font-size:12px;">⚠️ Erro ao gerar plano: ${e.message}. Verifique a conexão e tente novamente.</div>`;
+  }
+
+  btn.disabled = false;
+}
+
+function _astAddChatMsg(role, text) {
+  const msgs = document.getElementById('ast-chat-msgs');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  const isAI = role === 'assistant';
+  div.style.cssText = `max-width:85%;padding:10px 13px;border-radius:${isAI ? '4px 14px 14px 14px' : '14px 14px 4px 14px'};font-size:13px;line-height:1.5;align-self:${isAI ? 'flex-start' : 'flex-end'};background:${isAI ? 'var(--surface)' : 'rgba(168,85,247,.18)'};border:1px solid ${isAI ? 'var(--border)' : 'rgba(168,85,247,.3)'};color:var(--text);`;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function astChatSend() {
+  const inp = document.getElementById('ast-chat-inp');
+  const text = inp?.value?.trim();
+  if (!text) return;
+  inp.value = '';
+  _astAddChatMsg('user', text);
+  _astChatHistory.push({ role: 'user', content: text });
+
+  const thinking = document.createElement('div');
+  thinking.style.cssText = 'align-self:flex-start;font-size:12px;color:var(--muted);padding:8px 12px;';
+  thinking.textContent = '🧠 Pensando...';
+  document.getElementById('ast-chat-msgs')?.appendChild(thinking);
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: `Você é o Assistente Pessoal de Idiomas do AIVOX. O usuário está aprendendo ${_astLang}. Responda em português, de forma amigável, prática e motivadora. Respostas curtas (máx 3 parágrafos).`,
+        messages: _astChatHistory.slice(-10)
+      })
+    });
+    thinking.remove();
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const reply = (data.content || []).map(c => c.text || '').join('').trim();
+    _astChatHistory.push({ role: 'assistant', content: reply });
+    _astAddChatMsg('assistant', reply);
+  } catch(e) {
+    thinking.remove();
+    _astAddChatMsg('assistant', '⚠️ Erro ao responder. Tente novamente.');
+  }
+}
+
+// Hook para carregar stats ao entrar na aba
+const _origLearnTab = typeof learnTab === 'function' ? learnTab : null;
+
+// ════════════════════════════════════════════════════════
+//  GRUPOS DE CONVERSAÇÃO
+// ════════════════════════════════════════════════════════
+let _grpFilter = 'todos';
+let _grpListener = null;
+
+// Grupos padrão (ficam no Firestore; estes são seeds locais para demo)
+const _grpSeeds = [
+  { id: 'grp_en_b1', tema: 'Inglês B1 · Conversação Geral', lang: 'inglês', nivel: 'B1', membros: 0, host: 'AIVOX', ts: Date.now() },
+  { id: 'grp_en_b2', tema: 'Inglês B2 · Negócios & Trabalho', lang: 'inglês', nivel: 'B2', membros: 0, host: 'AIVOX', ts: Date.now() },
+  { id: 'grp_es_a2', tema: 'Espanhol A2 · Viagens & Cultura', lang: 'espanhol', nivel: 'A2', membros: 0, host: 'AIVOX', ts: Date.now() },
+  { id: 'grp_fr_b1', tema: 'Francês B1 · Cotidiano', lang: 'francês', nivel: 'B1', membros: 0, host: 'AIVOX', ts: Date.now() },
+];
+const _nivelCor = { A1:'#00ff88', A2:'#00e5ff', B1:'#ffd000', B2:'#ff8c00', C1:'#a855f7' };
+
+function grpFilter(btn, lang) {
+  _grpFilter = lang;
+  document.querySelectorAll('.grp-filter-btn').forEach(b => {
+    b.style.border = '1px solid var(--border)';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--muted)';
+  });
+  btn.style.border = '1.5px solid rgba(0,229,255,.4)';
+  btn.style.background = 'var(--adim)';
+  btn.style.color = 'var(--accent)';
+  _grpRender();
+}
+
+function _grpRender(grupos) {
+  const list = document.getElementById('grp-list');
+  if (!list) return;
+  const all = grupos || window._grpData || _grpSeeds;
+  window._grpData = all;
+  const filtered = _grpFilter === 'todos' ? all : all.filter(g => g.lang === _grpFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">Nenhum grupo neste idioma ainda.<br>Crie o primeiro! 👇</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach(g => {
+    const expirou = g.ts && (Date.now() - g.ts) > 86400000 && g.host !== 'AIVOX';
+    if (expirou) return;
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .18s;';
+    div.onmouseover = () => { div.style.borderColor = 'rgba(168,85,247,.3)'; div.style.transform = 'translateY(-1px)'; };
+    div.onmouseout = () => { div.style.borderColor = 'var(--border)'; div.style.transform = ''; };
+    div.onclick = () => grpEntrar(g);
+    const nivelCor = _nivelCor[g.nivel] || 'var(--muted)';
+    const langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' }[g.lang] || '🌐';
+    div.innerHTML = `
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${langEmoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:800;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${g.tema}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};background:${nivelCor}22;border:1px solid ${nivelCor}44;padding:2px 7px;border-radius:20px;">${g.nivel}</span>
+          <span style="font-size:10px;color:var(--muted);">👥 ${g.membros || 0} online</span>
+          ${g.host === 'AIVOX' ? '<span style="font-size:9px;font-weight:800;font-family:var(--mono);background:var(--adim);color:var(--accent);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:20px;">OFICIAL</span>' : ''}
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;flex-shrink:0;">Entrar →</div>`;
+    list.appendChild(div);
+  });
+}
+
+async function grpCriar() {
+  const tema = document.getElementById('grp-tema-inp')?.value?.trim();
+  const lang = document.getElementById('grp-lang-sel')?.value || 'inglês';
+  const nivel = document.getElementById('grp-nivel-sel')?.value || 'B1';
+  if (!tema) { showToast('Digite o tema do grupo', 'error'); return; }
+  const uid = window._fbUser?.uid;
+  if (!uid) { showToast('Faça login para criar um grupo', 'error'); return; }
+
+  const grupo = {
+    tema, lang, nivel,
+    host: window._fbUser?.name || 'Usuário',
+    hostUid: uid,
+    membros: 1,
+    ts: Date.now(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    if (db) await db.collection('conversation_groups').add(grupo);
+    if (document.getElementById('grp-tema-inp')) document.getElementById('grp-tema-inp').value = '';
+    // Adiciona localmente
+    if (!window._grpData) window._grpData = [..._grpSeeds];
+    window._grpData.unshift({ ...grupo, id: 'grp_' + Date.now() });
+    _grpRender();
+    showToast('🌍 Grupo criado!', 'success');
+    // Abre a sala para o criador
+    grpEntrar(grupo);
+  } catch(e) {
+    showToast('Erro ao criar grupo', 'error');
+  }
+}
+
+function grpEntrar(grupo) {
+  // Usa o sistema de salas existente, passando o código do grupo como sala
+  const codigo = (grupo.id || grupo.tema).substring(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+  showToast(`🌍 Entrando em "${grupo.tema}"...`, 'info');
+  // Coloca o código na input de sala e valida
+  const inp = document.getElementById('sala-code-input');
+  if (inp) {
+    inp.value = codigo;
+    // Tenta via socket
+    if (window._salaSocket) {
+      window._salaSocket.emit('join-group', { groupId: grupo.id || grupo.tema, groupName: grupo.tema, lang: grupo.lang, nivel: grupo.nivel });
+    }
+    // Navega para a sala ativa com contexto de grupo
+    window._grpAtual = grupo;
+    navApp('sala');
+    setTimeout(() => {
+      // Se socket conectado, entra direto; caso contrário informa
+      if (window._salaSocket?.connected) {
+        document.getElementById('sala-code-input').value = codigo;
+        onSalaCodeInput(document.getElementById('sala-code-input'));
+      } else {
+        showToast('⚠️ Servidor offline — grupos precisam do backend ativo', 'error');
+      }
+    }, 400);
+  }
+}
+
+// Carrega grupos do Firestore ao abrir Salas
+function grpInit() {
+  _grpRender(_grpSeeds); // Mostra seeds imediatamente
+  if (!db) return;
+  const now = Date.now();
+  // Carrega grupos criados nas últimas 24h
+  db.collection('conversation_groups')
+    .where('ts', '>', now - 86400000)
+    .orderBy('ts', 'desc').limit(20).get()
+    .then(snap => {
+      const fromFs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const all = [..._grpSeeds, ...fromFs];
+      window._grpData = all;
+      _grpRender(all);
+    })
+    .catch(() => { /* mantém seeds */ });
+}
+
 console.log('✅ AIVOX Módulo Amigos carregado');
 </script>
 
@@ -4664,6 +5154,7 @@ console.log('✅ AIVOX Módulo Amigos carregado');
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
 // ====== FIREBASE ======
 const firebaseConfig={apiKey:"AIzaSyDicAMVOcjO2wCHbce5MXgBpOXjMcYEh5k",authDomain:"aivox-4bcbe.firebaseapp.com",projectId:"aivox-4bcbe",storageBucket:"aivox-4bcbe.firebasestorage.app",messagingSenderId:"364416004782",appId:"1:364416004782:web:3d21a64ef3f28008ea733f"};
@@ -5032,8 +5523,8 @@ function navApp(name){
   if(name!=='admin')stopApiMonitor();
   if(name!=='escuta')stopEscuta();
   if(name==='profile')renderProfilePage();
-  if(name==='sala')initSalaPage();
-  if(name==='learn'){loadStreak();loadVocab();}
+  if(name==='sala'){initSalaPage();setTimeout(()=>{ if(typeof grpInit==='function')grpInit(); },500);}
+  if(name==='learn'){loadStreak();loadVocab();setTimeout(()=>{ if(typeof astLoadStats==='function')astLoadStats(); },700);}
   if(name==='novidades'&&typeof _amiLoadVotes==='function')_amiLoadVotes();
   if(name==='amigos'){
     if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();}

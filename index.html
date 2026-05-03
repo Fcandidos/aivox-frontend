@@ -3269,7 +3269,7 @@ function enterApp(data){
     },9*60*1000);
   }
   // ── MÓDULO AMIGOS ──
-  setTimeout(()=>{ if(typeof initAmigoModule==='function') initAmigoModule(); }, 1000);
+  setTimeout(()=>{ if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();} }, 1000);
 }
 function navApp(name){
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));
@@ -3294,6 +3294,7 @@ function navApp(name){
   if(name==='profile')renderProfilePage();
   if(name==='sala')initSalaPage();
   if(name==='learn'){loadStreak();loadVocab();}
+  if(name==='amigos'){if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();}else{amiSwitchTab(_amiCurrentTab||'amigos');}}
   const hideBnav=['active','chat','admin','payment','langsel','sala-ativa'];
   const bnav=document.getElementById('bnav');if(bnav)bnav.style.display=hideBnav.includes(name)?'none':'';
   closeSidebar();
@@ -9510,12 +9511,75 @@ let _amiSearchTO = null;
 let _amiCurrentTab = 'amigos';
 
 function initAmigoModule() {
-  if (!window._fbUser?.uid || !db) return;
+  if (!window._fbUser?.uid || !db) { console.warn('[AMI] initAmigoModule: _fbUser ou db ausente'); return; }
+  // Fix: garante que o panel inicial está visível
+  amiSwitchTab('amigos');
   _amiLoadFriends();
   _amiListenPresence();
   _amiListenMessages();
   _amiLoadVotes();
   _amiUpdateOnlineCount();
+  _amiInjectDebugPanel();
+}
+
+// ══════════ DEBUG PANEL ══════════
+function _amiInjectDebugPanel() {
+  if (document.getElementById('ami-debug-panel')) return;
+  const panel = document.createElement('div');
+  panel.id = 'ami-debug-panel';
+  panel.style.cssText = 'position:fixed;bottom:80px;right:12px;z-index:9999;background:#0f1420;border:1px solid rgba(0,229,255,.3);border-radius:14px;padding:12px 14px;min-width:260px;max-width:320px;font-family:monospace;font-size:11px;color:#e8eaf2;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;';
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-weight:800;font-size:12px;color:#00e5ff;">\u{1F6E0} AMI Debug</span>
+      <button onclick="document.getElementById('ami-debug-panel').style.display='none';document.getElementById('ami-debug-btn').style.display='flex';" style="background:none;border:none;color:#4a5170;cursor:pointer;font-size:14px;">\u2715</button>
+    </div>
+    <div id="ami-dbg-body" style="line-height:1.7;"></div>
+    <button onclick="_amiDebugRefresh()" style="margin-top:8px;width:100%;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:8px;padding:5px;cursor:pointer;font-size:11px;font-family:monospace;">\u{1F504} Atualizar</button>
+  `;
+  document.body.appendChild(panel);
+  const btn = document.createElement('button');
+  btn.id = 'ami-debug-btn';
+  btn.title = 'Debug Amigos';
+  btn.textContent = '\u{1F6E0}';
+  btn.style.cssText = 'position:fixed;bottom:80px;right:12px;z-index:9998;background:#0f1420;border:1px solid rgba(0,229,255,.3);border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;';
+  btn.onclick = () => { btn.style.display='none'; _amiDebugRefresh(); };
+  document.body.appendChild(btn);
+}
+
+async function _amiDebugRefresh() {
+  const el = document.getElementById('ami-dbg-body');
+  const panel = document.getElementById('ami-debug-panel');
+  if (!el || !panel) return;
+  panel.style.display = 'block';
+  const uid = window._fbUser?.uid || '';
+  const rows = [];
+  rows.push('<b>UID:</b> ' + (uid ? uid.substring(0,14)+'...' : '<span style="color:#ff4466">ausente</span>'));
+  rows.push('<b>DB:</b> ' + (db ? '<span style="color:#00ff88">OK</span>' : '<span style="color:#ff4466">ausente</span>'));
+  rows.push('<b>Auth:</b> ' + (window._fbUser ? '<span style="color:#00ff88">logado</span>' : '<span style="color:#ff4466">nao logado</span>'));
+  rows.push('<b>Socket:</b> ' + (window._salaSocket?.connected ? '<span style="color:#00ff88">conectado</span>' : '<span style="color:#ff8c00">desconectado</span>'));
+  rows.push('<b>Friends local:</b> ' + _ami.friends.length);
+  rows.push('<b>Online local:</b> ' + Object.keys(_ami.online).length);
+  rows.push('<b>Req recebidos:</b> ' + _ami.pending.received.length);
+  rows.push('<b>Req enviados:</b> ' + _ami.pending.sent.length);
+  el.innerHTML = rows.map(r => '<div>' + r + '</div>').join('');
+  if (db && uid) {
+    try {
+      const snap = await db.collection('users').doc(uid).collection('friends').get();
+      el.innerHTML += '<div style="margin-top:6px;color:#00ff88;"><b>Firestore friends:</b> ' + snap.size + ' docs \u2705</div>';
+      snap.docs.forEach(d => {
+        el.innerHTML += '<div style="padding-left:8px;color:#7c3aed;">\u00B7 ' + (d.data().name || d.id) + '</div>';
+      });
+    } catch(e) {
+      el.innerHTML += '<div style="color:#ff4466;"><b>Firestore friends:</b> \u274C ' + (e.code || e.message) + '</div>';
+      el.innerHTML += '<div style="color:#ff8c00;font-size:10px;">\u2192 Corrija as Firestore Security Rules para<br>users/{uid}/friends — allow read: if request.auth.uid == uid</div>';
+    }
+    try {
+      const snap2 = await db.collection('friend_requests').where('toUid','==',uid).where('status','==','pending').get();
+      el.innerHTML += '<div style="color:#00ff88;"><b>Requests recebidos:</b> ' + snap2.size + ' \u2705</div>';
+    } catch(e) {
+      el.innerHTML += '<div style="color:#ff4466;"><b>Requests:</b> \u274C ' + (e.code || e.message) + '</div>';
+    }
+  }
 }
 
 function amiSwitchTab(tab) {
@@ -9538,7 +9602,6 @@ async function _amiLoadFriends() {
     const uid = window._fbUser?.uid;
     if (!uid || !db) return;
     db.collection('users').doc(uid).collection('friends')
-      .where('status', '==', 'accepted')
       .onSnapshot(snap => {
         _ami.friends = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
         _amiRenderFriends();

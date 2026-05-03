@@ -1243,42 +1243,160 @@ input, textarea, select {
 }
 
 /* ====== SUGESTÕES ====== */
+/* ── NOVIDADES: grids ── */
 .sug-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 0;
 }
 @media (max-width: 640px) { .sug-grid { grid-template-columns: 1fr; } }
+
+/* ── cards de FUNCIONALIDADES JÁ LANÇADAS ── */
+.feat-card {
+  border-radius: 18px; padding: 18px 16px 16px; position: relative; overflow: hidden;
+  transition: transform .22s, box-shadow .22s;
+  border: 1.5px solid transparent;
+}
+.feat-card:hover { transform: translateY(-3px); }
+.feat-card-icon { font-size: 28px; margin-bottom: 10px; }
+.feat-card-title { font-size: 14px; font-weight: 900; margin-bottom: 6px; letter-spacing: -.2px; }
+.feat-card-desc  { font-size: 11px; line-height: 1.65; opacity: .75; }
+.feat-card-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 12px; font-size: 10px; font-weight: 800; font-family: var(--mono);
+  padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px;
+}
+/* Clonagem de Voz */
+.feat-card.clone {
+  background: linear-gradient(135deg, rgba(124,58,237,.18) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(124,58,237,.4);
+  box-shadow: 0 0 28px rgba(124,58,237,.12);
+  color: #e8d8ff;
+}
+.feat-card.clone:hover { box-shadow: 0 0 40px rgba(124,58,237,.25); }
+.feat-card.clone .feat-card-badge { background: rgba(168,85,247,.18); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
+/* Modo Sala */
+.feat-card.sala {
+  background: linear-gradient(135deg, rgba(0,229,255,.15) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(0,229,255,.35);
+  box-shadow: 0 0 28px rgba(0,229,255,.10);
+  color: #d0faff;
+}
+.feat-card.sala:hover { box-shadow: 0 0 40px rgba(0,229,255,.22); }
+.feat-card.sala .feat-card-badge { background: rgba(0,229,255,.15); color: #00e5ff; border: 1px solid rgba(0,229,255,.3); }
+/* Escuta ao Vivo */
+.feat-card.escuta-live {
+  background: linear-gradient(135deg, rgba(0,255,136,.14) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(0,255,136,.35);
+  box-shadow: 0 0 28px rgba(0,255,136,.10);
+  color: #ccffe8;
+}
+.feat-card.escuta-live:hover { box-shadow: 0 0 40px rgba(0,255,136,.22); }
+.feat-card.escuta-live .feat-card-badge { background: rgba(0,255,136,.14); color: #00ff88; border: 1px solid rgba(0,255,136,.3); }
+/* Aprendizagem IA */
+.feat-card.learn {
+  background: linear-gradient(135deg, rgba(255,208,0,.14) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(255,208,0,.35);
+  box-shadow: 0 0 28px rgba(255,208,0,.10);
+  color: #fff5cc;
+}
+.feat-card.learn:hover { box-shadow: 0 0 40px rgba(255,208,0,.22); }
+.feat-card.learn .feat-card-badge { background: rgba(255,208,0,.14); color: #ffd000; border: 1px solid rgba(255,208,0,.3); }
+/* Tradução Bidirecional */
+.feat-card.translate {
+  background: linear-gradient(135deg, rgba(255,140,0,.15) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(255,140,0,.35);
+  box-shadow: 0 0 28px rgba(255,140,0,.10);
+  color: #ffe4c0;
+}
+.feat-card.translate:hover { box-shadow: 0 0 40px rgba(255,140,0,.22); }
+.feat-card.translate .feat-card-badge { background: rgba(255,140,0,.15); color: #ff8c00; border: 1px solid rgba(255,140,0,.3); }
+/* Modo Viagem */
+.feat-card.viagem {
+  background: linear-gradient(135deg, rgba(255,68,102,.14) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(255,68,102,.35);
+  box-shadow: 0 0 28px rgba(255,68,102,.10);
+  color: #ffd0d8;
+}
+.feat-card.viagem:hover { box-shadow: 0 0 40px rgba(255,68,102,.22); }
+.feat-card.viagem .feat-card-badge { background: rgba(255,68,102,.14); color: #ff4466; border: 1px solid rgba(255,68,102,.3); }
+/* Amigos / Social */
+.feat-card.social {
+  background: linear-gradient(135deg, rgba(20,184,166,.15) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(20,184,166,.35);
+  box-shadow: 0 0 28px rgba(20,184,166,.10);
+  color: #ccfff7;
+}
+.feat-card.social:hover { box-shadow: 0 0 40px rgba(20,184,166,.22); }
+.feat-card.social .feat-card-badge { background: rgba(20,184,166,.15); color: #2dd4bf; border: 1px solid rgba(20,184,166,.3); }
+/* Histórico */
+.feat-card.hist {
+  background: linear-gradient(135deg, rgba(99,102,241,.16) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(99,102,241,.38);
+  box-shadow: 0 0 28px rgba(99,102,241,.10);
+  color: #ddd8ff;
+}
+.feat-card.hist:hover { box-shadow: 0 0 40px rgba(99,102,241,.22); }
+.feat-card.hist .feat-card-badge { background: rgba(99,102,241,.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+/* Suporte */
+.feat-card.suporte {
+  background: linear-gradient(135deg, rgba(244,63,94,.14) 0%, rgba(15,20,32,.95) 100%);
+  border-color: rgba(244,63,94,.35);
+  box-shadow: 0 0 28px rgba(244,63,94,.10);
+  color: #ffd8de;
+}
+.feat-card.suporte:hover { box-shadow: 0 0 40px rgba(244,63,94,.22); }
+.feat-card.suporte .feat-card-badge { background: rgba(244,63,94,.14); color: #fb7185; border: 1px solid rgba(244,63,94,.3); }
+
+/* ── cards de PRÓXIMAS FUNCIONALIDADES (votação) ── */
 .sug-card {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 16px; padding: 16px; position: relative; overflow: hidden;
   transition: transform .2s, border-color .2s;
 }
-.sug-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.12); }
+.sug-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.15); }
 .sug-card::before {
-  content: ''; position: absolute; inset: 0; opacity: .06;
-  pointer-events: none;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 16px 16px 0 0;
 }
-.sug-card.srs::before    { background: #8b5e12; }
-.sug-card.pronun::before { background: #4a2080; }
-.sug-card.escuta::before { background: #0a6640; }
-.sug-card.gamif::before  { background: #6b1a10; }
-.sug-card.shadow::before { background: #1a3a6b; }
-.sug-card.diario::before { background: #2e2e2e; }
+.sug-card.srs::before    { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+.sug-card.pronun::before { background: linear-gradient(90deg, #a855f7, #6366f1); }
+.sug-card.escuta::before { background: linear-gradient(90deg, #10b981, #00e5ff); }
+.sug-card.gamif::before  { background: linear-gradient(90deg, #ef4444, #f97316); }
+.sug-card.shadow::before { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+.sug-card.diario::before { background: linear-gradient(90deg, #ec4899, #a855f7); }
 .sug-num {
-  font-size: 11px; font-family: var(--mono); font-weight: 700;
-  color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;
+  font-size: 10px; font-family: var(--mono); font-weight: 700;
+  color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 1.5px;
 }
-.sug-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; }
-.sug-desc  { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.sug-title { font-size: 14px; font-weight: 900; margin-bottom: 8px; }
+.sug-desc  { font-size: 11px; color: var(--muted); line-height: 1.65; }
 .sug-tag {
   display: inline-block; margin-top: 10px; font-size: 10px; font-weight: 700;
-  font-family: var(--mono); padding: 3px 8px; border-radius: 20px;
+  font-family: var(--mono); padding: 3px 9px; border-radius: 20px;
 }
-.sug-tag.alto    { background: rgba(0,255,136,.12);  color: var(--green);  border: 1px solid rgba(0,255,136,.25); }
-.sug-tag.unico   { background: rgba(124,58,237,.12); color: #a855f7;       border: 1px solid rgba(124,58,237,.25); }
-.sug-tag.facil   { background: rgba(255,208,0,.1);   color: var(--yellow); border: 1px solid rgba(255,208,0,.25); }
-.sug-tag.retencao{ background: rgba(255,68,102,.1);  color: var(--red);    border: 1px solid rgba(255,68,102,.2); }
-.sug-tag.medio   { background: rgba(0,229,255,.1);   color: var(--accent); border: 1px solid rgba(0,229,255,.2); }
-.sug-tag.premium { background: rgba(255,140,0,.1);   color: var(--orange); border: 1px solid rgba(255,140,0,.2); }
+.sug-tag.alto    { background: rgba(0,255,136,.12);  color: #00ff88;  border: 1px solid rgba(0,255,136,.3); }
+.sug-tag.unico   { background: rgba(168,85,247,.15); color: #c084fc;  border: 1px solid rgba(168,85,247,.3); }
+.sug-tag.facil   { background: rgba(255,208,0,.12);  color: #ffd000;  border: 1px solid rgba(255,208,0,.3); }
+.sug-tag.retencao{ background: rgba(239,68,68,.12);  color: #f87171;  border: 1px solid rgba(239,68,68,.25); }
+.sug-tag.medio   { background: rgba(0,229,255,.1);   color: #00e5ff;  border: 1px solid rgba(0,229,255,.25); }
+.sug-tag.premium { background: rgba(251,146,60,.12); color: #fb923c;  border: 1px solid rgba(251,146,60,.25); }
+.sug-vote-btn {
+  margin-top: 12px; display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px; padding: 5px 14px; cursor: pointer; font-size: 12px; font-weight: 700;
+  color: var(--muted); font-family: var(--font); transition: all .2s;
+}
+.sug-vote-btn:hover { background: rgba(255,255,255,.1); color: var(--text); }
+.sug-vote-btn.voted { background: rgba(0,255,136,.12); border-color: rgba(0,255,136,.3); color: #00ff88; }
+
+/* ── section divider ── */
+.nov-section-header {
+  display: flex; align-items: center; gap: 10px; margin: 22px 0 14px;
+}
+.nov-section-line { flex: 1; height: 1px; background: var(--border); }
+.nov-section-title {
+  font-size: 11px; font-weight: 800; font-family: var(--mono);
+  letter-spacing: 2px; text-transform: uppercase; white-space: nowrap;
+}
 
 /* Empty state amigos */
 .ami-empty {
@@ -2995,54 +3113,147 @@ input, textarea, select {
     
       <!-- TAB: NOVIDADES -->
       <div id="ami-panel-sugestoes" class="ami-scroll" style="display:none;">
-        <div style="margin-bottom:16px;">
-          <div style="font-size:18px;font-weight:900;margin-bottom:4px;">💡 Sugestões Prioritárias</div>
-          <div style="font-size:12px;color:var(--muted);">Funcionalidades planejadas para o AIVOX — vote nas suas favoritas!</div>
+
+        <!-- Hero header -->
+        <div style="background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(0,229,255,.10));border:1.5px solid rgba(124,58,237,.3);border-radius:18px;padding:18px 20px;margin-bottom:4px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(0,229,255,.15),transparent 70%);pointer-events:none;"></div>
+          <div style="font-size:11px;font-family:var(--mono);font-weight:800;color:#a855f7;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">✦ AIVOX v5.2</div>
+          <div style="font-size:19px;font-weight:900;background:linear-gradient(90deg,#a855f7,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;">Novidades & Funcionalidades</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">Tudo que o AIVOX já oferece — e o que vem por aí. Vote nas próximas funcionalidades que você mais quer! 🚀</div>
         </div>
+
+        <!-- ─── SEÇÃO: JÁ DISPONÍVEL ─────────────────────────── -->
+        <div class="nov-section-header">
+          <div class="nov-section-line"></div>
+          <div class="nov-section-title" style="color:#00ff88;">✦ Já disponível no AIVOX</div>
+          <div class="nov-section-line"></div>
+        </div>
+
+        <div class="sug-grid">
+
+          <!-- Clonagem de Voz -->
+          <div class="feat-card clone">
+            <div class="feat-card-icon">🧬</div>
+            <div class="feat-card-title">Clonagem de Voz com IA</div>
+            <div class="feat-card-desc">Clone sua própria voz em segundos. A IA reproduz traduções com o seu timbre, tornando a conversa 100% natural — mesmo em outro idioma.</div>
+            <div class="feat-card-badge">🟣 Exclusivo AIVOX</div>
+          </div>
+
+          <!-- Modo Sala -->
+          <div class="feat-card sala">
+            <div class="feat-card-icon">🏠</div>
+            <div class="feat-card-title">Modo Sala Colaborativa</div>
+            <div class="feat-card-desc">Crie salas com código de acesso e traduza em tempo real com múltiplos participantes. Vídeo, áudio e chat — tudo com tradução simultânea.</div>
+            <div class="feat-card-badge">🔵 Pro & Business</div>
+          </div>
+
+          <!-- Escuta ao Vivo -->
+          <div class="feat-card escuta-live">
+            <div class="feat-card-icon">🎧</div>
+            <div class="feat-card-title">Escuta ao Vivo</div>
+            <div class="feat-card-desc">Captura e traduz qualquer conversa ao redor em tempo real. Perfeito para reuniões, aulas e ambientes multilíngues — sem precisar falar nada.</div>
+            <div class="feat-card-badge">🟢 Disponível agora</div>
+          </div>
+
+          <!-- Aprendizagem IA -->
+          <div class="feat-card learn">
+            <div class="feat-card-icon">🎓</div>
+            <div class="feat-card-title">Professor de Idiomas com IA</div>
+            <div class="feat-card-desc">Flashcards inteligentes, lições personalizadas e feedback em tempo real. A IA adapta o ritmo de aprendizado ao seu nível.</div>
+            <div class="feat-card-badge">🟡 Modo Aprendizagem</div>
+          </div>
+
+          <!-- Tradução Bidirecional -->
+          <div class="feat-card translate">
+            <div class="feat-card-icon">🔄</div>
+            <div class="feat-card-title">Tradução Bidirecional em Tempo Real</div>
+            <div class="feat-card-desc">Fale em PT-BR, seu amigo ouve em EN-US — e vice-versa. Latência mínima com modelos de voz de última geração e detecção automática de idioma.</div>
+            <div class="feat-card-badge">🟠 Diferencial principal</div>
+          </div>
+
+          <!-- Modo Viagem -->
+          <div class="feat-card viagem">
+            <div class="feat-card-icon">✈️</div>
+            <div class="feat-card-title">Modo Viagem (Offline)</div>
+            <div class="feat-card-desc">Funciona sem internet usando Web Speech API. Ideal para situações sem sinal — restaurantes, aeroportos, ruas no exterior. Compacto e rápido.</div>
+            <div class="feat-card-badge">🔴 Funciona offline</div>
+          </div>
+
+          <!-- Amigos / Social -->
+          <div class="feat-card social">
+            <div class="feat-card-icon">👫</div>
+            <div class="feat-card-title">Rede Social de Idiomas</div>
+            <div class="feat-card-desc">Adicione amigos, pratique juntos em chat privado com tradução automática, faça chamadas de áudio e acompanhe quem está online agora.</div>
+            <div class="feat-card-badge">🩵 Modo Amigos</div>
+          </div>
+
+          <!-- Histórico -->
+          <div class="feat-card hist">
+            <div class="feat-card-icon">📜</div>
+            <div class="feat-card-title">Histórico Inteligente de Sessões</div>
+            <div class="feat-card-desc">Todas as suas traduções salvas com timestamps e idiomas. Revise conversas anteriores, exporte transcrições e analise seu progresso ao longo do tempo.</div>
+            <div class="feat-card-badge">🟣 Histórico completo</div>
+          </div>
+
+        </div>
+
+        <!-- ─── SEÇÃO: PRÓXIMAS FUNCIONALIDADES ──────────────── -->
+        <div class="nov-section-header" style="margin-top:28px;">
+          <div class="nov-section-line"></div>
+          <div class="nov-section-title" style="color:#ffd000;">⚡ Próximas funcionalidades — Vote!</div>
+          <div class="nov-section-line"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;">Clique em 👍 para votar nas funcionalidades que você mais quer ver no AIVOX!</div>
+
         <div class="sug-grid">
           <div class="sug-card srs">
             <div class="sug-num">01 · SRS</div>
             <div class="sug-title">⏱ Repetição Espaçada (SRS)</div>
             <div class="sug-desc">Algoritmo SM-2 (igual Anki) nos flashcards. Cada card ganha data de próxima revisão. Notificação push "5 cards para revisar". Retenção de vocabulário 3-5x maior.</div>
             <span class="sug-tag alto">🚀 Alto impacto</span>
-            <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'srs')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'srs')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card pronun">
             <div class="sug-num">02 · Pronúncia</div>
             <div class="sug-title">🎤 Treino de Pronúncia com IA</div>
             <div class="sug-desc">Você fala → Whisper transcreve → IA compara com a frase esperada e dá nota + dica. Ex: "você trocou 'th' por 'd' — tente assim:". ElevenLabs reproduz o modelo correto.</div>
             <span class="sug-tag unico">⭐ Diferencial único</span>
-            <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'pronun')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'pronun')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card escuta">
             <div class="sug-num">03 · Escuta</div>
-            <div class="sug-title">🎧 Resumo Inteligente (Escuta)</div>
+            <div class="sug-title">🧠 Resumo Inteligente de Escuta</div>
             <div class="sug-desc">Ao parar a escuta, Claude resume o que foi dito + lista palavras novas captadas. Botão "Adicionar ao vocabulário" por item. 1 chamada Claude → muito valor percebido.</div>
             <span class="sug-tag facil">✅ Fácil de implementar</span>
-            <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'escuta')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'escuta')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card gamif">
             <div class="sug-num">04 · Gamificação</div>
             <div class="sug-title">🏆 Gamificação Profunda</div>
             <div class="sug-desc">Conquistas: "100 frases praticadas", "7 dias". Ranking mensal por idioma/plano. Desafio semanal: "traduza 50 min esta semana". Compartilhar progresso (imagem gerada).</div>
             <span class="sug-tag retencao">🔒 Retenção de usuário</span>
-            <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'gamif')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'gamif')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card shadow">
             <div class="sug-num">05 · Shadowing</div>
             <div class="sug-title">🗣 Modo "Sombra" (Shadowing)</div>
             <div class="sug-desc">Áudio nativo toca → usuário repete em seguida. IA compara a repetição com o original. Técnica usada por poliglotas avançados.</div>
             <span class="sug-tag medio">⏳ Médio prazo</span>
-            <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'shadow')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'shadow')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
           <div class="sug-card diario">
             <div class="sug-num">06 · Diário</div>
             <div class="sug-title">📔 Diário de Idioma</div>
             <div class="sug-desc">Usuário escreve em PT → IA corrige e reescreve no idioma alvo. Histórico salvo no Firebase. Claude dá feedback de gramática + estilo.</div>
             <span class="sug-tag premium">💎 Diferencial premium</span>
-            <div style="margin-top:10px;"><button onclick="amiVoteSugestao(this,'diario')" class="btn btn-ghost btn-sm" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
+            <div><button onclick="amiVoteSugestao(this,'diario')" class="sug-vote-btn" data-voted="0"><span>👍</span> <span class="vote-count">0</span> votos</button></div>
           </div>
         </div>
+
+        <div style="margin-top:20px;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);">💬 Tem uma ideia? Fale com o suporte e sugira novas funcionalidades para o AIVOX!</div>
+        </div>
+
       </div>
     
       <!-- CHAT PRIVADO MODAL -->
@@ -3618,7 +3829,7 @@ async function _amiLoadVotes() {
 async function amiVoteSugestao(btn, id) {
   if(!window._fbUser?.uid||!db){showToast('Faça login para votar','error');return;}
   const myUid=window._fbUser.uid;
-  if(btn.dataset.voted==='1'){showToast('Você já votou nesta sugestão','info');return;}
+  if(btn.dataset.voted==='1'){showToast('Você já votou nesta sugestão 👍','info');return;}
   try {
     btn.disabled=true;
     const ref=db.collection('feature_votes').doc(id);
@@ -3630,10 +3841,34 @@ async function amiVoteSugestao(btn, id) {
     });
     const countEl=btn.querySelector('.vote-count');
     if(countEl)countEl.textContent=parseInt(countEl.textContent||0)+1;
-    btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.dataset.voted='1';
-    showToast('👍 Voto registrado!','success');
-  } catch(e){showToast('Erro ao registrar voto','error');}
-  finally{btn.disabled=false;}
+    // Estilo neon de votado
+    btn.classList.add('voted');
+    btn.dataset.voted='1';
+    showToast('👍 Voto registrado! Obrigado pelo feedback!','success');
+  } catch(e){ console.warn('amiVoteSugestao',e); showToast('Erro ao registrar voto','error'); }
+  finally{ btn.disabled=false; }
+}
+
+// Carrega contagens de votos ao abrir aba Novidades
+async function _amiLoadVotes() {
+  if(!db) return;
+  try {
+    const ids=['srs','pronun','escuta','gamif','shadow','diario'];
+    const myUid=window._fbUser?.uid;
+    await Promise.all(ids.map(async id=>{
+      const snap=await db.collection('feature_votes').doc(id).get();
+      if(!snap.exists) return;
+      const data=snap.data();
+      // Atualiza contador visual
+      document.querySelectorAll(`.sug-vote-btn[onclick*="'${id}'"] .vote-count`).forEach(el=>{ el.textContent=data.count||0; });
+      // Marca como já votado
+      if(myUid&&(data.voters||[]).includes(myUid)){
+        document.querySelectorAll(`.sug-vote-btn[onclick*="'${id}'"]`).forEach(btn=>{
+          btn.classList.add('voted'); btn.dataset.voted='1';
+        });
+      }
+    }));
+  } catch(e){ console.warn('_amiLoadVotes',e); }
 }
 
 function _esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

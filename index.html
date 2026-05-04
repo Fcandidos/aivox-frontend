@@ -240,6 +240,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     width:100% !important;
     max-width:100vw !important;
     position:relative !important;
+    isolation:isolate !important;
   }
   #page-admin .adh{
     flex-shrink:0 !important;
@@ -823,8 +824,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .trow{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;}
 .tnm{font-size:13px;font-weight:600;}
 .tds{font-size:11px;color:var(--muted);margin-top:2px;}
-.achat-modal{position:absolute;inset:0;background:var(--bg);z-index:70;display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;}
-.achat-modal.sh{transform:translateX(0);pointer-events:all;}
+.achat-modal{position:absolute;inset:0;background:var(--bg);z-index:70;display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;visibility:hidden;}
+.achat-modal.sh{transform:translateX(0);pointer-events:all;visibility:visible;}
 .achat-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .18s;}
 .achat-item:hover{border-color:rgba(0,229,255,.18);}
 .achat-item.unread{border-left:3px solid var(--accent);}

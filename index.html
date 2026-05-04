@@ -5299,15 +5299,15 @@ function _grpRender(grupos) {
     const langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' }[g.lang] || '🌐';
     div.innerHTML = `
       <div style="width:44px;height:44px;border-radius:12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${langEmoji}</div>
-      <div style="flex:1;min-width:0;">
+      <div style="flex:1;min-width:0;overflow:hidden;">
         <div style="font-size:13px;font-weight:800;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${g.tema}</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};background:${nivelCor}22;border:1px solid ${nivelCor}44;padding:2px 7px;border-radius:20px;">${g.nivel}</span>
-          <span style="font-size:10px;color:var(--muted);">👥 ${g.membros || 0} online</span>
-          ${g.host === 'AIVOX' ? '<span style="font-size:9px;font-weight:800;font-family:var(--mono);background:var(--adim);color:var(--accent);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:20px;">OFICIAL</span>' : ''}
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};background:${nivelCor}22;border:1px solid ${nivelCor}44;padding:2px 6px;border-radius:20px;flex-shrink:0;">${g.nivel}</span>
+          <span id="grp-online-badge-${g.id}" style="font-size:10px;color:var(--muted);flex-shrink:0;">👥 0 online</span>
+          ${g.host === 'AIVOX' ? '<span style="font-size:9px;font-weight:800;font-family:var(--mono);background:var(--adim);color:var(--accent);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:20px;flex-shrink:0;">OFICIAL</span>' : ''}
         </div>
       </div>
-      <div style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;flex-shrink:0;">Entrar →</div>`;
+      <div style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;flex-shrink:0;white-space:nowrap;">Entrar →</div>`;
     list.appendChild(div);
   });
 }
@@ -5423,13 +5423,22 @@ function grpEntrar(grupo) {
   // Monta listener ANTES do write — garante contagem mesmo se o write demorar
   _grpPresenceListener = db.collection('group_presence').doc(grupo.id).collection('online')
     .onSnapshot(snap => {
-      const count = snap.size;
+      // Filtra docs fantasma: só conta quem teve heartbeat nos últimos 90s
+      const agora = Date.now();
+      const EXPIRY_MS = 90000;
+      const ativos = snap.docs.filter(d => {
+        const ts = d.data().ts;
+        if (!ts) return true;
+        const ms = ts.toMillis ? ts.toMillis() : ts;
+        return (agora - ms) < EXPIRY_MS;
+      });
+      const count = ativos.length;
       const el = document.getElementById('grp-online-count');
       if (el) {
         el.textContent = '● ' + count + ' online';
         el.style.color = count > 1 ? 'var(--green)' : 'var(--muted)';
       }
-      // Atualiza também o badge na lista de grupos
+      // Atualiza badge na lista de grupos
       const badge = document.getElementById('grp-online-badge-' + grupo.id);
       if (badge) {
         badge.textContent = count > 0 ? '● ' + count + ' online' : '👥 0 online';
@@ -5438,16 +5447,27 @@ function grpEntrar(grupo) {
       }
       const fsEl = document.getElementById('grp-fs-status');
       if (fsEl) { fsEl.textContent = '● ao vivo'; fsEl.style.color = 'var(--green)'; }
-      console.log('[GRP presence] snap.size =', count, '| docs:', snap.docs.map(d => d.id));
+      console.log('[GRP presence] ativos =', count, '| total =', snap.size, '| docs:', ativos.map(d => d.id));
     }, err => {
       console.warn('[GRP presence] READ falhou:', err.code, err.message);
       const fsEl = document.getElementById('grp-fs-status');
       if (fsEl) { fsEl.textContent = '⚠ presença offline (' + err.code + ')'; fsEl.style.color = 'var(--yellow)'; }
     });
 
-  // Escreve presença — log de erros visível no console
+  // Escreve presença com timestamp para detectar docs expirados
   _grpPresenceRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() })
-    .then(() => console.log('[GRP presence] WRITE OK — uid:', uid, '| grupo:', grupo.id))
+    .then(() => {
+      console.log('[GRP presence] WRITE OK — uid:', uid, '| grupo:', grupo.id);
+      // Heartbeat a cada 30s para manter presença viva (evita docs fantasma)
+      clearInterval(window._grpHeartbeat);
+      window._grpHeartbeat = setInterval(() => {
+        if (_grpPresenceRef && _grpChatAtual) {
+          _grpPresenceRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+        } else {
+          clearInterval(window._grpHeartbeat);
+        }
+      }, 30000);
+    })
     .catch(err => {
       console.warn('[GRP presence] WRITE falhou:', err.code, err.message);
       const fsEl = document.getElementById('grp-fs-status');
@@ -5578,16 +5598,48 @@ async function grpChatSend() {
 function grpChatClose() {
   try { if (_grpBC) { _grpBC.close(); _grpBC = null; } } catch(e) {}
   if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
-  // Remove presença do Firestore ao sair da sala
+  // Para heartbeat e remove presença do Firestore ao sair da sala
+  clearInterval(window._grpHeartbeat);
   if (_grpPresenceListener) { try { _grpPresenceListener(); } catch(e) {} _grpPresenceListener = null; }
   if (_grpPresenceRef) { try { _grpPresenceRef.delete(); } catch(e) {} _grpPresenceRef = null; }
   _grpChatAtual = null;
   document.getElementById('grp-chat-overlay').style.display = 'none';
 }
 
+// Listeners de presença para os badges na lista (atualizados em tempo real)
+let _grpListPresenceListeners = [];
+function _grpStartListPresence(grupos) {
+  // Cancela listeners anteriores
+  _grpListPresenceListeners.forEach(u => { try { u(); } catch(e) {} });
+  _grpListPresenceListeners = [];
+  if (!db) return;
+  const agora = Date.now();
+  const EXPIRY_MS = 90000;
+  grupos.forEach(g => {
+    const unsub = db.collection('group_presence').doc(g.id).collection('online')
+      .onSnapshot(snap => {
+        const now2 = Date.now();
+        const count = snap.docs.filter(d => {
+          const ts = d.data().ts;
+          if (!ts) return true;
+          const ms = ts.toMillis ? ts.toMillis() : ts;
+          return (now2 - ms) < EXPIRY_MS;
+        }).length;
+        const badge = document.getElementById('grp-online-badge-' + g.id);
+        if (badge) {
+          badge.textContent = count > 0 ? '● ' + count + ' online' : '👥 0 online';
+          badge.style.color = count > 0 ? 'var(--green)' : 'var(--muted)';
+          badge.style.fontWeight = count > 0 ? '700' : '';
+        }
+      }, () => {});
+    _grpListPresenceListeners.push(unsub);
+  });
+}
+
 // Carrega grupos do Firestore ao abrir Salas
 function grpInit() {
   _grpRender(_grpSeeds);
+  _grpStartListPresence(_grpSeeds);
   if (!db) return;
   const now = Date.now();
   db.collection('conversation_groups')
@@ -5598,6 +5650,7 @@ function grpInit() {
       const all = [..._grpSeeds, ...fromFs];
       window._grpData = all;
       _grpRender(all);
+      _grpStartListPresence(all);
     })
     .catch(() => {});
 }

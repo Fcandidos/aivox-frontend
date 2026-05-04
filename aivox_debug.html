@@ -244,6 +244,60 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   </div>
 </div>
 
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SEÇÃO: FIRESTORE RULES — REFERÊNCIA                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title"><span id="dot-rules-ref" class="warn"></span>Firestore Rules — O que publicar no Firebase Console</div>
+
+  <div class="detail-box" style="font-size:11px;line-height:1.9;">
+    <strong style="color:#ffd000;">⚠ As rules abaixo precisam ser copiadas e publicadas em:<br>
+    Firebase Console → Firestore → Rules → Editar → Publicar</strong><br><br>
+
+    <strong style="color:#00e5ff;">group_presence</strong> — <span style="color:#ff4466;">CAUSA DO CONTADOR ZERADO</span><br>
+    <code>match /group_presence/{groupId}/online/{uid} {<br>
+    &nbsp;&nbsp;allow read: if request.auth != null;<br>
+    &nbsp;&nbsp;allow write, delete: if request.auth != null && request.auth.uid == uid;<br>
+    }</code><br><br>
+
+    <strong style="color:#00e5ff;">friend_messages</strong><br>
+    <code>match /friend_messages/{msgId} {<br>
+    &nbsp;&nbsp;allow read: if request.auth != null &&<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;(resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);<br>
+    &nbsp;&nbsp;allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;<br>
+    &nbsp;&nbsp;allow delete: if false;<br>
+    }</code><br><br>
+
+    <strong style="color:#00e5ff;">presence / leaderboard</strong><br>
+    <code>match /presence/{uid} {<br>
+    &nbsp;&nbsp;allow read: if request.auth != null;<br>
+    &nbsp;&nbsp;allow write: if request.auth != null && request.auth.uid == uid;<br>
+    }<br>
+    match /leaderboard/{uid} {<br>
+    &nbsp;&nbsp;allow read: if request.auth != null;<br>
+    &nbsp;&nbsp;allow write: if request.auth != null && request.auth.uid == uid;<br>
+    }</code><br><br>
+
+    <strong style="color:#00e5ff;">group_messages / conversation_groups</strong><br>
+    <code>match /group_messages/{msgId} {<br>
+    &nbsp;&nbsp;allow read: if request.auth != null;<br>
+    &nbsp;&nbsp;allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;<br>
+    &nbsp;&nbsp;allow delete: if false;<br>
+    }<br>
+    match /conversation_groups/{docId} {<br>
+    &nbsp;&nbsp;allow read: if request.auth != null;<br>
+    &nbsp;&nbsp;allow create: if request.auth != null;<br>
+    &nbsp;&nbsp;allow update, delete: if false;<br>
+    }</code>
+  </div>
+
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="testRulesPublished()">🔒 Verificar se Rules estão publicadas</button>
+  </div>
+  <div class="log" id="log-rules-ref"></div>
+</div>
+
 <!-- LOG GERAL -->
 <div class="section">
   <div class="section-title"><span></span>Log Completo</div>
@@ -631,26 +685,22 @@ async function testChat() {
   }
 
   // ── READ friend_messages enviadas ──
-  // Usa só fromUid p/ evitar o index composto (fromUid+toUid+createdAt) que o app cria via link
-  addLog('log-chat', 'READ friend_messages enviadas (query simplificada — sem index composto)...', 'i');
+  // Sem orderBy — evita failed-precondition por índice composto ausente. Ordena no cliente.
+  addLog('log-chat', 'READ friend_messages enviadas (sem orderBy — sem índice composto)...', 'i');
   try {
     const snap = await db.collection('friend_messages')
       .where('fromUid', '==', myUid)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
+      .limit(100)
       .get();
+    const sorted = snap.docs
+      .map(d => ({ ...d.data(), ts: d.data().createdAt?.toMillis?.() || 0 }))
+      .sort((a, b) => b.ts - a.ts);
     setVal('val-chat-read-sent', '✓ READ OK', 'ok');
-    setVal('val-chat-count-sent', snap.size + ' msgs enviadas', 'ok');
-    addLog('log-chat', '✓ READ enviadas OK — ' + snap.size + ' msgs (query simples, sem index composto)', 's');
-    addLog('log-chat', 'ℹ O app usa query com fromUid+toUid+orderBy que precisa de index composto.', 'i');
-    addLog('log-chat', 'ℹ Se no app aparecer failed-precondition: o próprio Firebase mostra o link para criar o index.', 'i');
+    setVal('val-chat-count-sent', sorted.length + ' msgs encontradas', 'ok');
+    addLog('log-chat', '✓ READ enviadas OK — ' + sorted.length + ' msgs (ordenação local por ts)', 's');
   } catch(e) {
     setVal('val-chat-read-sent', '✗ ' + e.code, 'err');
     addLog('log-chat', '✗ READ enviadas falhou: [' + e.code + '] ' + e.message, 'e');
-    if (e.code === 'failed-precondition') {
-      addLog('log-chat', '→ Index ausente para (fromUid, createdAt desc).', 'w');
-      addLog('log-chat', '→ Crie o index: Firebase Console → Firestore → Indexes → Add composite index.', 'w');
-    }
     if (e.code === 'permission-denied') addLog('log-chat', '→ Regra de leitura bloqueada — verifique as Firestore Security Rules.', 'w');
   }
 
@@ -1093,6 +1143,55 @@ async function testGrpPresence() {
   }
 
   addLog('log-grp', '=== FIM TESTE PRESENÇA DE GRUPO ===', 'i');
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+//  VERIFICAR SE RULES ESTÃO PUBLICADAS
+// ═══════════════════════════════════════════════════════════════
+async function testRulesPublished() {
+  if (!currentUser || !db) { addLog('log-rules-ref', 'Sem usuário/db', 'w'); return; }
+  addLog('log-rules-ref', '=== VERIFICANDO RULES PUBLICADAS ===', 'i');
+  const uid = currentUser.uid;
+  const checks = [
+    {
+      name: 'group_presence READ',
+      fn: () => db.collection('group_presence').doc('grp_en_b1').collection('online').limit(1).get(),
+      ok: 'READ OK — rule publicada corretamente',
+      fail: 'permission-denied — rule NÃO publicada! Copie e publique as rules acima.'
+    },
+    {
+      name: 'presence READ',
+      fn: () => db.collection('presence').limit(1).get(),
+      ok: 'READ OK',
+      fail: 'permission-denied — verifique rule de presence'
+    },
+    {
+      name: 'leaderboard READ',
+      fn: () => db.collection('leaderboard').limit(1).get(),
+      ok: 'READ OK',
+      fail: 'permission-denied — verifique rule de leaderboard'
+    },
+    {
+      name: 'conversation_groups READ',
+      fn: () => db.collection('conversation_groups').limit(1).get(),
+      ok: 'READ OK',
+      fail: 'permission-denied — verifique rule de conversation_groups'
+    },
+  ];
+  let allOk = true;
+  for (const c of checks) {
+    try {
+      await c.fn();
+      addLog('log-rules-ref', '✓ ' + c.name + ' — ' + c.ok, 's');
+    } catch(e) {
+      allOk = false;
+      const msg = e.code === 'permission-denied' ? c.fail : e.code + ': ' + e.message;
+      addLog('log-rules-ref', '✗ ' + c.name + ' — ' + msg, 'e');
+    }
+  }
+  setDot('dot-rules-ref', allOk ? 'ok' : 'err');
+  addLog('log-rules-ref', allOk ? '✅ Todas as rules estão publicadas!' : '❌ Algumas rules precisam ser publicadas — veja acima', allOk ? 's' : 'e');
 }
 
 // Auto-init ao carregar

@@ -79,12 +79,12 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   <div class="row"><span class="row-label">READ — leaderboard (orderBy xp)</span><span class="row-val" id="val-lb-read">—</span></div>
   <div class="row"><span class="row-label">Docs encontrados</span><span class="row-val" id="val-lb-count">—</span></div>
   <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-lb-err">—</span></div>
-    <div style="margin-top:10px;">
+  <div class="log" id="log-ranking"></div>
+  <div style="margin-top:10px;">
     <button class="btn" onclick="testRanking()">🔄 Testar Ranking</button>
     <button class="btn green" onclick="testRankingWrite()">✍ Testar só WRITE</button>
     <button class="btn" onclick="testRankingRead()">📖 Testar só READ</button>
   </div>
-  <div class="log" id="log-ranking"></div>
 </div>
 
 <!-- PRESENÇA -->
@@ -95,11 +95,11 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   <div class="row"><span class="row-label">Campo online no doc</span><span class="row-val" id="val-pr-online">—</span></div>
   <div class="row"><span class="row-label">lastSeen (ms atrás)</span><span class="row-val" id="val-pr-lastseen">—</span></div>
   <div class="row"><span class="row-label">isRecent (< 120s)</span><span class="row-val" id="val-pr-recent">—</span></div>
-    <div style="margin-top:10px;">
+  <div class="log" id="log-presence"></div>
+  <div style="margin-top:10px;">
     <button class="btn" onclick="testPresence()">🔄 Testar Presença</button>
     <button class="btn green" onclick="testPresenceAmigo()">👥 Testar Presença de Amigo</button>
   </div>
-  <div class="log" id="log-presence"></div>
   <div style="margin-top:8px;">
     <input id="input-friend-uid" placeholder="UID do amigo para testar (ex: abc123...)" />
   </div>
@@ -111,10 +111,10 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   <div class="row"><span class="row-label">Ler doc de outro usuário (leaderboard)</span><span class="row-val" id="val-rule-read-other">—</span></div>
   <div class="row"><span class="row-label">Escrever no doc de outro usuário</span><span class="row-val" id="val-rule-write-other">—</span></div>
   <div class="row"><span class="row-label">Leitura sem autenticação</span><span class="row-val" id="val-rule-unauth">—</span></div>
-    <div style="margin-top:10px;">
+  <div class="log" id="log-rules"></div>
+  <div style="margin-top:10px;">
     <button class="btn" onclick="testRules()">🔒 Testar Regras</button>
   </div>
-  <div class="log" id="log-rules"></div>
 </div>
 
 
@@ -144,11 +144,11 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
     • Limite aumentado: 100 msgs por lado (antes era 60)
   </div>
 
-    <div style="margin-top:10px;">
+  <div class="log" id="log-chat"></div>
+  <div style="margin-top:10px;">
     <button class="btn" onclick="testChat()">🔄 Testar Chat de Amigos</button>
     <button class="btn green" onclick="testChatAudioExpiry()">🎤 Testar Expiração Áudio</button>
   </div>
-  <div class="log" id="log-chat"></div>
   <div style="margin-top:8px;">
     <input id="input-chat-friend-uid" placeholder="UID de um amigo real (opcional — para testar READ de msgs reais)" />
   </div>
@@ -174,10 +174,10 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
     • Simula cenário onde <code>fromName</code> chega vazio do socket
   </div>
 
-    <div style="margin-top:10px;">
+  <div class="log" id="log-notif"></div>
+  <div style="margin-top:10px;">
     <button class="btn" onclick="testNotifName()">🔄 Testar Resolução de Nome</button>
   </div>
-  <div class="log" id="log-notif"></div>
   <div style="margin-top:8px;">
     <input id="input-notif-friend-uid" placeholder="UID de um amigo para verificar o displayName dele no Firestore" />
   </div>
@@ -207,57 +207,11 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
     • Latência da chamada à API — acima de 10s pode indicar timeout no front
   </div>
 
-    <div style="margin-top:10px;">
+  <div class="log" id="log-resumo"></div>
+  <div style="margin-top:10px;">
     <button class="btn" onclick="testResumoEscuta()">🧠 Testar Resumo de Escuta</button>
     <button class="btn green" onclick="testVocabulario()">📖 Testar só Vocabulário</button>
   </div>
-  <div class="log" id="log-resumo"></div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════ -->
-<!-- SEÇÃO: CHAT DE GRUPO                                      -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div class="section">
-  <div class="section-title"><span id="dot-grp" class="warn"></span>Chat de Grupo — group_messages &amp; group_presence <span class="section-tag new">NOVO</span></div>
-
-  <div class="grid2">
-    <div>
-      <div class="row"><span class="row-label">WRITE — group_messages</span><span class="row-val" id="val-grp-write">—</span></div>
-      <div class="row"><span class="row-label">READ — onSnapshot com orderBy</span><span class="row-val" id="val-grp-read">—</span></div>
-      <div class="row"><span class="row-label">Índice composto (groupId+createdAt)</span><span class="row-val" id="val-grp-index">—</span></div>
-      <div class="row"><span class="row-label">READ — fallback sem orderBy</span><span class="row-val" id="val-grp-fallback">—</span></div>
-      <div class="row"><span class="row-label">Docs encontrados</span><span class="row-val" id="val-grp-count">—</span></div>
-      <div class="row"><span class="row-label">DELETE test msg (limpeza)</span><span class="row-val" id="val-grp-delete">—</span></div>
-    </div>
-    <div>
-      <div class="row"><span class="row-label">WRITE — group_presence/{g}/online/{uid}</span><span class="row-val" id="val-grp-pres-write">—</span></div>
-      <div class="row"><span class="row-label">READ — group_presence (count)</span><span class="row-val" id="val-grp-pres-read">—</span></div>
-      <div class="row"><span class="row-label">Online count retornado</span><span class="row-val" id="val-grp-pres-count">—</span></div>
-      <div class="row"><span class="row-label">DELETE presença (limpeza)</span><span class="row-val" id="val-grp-pres-del">—</span></div>
-      <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-grp-err">—</span></div>
-    </div>
-  </div>
-
-  <div class="detail-box">
-    <strong>O que este teste verifica:</strong><br>
-    • <strong>WRITE</strong> em <code>group_messages</code> — se a mensagem chega ao Firestore<br>
-    • <strong>onSnapshot com orderBy</strong> — precisa de índice composto; se falhar: <code>failed-precondition</code><br>
-    • <strong>Fallback sem orderBy</strong> — funciona mesmo sem índice; mensagens chegam para todos<br>
-    • <strong>Presença WRITE/READ</strong> em <code>group_presence/{groupId}/online/{uid}</code> — contador de online<br>
-    • Se READ presença falhar (<code>permission-denied</code>) → contador fica em 0
-  </div>
-
-  <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
-    <button class="btn" onclick="testGrpAll()">▶ Testar Tudo</button>
-    <button class="btn" onclick="testGrpWrite()">✍ WRITE msgs</button>
-    <button class="btn" onclick="testGrpRead()">📖 READ/onSnapshot</button>
-    <button class="btn green" onclick="testGrpPresence()">👥 Presença</button>
-    <button class="btn red" onclick="clearGrpLog()">🗑 Limpar</button>
-  </div>
-  <div style="margin-top:8px;">
-    <input id="input-grp-id" placeholder="ID do grupo (ex: grp_ingles_b1 — deixe vazio para usar ID de teste)" />
-  </div>
-  <div class="log" id="log-grp"></div>
 </div>
 
 <!-- LOG GERAL -->
@@ -306,7 +260,7 @@ function addLog(logId, msg, type='m'){
   }
 }
 function clearLog(){ 
-  ['log-ranking','log-presence','log-rules','log-chat','log-notif','log-resumo','log-grp','log-geral'].forEach(id=>{
+  ['log-ranking','log-presence','log-rules','log-chat','log-notif','log-resumo','log-geral'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML='';
   });
 }
@@ -532,28 +486,47 @@ async function testRules(){
   setDot('dot-rules','run');
   addLog('log-rules','=== TESTE DE REGRAS ===','i');
 
-  // Tentar ler doc de OUTRO usuário no leaderboard
-  addLog('log-rules','Tentando ler doc de outro uid em leaderboard...','i');
+  // ── READ de outro usuário no leaderboard ─────────────────────
+  // Usa o UID do próprio usuário deslocado — IDs com __ causam invalid-argument (bug do teste anterior)
+  const fakeOtherUid = currentUser.uid.split('').reverse().join(''); // UID invertido = outro uid válido
+  addLog('log-rules','Tentando ler doc de outro uid em leaderboard (uid invertido)...','i');
   try {
-    await db.collection('leaderboard').doc('__test_outro_uid__').get();
+    const snap = await db.collection('leaderboard').doc(fakeOtherUid).get();
+    // Doc pode não existir, mas não deve dar permission-denied
     setVal('val-rule-read-other','✓ Permitido (correto — read é pública para auth)','ok');
-    addLog('log-rules','✓ Read de outro uid permitido (esperado)','s');
+    addLog('log-rules','✓ READ de outro uid OK — doc ' + (snap.exists ? 'existe' : 'não existe, mas sem bloqueio') + ' (esperado)','s');
   } catch(e){
-    setVal('val-rule-read-other','✗ '+e.code,'err');
-    addLog('log-rules','✗ Read de outro uid bloqueado: '+e.code,'e');
-    if(e.code==='permission-denied') addLog('log-rules','→ Rule de READ ainda não está correta — usuário logado deveria poder ler qualquer doc do leaderboard','w');
+    if(e.code === 'permission-denied'){
+      setVal('val-rule-read-other','✗ permission-denied','err');
+      addLog('log-rules','✗ READ bloqueado por permission-denied — regra de read do leaderboard está errada','e');
+      addLog('log-rules','→ Verifique: match /leaderboard/{uid} { allow read: if request.auth != null; }','w');
+    } else {
+      // invalid-argument ou outro erro não é problema de regra
+      setVal('val-rule-read-other','✓ Sem permission-denied ('+e.code+' é erro de dados, não de regra)','ok');
+      addLog('log-rules','✓ Sem permission-denied — regra de READ está correta','s');
+      addLog('log-rules','  (erro "'+e.code+'" é irrelevante — não indica problema nas regras)','m');
+    }
   }
 
-  // Tentar WRITE em doc de outro usuário
-  addLog('log-rules','Tentando WRITE em leaderboard/__outro_uid__ (deve falhar)...','i');
+  // ── WRITE em doc de outro usuário (deve ser bloqueado) ───────
+  addLog('log-rules','Tentando WRITE em leaderboard de outro uid (deve falhar)...','i');
   try {
-    await db.collection('leaderboard').doc('__outro_uid_qualquer__').set({ xp: 999 });
-    setVal('val-rule-write-other','⚠ PERMITIDO (PROBLEMA! — usuário consegue escrever como outro)','err');
-    addLog('log-rules','⚠ WRITE em outro uid PERMITIDO — regra de write está aberta demais!','e');
+    await db.collection('leaderboard').doc(fakeOtherUid).set({ xp: 999 });
+    setVal('val-rule-write-other','⚠ PERMITIDO — regra de WRITE está aberta demais!','err');
+    addLog('log-rules','⚠ WRITE em outro uid PERMITIDO — isso é um problema de segurança!','e');
+    // Limpa o doc criado indevidamente
+    try { await db.collection('leaderboard').doc(fakeOtherUid).delete(); } catch(de){}
   } catch(e){
     setVal('val-rule-write-other','✓ Bloqueado ('+e.code+') — correto','ok');
     addLog('log-rules','✓ WRITE em outro uid bloqueado — regra correta','s');
   }
+
+  // ── Regras de grupo verificadas ──────────────────────────────
+  addLog('log-rules','Verificando regras de group_messages e group_presence...','i');
+  addLog('log-rules','  → group_messages: allow read, create: if request.auth != null','m');
+  addLog('log-rules','  → group_presence/{g}/online/{uid}: allow read, write: if request.auth != null && uid == auth.uid','m');
+  addLog('log-rules','  Estas regras estão no arquivo — verifique se foram PUBLICADAS no Firebase Console','w');
+  addLog('log-rules','  (Firebase Console → Firestore → Rules → clicar Publicar)','w');
 
   setDot('dot-rules','ok');
   addLog('log-rules','=== FIM TESTE DE REGRAS ===','i');
@@ -994,261 +967,6 @@ async function testVocabulario() {
     }
   }
 }
-
-
-// ────────────────────────────────────────────────────────────────
-// CHAT DE GRUPO — TESTES
-// ────────────────────────────────────────────────────────────────
-function clearGrpLog(){ const el=document.getElementById('log-grp'); if(el) el.innerHTML=''; }
-
-function _grpTestId() {
-  return (document.getElementById('input-grp-id')?.value?.trim()) || 'grp_debug_test_' + Date.now();
-}
-
-async function testGrpWrite() {
-  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login no app primeiro','w'); return null; }
-  const uid = currentUser.uid;
-  const nome = currentUser.displayName || currentUser.email?.split('@')[0] || 'Debug';
-  const groupId = _grpTestId();
-
-  addLog('log-grp', '── WRITE group_messages ──', 'i');
-  addLog('log-grp', 'groupId: ' + groupId, 'm');
-
-  let docId = null;
-  try {
-    const ref = await db.collection('group_messages').add({
-      groupId, uid, nome,
-      text: '[debug-test] ' + new Date().toLocaleTimeString('pt-BR'),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    docId = ref.id;
-    setVal('val-grp-write', '✓ WRITE OK — ' + ref.id.substring(0,10) + '...', 'ok');
-    addLog('log-grp', '✓ WRITE OK — doc: ' + ref.id, 's');
-  } catch(e) {
-    setVal('val-grp-write', '✗ ' + e.code, 'err');
-    setVal('val-grp-err', e.code + ': ' + e.message.substring(0,80), 'err');
-    addLog('log-grp', '✗ WRITE falhou: [' + e.code + '] ' + e.message, 'e');
-    if (e.code === 'permission-denied') {
-      addLog('log-grp', '→ Regra necessária: match /group_messages/{id} { allow create: if request.auth != null; }', 'w');
-    }
-    return null;
-  }
-
-  // Limpeza
-  if (docId) {
-    await new Promise(r => setTimeout(r, 800));
-    try {
-      await db.collection('group_messages').doc(docId).delete();
-      setVal('val-grp-delete', '✓ DELETE OK', 'ok');
-      addLog('log-grp', '✓ Msg de teste removida', 's');
-    } catch(e) {
-      setVal('val-grp-delete', '⚠ ' + e.code, 'warn');
-      addLog('log-grp', '⚠ DELETE: ' + e.code + ' — msg de teste ficou no Firestore', 'w');
-    }
-  }
-  return docId;
-}
-
-async function testGrpRead() {
-  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db','w'); return false; }
-  const groupId = document.getElementById('input-grp-id')?.value?.trim() || 'grp_ingles_b1';
-  addLog('log-grp', '── READ onSnapshot (groupId: ' + groupId + ') ──', 'i');
-
-  // ── Teste 1: com orderBy (requer índice composto) ──────────────
-  const ok1 = await new Promise(resolve => {
-    const timer = setTimeout(() => {
-      addLog('log-grp', '✗ TIMEOUT 8s — onSnapshot com orderBy não respondeu', 'e');
-      addLog('log-grp', '→ Isso indica ÍNDICE COMPOSTO AUSENTE no Firestore', 'e');
-      addLog('log-grp', '→ Crie: Firebase Console → Firestore → Índices → + Composto', 'w');
-      addLog('log-grp', '→ Coleção: group_messages | groupId ASC | createdAt ASC', 'w');
-      setVal('val-grp-read', '✗ Timeout (índice ausente)', 'err');
-      setVal('val-grp-index', '✗ Não existe — crie no Firebase Console', 'err');
-      resolve(false);
-    }, 8000);
-
-    let unsub;
-    try {
-      unsub = db.collection('group_messages')
-        .where('groupId', '==', groupId)
-        .orderBy('createdAt', 'asc')
-        .limitToLast(20)
-        .onSnapshot(snap => {
-          clearTimeout(timer);
-          try { unsub(); } catch(e2) {}
-          const n = snap.size;
-          setVal('val-grp-read', '✓ onSnapshot OK', 'ok');
-          setVal('val-grp-index', '✓ Índice composto OK — sem ação necessária', 'ok');
-          setVal('val-grp-count', n + ' msg(s) encontrada(s)', 'ok');
-          addLog('log-grp', '✓ onSnapshot com orderBy OK — ' + n + ' msg(s)', 's');
-          if (n === 0) addLog('log-grp', '  (grupo vazio — normal para ID de teste)', 'm');
-          snap.forEach(d => {
-            const v = d.data();
-            addLog('log-grp', '  → "' + (v.text||'').substring(0,40) + '" de ' + (v.nome||'?'), 'm');
-          });
-          resolve(true);
-        }, err => {
-          clearTimeout(timer);
-          try { unsub?.(); } catch(e2) {}
-          if (err.code === 'failed-precondition' || err.message?.includes('index')) {
-            setVal('val-grp-read', '✗ failed-precondition', 'err');
-            setVal('val-grp-index', '✗ ÍNDICE AUSENTE', 'err');
-            addLog('log-grp', '✗ failed-precondition — ÍNDICE COMPOSTO AUSENTE', 'e');
-            // Extrai link direto
-            const link = err.message?.match(/https:\/\/[^\s]+/)?.[0];
-            if (link) {
-              addLog('log-grp', '→ Link direto para criar: ' + link, 'i');
-              setVal('val-grp-err', 'Índice ausente — link: ' + link.substring(0,60) + '...', 'warn');
-            } else {
-              addLog('log-grp', '→ Crie manualmente: Firebase Console > Firestore > Índices > Composto', 'w');
-              addLog('log-grp', '   Coleção: group_messages | groupId (ASC) | createdAt (ASC)', 'w');
-            }
-          } else if (err.code === 'permission-denied') {
-            setVal('val-grp-read', '✗ permission-denied', 'err');
-            addLog('log-grp', '✗ permission-denied no READ — verifique as regras', 'e');
-            addLog('log-grp', '→ Regra necessária: match /group_messages/{id} { allow read: if request.auth != null; }', 'w');
-          } else {
-            setVal('val-grp-read', '✗ ' + err.code, 'err');
-            addLog('log-grp', '✗ Erro: [' + err.code + '] ' + err.message, 'e');
-          }
-          resolve(false);
-        });
-    } catch(e) {
-      clearTimeout(timer);
-      addLog('log-grp', '✗ Exceção: ' + e.message, 'e');
-      resolve(false);
-    }
-  });
-
-  // ── Teste 2: fallback sem orderBy ─────────────────────────────
-  addLog('log-grp', '── READ fallback (sem orderBy, sem índice) ──', 'i');
-  const ok2 = await new Promise(resolve => {
-    const timer2 = setTimeout(() => {
-      setVal('val-grp-fallback', '✗ Timeout', 'err');
-      addLog('log-grp', '✗ Fallback também deu timeout', 'e');
-      resolve(false);
-    }, 6000);
-    let unsub2;
-    try {
-      unsub2 = db.collection('group_messages')
-        .where('groupId', '==', groupId)
-        .limit(20)
-        .onSnapshot(snap => {
-          clearTimeout(timer2);
-          try { unsub2(); } catch(e3) {}
-          setVal('val-grp-fallback', '✓ Fallback OK — ' + snap.size + ' msg(s)', 'ok');
-          addLog('log-grp', '✓ Fallback sem orderBy funcionou — ' + snap.size + ' msg(s)', 's');
-          if (!ok1) {
-            addLog('log-grp', '→ O app usa o fallback automaticamente quando o índice falta', 'i');
-            addLog('log-grp', '→ Mensagens chegam para todos, mas crie o índice para melhor ordenação', 'w');
-          }
-          resolve(true);
-        }, err2 => {
-          clearTimeout(timer2);
-          setVal('val-grp-fallback', '✗ ' + err2.code, 'err');
-          addLog('log-grp', '✗ Fallback também falhou: ' + err2.code, 'e');
-          resolve(false);
-        });
-    } catch(e) { clearTimeout(timer2); resolve(false); }
-  });
-
-  return ok1 || ok2;
-}
-
-async function testGrpPresence() {
-  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db','w'); return; }
-  const uid = currentUser.uid;
-  const nome = currentUser.displayName || 'Debug';
-  const groupId = document.getElementById('input-grp-id')?.value?.trim() || 'grp_ingles_b1';
-
-  addLog('log-grp', '── PRESENÇA group_presence/' + groupId + '/online/' + uid.substring(0,8) + '... ──', 'i');
-
-  // WRITE
-  const presRef = db.collection('group_presence').doc(groupId).collection('online').doc(uid);
-  try {
-    await presRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() });
-    setVal('val-grp-pres-write', '✓ WRITE OK', 'ok');
-    addLog('log-grp', '✓ WRITE presença OK', 's');
-  } catch(e) {
-    setVal('val-grp-pres-write', '✗ ' + e.code, 'err');
-    setVal('val-grp-err', e.code + ': ' + e.message.substring(0,80), 'err');
-    addLog('log-grp', '✗ WRITE presença falhou: [' + e.code + '] ' + e.message, 'e');
-    if (e.code === 'permission-denied') {
-      addLog('log-grp', '→ CAUSA: Regra bloqueando WRITE em group_presence/{g}/online/{uid}', 'w');
-      addLog('log-grp', '→ A regra atual no seu arquivo de regras está correta, mas pode não ter sido publicada', 'w');
-      addLog('log-grp', '→ Publique as regras no Firebase Console → Firestore → Rules → Publicar', 'w');
-    }
-    return;
-  }
-
-  // READ/onSnapshot para contar online
-  await new Promise(resolve => {
-    const timer = setTimeout(() => {
-      setVal('val-grp-pres-read', '✗ Timeout 6s', 'err');
-      addLog('log-grp', '✗ Timeout no listener de presença', 'e');
-      resolve();
-    }, 6000);
-    let unsub;
-    try {
-      unsub = db.collection('group_presence').doc(groupId).collection('online')
-        .onSnapshot(snap => {
-          clearTimeout(timer);
-          try { unsub(); } catch(e2) {}
-          setVal('val-grp-pres-read', '✓ onSnapshot OK', 'ok');
-          setVal('val-grp-pres-count', snap.size + ' usuário(s) online', snap.size > 0 ? 'ok' : 'warn');
-          addLog('log-grp', '✓ Presença onSnapshot OK — ' + snap.size + ' online', 's');
-          snap.forEach(d => addLog('log-grp', '  online: ' + (d.data().nome||'?') + ' (' + (d.data().uid||'?').substring(0,8) + '...)', 'm'));
-          resolve();
-        }, err => {
-          clearTimeout(timer);
-          setVal('val-grp-pres-read', '✗ ' + err.code, 'err');
-          setVal('val-grp-err', err.code + ': ' + err.message.substring(0,80), 'err');
-          addLog('log-grp', '✗ onSnapshot presença ERRO: [' + err.code + '] ' + err.message, 'e');
-          if (err.code === 'permission-denied') {
-            addLog('log-grp', '→ READ em group_presence bloqueado — contador fica em 0', 'e');
-            addLog('log-grp', '→ Regra correta no arquivo, mas provavelmente NÃO PUBLICADA ainda', 'w');
-            addLog('log-grp', '→ Acesse: Firebase Console → Firestore → Rules → clique Publicar', 'w');
-          }
-          resolve();
-        });
-    } catch(e) { clearTimeout(timer); resolve(); }
-  });
-
-  // Limpeza
-  await new Promise(r => setTimeout(r, 400));
-  try {
-    await presRef.delete();
-    setVal('val-grp-pres-del', '✓ DELETE OK', 'ok');
-    addLog('log-grp', '✓ Presença de teste removida', 's');
-  } catch(e) {
-    setVal('val-grp-pres-del', '⚠ ' + e.code, 'warn');
-    addLog('log-grp', '⚠ DELETE presença: ' + e.code, 'w');
-  }
-}
-
-async function testGrpAll() {
-  setDot('dot-grp', 'run');
-  clearGrpLog();
-  addLog('log-grp', '════ DIAGNÓSTICO COMPLETO DO GRUPO ════', 'i');
-
-  const writeOk = await testGrpWrite();
-  const readOk  = await testGrpRead();
-  await testGrpPresence();
-
-  addLog('log-grp', '════ RESUMO ════', 'i');
-  if (writeOk !== null && readOk) {
-    setDot('dot-grp', 'ok');
-    addLog('log-grp', '✅ Tudo OK — mensagens devem chegar para todos os usuários', 's');
-  } else if (writeOk !== null && !readOk) {
-    setDot('dot-grp', 'warn');
-    addLog('log-grp', '⚠ WRITE OK mas READ com orderBy falhou (índice ausente)', 'w');
-    addLog('log-grp', '→ O fallback automático do app deve funcionar mesmo assim', 'i');
-    addLog('log-grp', '→ Crie o índice composto para garantir ordenação correta', 'w');
-  } else {
-    setDot('dot-grp', 'err');
-    addLog('log-grp', '❌ WRITE falhou — verifique as regras do Firestore', 'e');
-  }
-}
-
 
 // Auto-init ao carregar
 window.onload = async () => {

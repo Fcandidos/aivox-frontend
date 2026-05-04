@@ -4513,19 +4513,11 @@ async function _amiLoadChatMsgs(friendUid) {
     _amiRenderChat(friendUid); // mostra o que já tem enquanto carrega
   }
   try {
-    // Queries por campo único + orderBy = índice simples, sem índice composto necessário
-    const [snapSent, snapRec] = await Promise.all([
-      db.collection('friend_messages').where('fromUid','==',myUid).orderBy('createdAt').limit(100).get(),
-      db.collection('friend_messages').where('toUid','==',myUid).orderBy('createdAt').limit(100).get(),
+    const [snapSent,snapRec]=await Promise.all([
+      db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).orderBy('createdAt').limit(100).get(),
+      db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).orderBy('createdAt').limit(100).get(),
     ]);
-    // Filtra no cliente para manter só msgs desta conversa
-    const sentMsgs = snapSent.docs
-      .filter(d => d.data().toUid === friendUid)
-      .map(d => ({...d.data(), mine:true,  ts:d.data().createdAt?.toMillis?.() || 0}));
-    const recMsgs = snapRec.docs
-      .filter(d => d.data().fromUid === friendUid)
-      .map(d => ({...d.data(), mine:false, ts:d.data().createdAt?.toMillis?.() || 0}));
-    const fsmsgs = [...sentMsgs, ...recMsgs].sort((a,b) => a.ts - b.ts);
+    const fsmsgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
     // Mescla com msgs em memória (ex: enviadas localmente ainda não confirmadas)
     const existing=_ami.chatMessages[friendUid]||[];
     const merged=[...fsmsgs];
@@ -4537,7 +4529,25 @@ async function _amiLoadChatMsgs(friendUid) {
     _ami.chatMessages[friendUid]=merged;
     _amiRenderChat(friendUid);
   } catch(e) {
-    console.warn('_amiLoadChatMsgs',e);
+    // failed-precondition = índice composto ausente no Firestore
+    if(e.code==='failed-precondition'||e.message?.includes('index')){
+      console.warn('[AIVOX] friend_messages precisa de índice composto. Crie em: Firebase Console → Firestore → Índices → Composto: fromUid(ASC) + toUid(ASC) + createdAt(ASC). Detalhes:',e.message);
+      // Fallback: busca sem orderBy (sem índice, funciona mas sem ordenação garantida)
+      try {
+        const [snapSent,snapRec]=await Promise.all([
+          db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).limit(100).get(),
+          db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).limit(100).get(),
+        ]);
+        const fsmsgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
+        const existing=_ami.chatMessages[friendUid]||[];
+        const merged=[...fsmsgs];
+        existing.forEach(m=>{ const dup=merged.some(fm=>fm.text===m.text&&fm.mine===m.mine&&Math.abs((fm.ts||0)-(m.ts||0))<3000); if(!dup)merged.push(m); });
+        merged.sort((a,b)=>a.ts-b.ts);
+        _ami.chatMessages[friendUid]=merged;
+      } catch(e2){ console.warn('_amiLoadChatMsgs fallback:',e2); }
+    } else {
+      console.warn('_amiLoadChatMsgs',e);
+    }
     _amiRenderChat(friendUid);
   }
 }
@@ -5293,25 +5303,12 @@ function _grpRender(grupos) {
         <div style="font-size:13px;font-weight:800;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${g.tema}</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};background:${nivelCor}22;border:1px solid ${nivelCor}44;padding:2px 7px;border-radius:20px;">${g.nivel}</span>
-          <span id="grp-online-badge-${g.id}" style="font-size:10px;color:var(--muted);">👥 0 online</span>
+          <span style="font-size:10px;color:var(--muted);">👥 ${g.membros || 0} online</span>
           ${g.host === 'AIVOX' ? '<span style="font-size:9px;font-weight:800;font-family:var(--mono);background:var(--adim);color:var(--accent);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:20px;">OFICIAL</span>' : ''}
         </div>
       </div>
       <div style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;flex-shrink:0;">Entrar →</div>`;
     list.appendChild(div);
-
-    // Listener de presença em tempo real para este grupo na lista
-    if (db) {
-      db.collection('group_presence').doc(g.id).collection('online')
-        .onSnapshot(snap => {
-          const badge = document.getElementById('grp-online-badge-' + g.id);
-          if (!badge) return;
-          const count = snap.size;
-          badge.textContent = count > 0 ? '● ' + count + ' online' : '👥 0 online';
-          badge.style.color = count > 0 ? 'var(--green)' : 'var(--muted)';
-          badge.style.fontWeight = count > 0 ? '700' : '';
-        }, () => {});
-    }
   });
 }
 
@@ -12780,25 +12777,47 @@ function _salaMostrarUIVideo(show){
 
 <!-- PROFESSOR IA — overlay fullscreen (controlado por professor-ia.js) -->
 <!-- ====== GRUPO CHAT OVERLAY ====== -->
-<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#0d1020;align-items:stretch;justify-content:stretch;">
-  <div style="background:#131825;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
-    <!-- Header -->
-    <div id="grp-chat-header" style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(0,229,255,.08));">
-      <div id="grp-chat-avatar" style="width:42px;height:42px;border-radius:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌍</div>
-      <div style="flex:1;min-width:0;">
-        <div id="grp-chat-title" style="font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Grupo</div>
-        <div id="grp-chat-meta" style="font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:6px;"><span id="grp-online-count">● 1 online</span></div>
-      </div>
-      <button onclick="grpChatClose()" style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>
-    <!-- Messages -->
-    <div id="grp-chat-msgs" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent;"></div>
+<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#0d1020;">
+  <div style="background:#0f1420;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
 
-    <!-- Input -->
-    <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;align-items:flex-end;">
-      <input id="grp-chat-inp" class="input-field" placeholder="Escreva em inglês aqui..." style="flex:1;border-radius:12px;font-size:13px;padding:10px 14px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();grpChatSend();}">
-      <button onclick="grpChatSend()" style="width:42px;height:42px;border-radius:12px;border:none;background:linear-gradient(135deg,#a855f7,var(--accent));color:white;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">→</button>
+    <!-- Header — com safe-area-inset-top para notch/ilha dinâmica -->
+    <div id="grp-chat-header" style="
+      padding: 16px 16px 14px;
+      padding-top: calc(16px + env(safe-area-inset-top, 0px));
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; gap: 12px;
+      background: linear-gradient(135deg,rgba(124,58,237,.2),rgba(0,229,255,.06));
+      flex-shrink: 0;">
+      <!-- Avatar -->
+      <div id="grp-chat-avatar" style="width:40px;height:40px;border-radius:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌍</div>
+      <!-- Info -->
+      <div style="flex:1;min-width:0;">
+        <div id="grp-chat-title" style="font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px;">Grupo</div>
+        <div id="grp-chat-meta" style="font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="grp-online-count" style="color:var(--muted);">● 1 online</span>
+          <span id="grp-fs-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);">conectando…</span>
+        </div>
+      </div>
+      <!-- Fechar -->
+      <button onclick="grpChatClose()" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">✕</button>
     </div>
+
+    <!-- Mensagens -->
+    <div id="grp-chat-msgs" style="flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent;-webkit-overflow-scrolling:touch;"></div>
+
+    <!-- Input — com safe-area-inset-bottom para home indicator do iPhone -->
+    <div style="
+      padding: 10px 14px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(255,255,255,.06);
+      background: rgba(8,11,18,.8);
+      display: flex; gap: 8px; align-items: center;">
+      <input id="grp-chat-inp" class="input-field" placeholder="Escreva em inglês aqui..."
+        style="flex:1;border-radius:22px;font-size:14px;padding:11px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);outline:none;"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();grpChatSend();}">
+      <button onclick="grpChatSend()" style="width:44px;height:44px;border-radius:50%;border:none;background:linear-gradient(135deg,#a855f7,var(--accent));color:white;font-size:20px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(168,85,247,.35);transition:transform .15s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">→</button>
+    </div>
+
   </div>
 </div>
 

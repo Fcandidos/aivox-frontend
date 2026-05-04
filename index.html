@@ -5303,31 +5303,12 @@ function _grpRender(grupos) {
         <div style="font-size:13px;font-weight:800;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${g.tema}</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};background:${nivelCor}22;border:1px solid ${nivelCor}44;padding:2px 7px;border-radius:20px;">${g.nivel}</span>
-          <span id="grp-online-badge-${g.id}" style="font-size:10px;color:var(--muted);">👥 0 online</span>
+          <span style="font-size:10px;color:var(--muted);">👥 ${g.membros || 0} online</span>
           ${g.host === 'AIVOX' ? '<span style="font-size:9px;font-weight:800;font-family:var(--mono);background:var(--adim);color:var(--accent);border:1px solid rgba(0,229,255,.2);padding:2px 6px;border-radius:20px;">OFICIAL</span>' : ''}
         </div>
       </div>
       <div style="background:linear-gradient(135deg,#a855f7,var(--accent));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800;flex-shrink:0;">Entrar →</div>`;
     list.appendChild(div);
-
-    // Listener de presença em tempo real para este grupo na lista
-    if (db) {
-      db.collection('group_presence').doc(g.id).collection('online')
-        .onSnapshot(snap => {
-          const badge = document.getElementById('grp-online-badge-' + g.id);
-          if (!badge) return;
-          const count = snap.size;
-          if (count > 0) {
-            badge.textContent = '● ' + count + ' online';
-            badge.style.color = 'var(--green)';
-            badge.style.fontWeight = '700';
-          } else {
-            badge.textContent = '👥 0 online';
-            badge.style.color = 'var(--muted)';
-            badge.style.fontWeight = '';
-          }
-        }, () => {});
-    }
   });
 }
 
@@ -5438,21 +5419,40 @@ function grpEntrar(grupo) {
   if (_grpPresenceRef) { try { _grpPresenceRef.delete(); } catch(e) {} _grpPresenceRef = null; }
 
   _grpPresenceRef = db.collection('group_presence').doc(grupo.id).collection('online').doc(uid);
+
+  // Monta listener ANTES do write — garante contagem mesmo se o write demorar
+  _grpPresenceListener = db.collection('group_presence').doc(grupo.id).collection('online')
+    .onSnapshot(snap => {
+      const count = snap.size;
+      const el = document.getElementById('grp-online-count');
+      if (el) {
+        el.textContent = '● ' + count + ' online';
+        el.style.color = count > 1 ? 'var(--green)' : 'var(--muted)';
+      }
+      // Atualiza também o badge na lista de grupos
+      const badge = document.getElementById('grp-online-badge-' + grupo.id);
+      if (badge) {
+        badge.textContent = count > 0 ? '● ' + count + ' online' : '👥 0 online';
+        badge.style.color = count > 0 ? 'var(--green)' : 'var(--muted)';
+        badge.style.fontWeight = count > 0 ? '700' : '';
+      }
+      const fsEl = document.getElementById('grp-fs-status');
+      if (fsEl) { fsEl.textContent = '● ao vivo'; fsEl.style.color = 'var(--green)'; }
+      console.log('[GRP presence] snap.size =', count, '| docs:', snap.docs.map(d => d.id));
+    }, err => {
+      console.warn('[GRP presence] READ falhou:', err.code, err.message);
+      const fsEl = document.getElementById('grp-fs-status');
+      if (fsEl) { fsEl.textContent = '⚠ presença offline (' + err.code + ')'; fsEl.style.color = 'var(--yellow)'; }
+    });
+
+  // Escreve presença — log de erros visível no console
   _grpPresenceRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() })
-    .then(() => {
-      // Só monta o listener de contagem APÓS confirmar que o write funcionou
-      // Isso evita o permission-denied em cascata
-      _grpPresenceListener = db.collection('group_presence').doc(grupo.id).collection('online')
-        .onSnapshot(snap => {
-          const el = document.getElementById('grp-online-count');
-          if (el) el.textContent = '● ' + snap.size + ' online';
-        }, () => {
-          // Se READ falhar, mostra pelo menos 1 (o próprio usuário)
-          const el = document.getElementById('grp-online-count');
-          if (el) el.textContent = '● 1+ online';
-        });
-    })
-    .catch(() => {});
+    .then(() => console.log('[GRP presence] WRITE OK — uid:', uid, '| grupo:', grupo.id))
+    .catch(err => {
+      console.warn('[GRP presence] WRITE falhou:', err.code, err.message);
+      const fsEl = document.getElementById('grp-fs-status');
+      if (fsEl) { fsEl.textContent = '⚠ sem presença (' + err.code + ')'; fsEl.style.color = 'var(--yellow)'; }
+    });
 
   // ── MENSAGENS FIRESTORE ───────────────────────────────────────
   // Estratégia: tenta com orderBy (precisa de índice composto).
@@ -12777,8 +12777,8 @@ function _salaMostrarUIVideo(show){
 
 <!-- PROFESSOR IA — overlay fullscreen (controlado por professor-ia.js) -->
 <!-- ====== GRUPO CHAT OVERLAY ====== -->
-<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#131825;border:1px solid rgba(255,255,255,.08);border-radius:24px;width:100%;max-width:520px;height:min(88vh,640px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.7);">
+<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#0d1020;align-items:stretch;justify-content:stretch;">
+  <div style="background:#131825;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
     <!-- Header -->
     <div id="grp-chat-header" style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(0,229,255,.08));">
       <div id="grp-chat-avatar" style="width:42px;height:42px;border-radius:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌍</div>

@@ -601,26 +601,22 @@ async function testChat() {
   }
 
   // ── READ friend_messages enviadas ──
-  // Usa só fromUid p/ evitar o index composto (fromUid+toUid+createdAt) que o app cria via link
-  addLog('log-chat', 'READ friend_messages enviadas (query simplificada — sem index composto)...', 'i');
+  // Busca sem orderBy (sem índice composto necessário), ordena no cliente por ts
+  addLog('log-chat', 'READ friend_messages enviadas (sem index composto — ordenação no cliente)...', 'i');
   try {
     const snap = await db.collection('friend_messages')
       .where('fromUid', '==', myUid)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
+      .limit(100)
       .get();
+    const sorted = snap.docs
+      .map(d => ({ ...d.data(), ts: d.data().createdAt?.toMillis?.() || 0 }))
+      .sort((a, b) => b.ts - a.ts);
     setVal('val-chat-read-sent', '✓ READ OK', 'ok');
-    setVal('val-chat-count-sent', snap.size + ' msgs enviadas', 'ok');
-    addLog('log-chat', '✓ READ enviadas OK — ' + snap.size + ' msgs (query simples, sem index composto)', 's');
-    addLog('log-chat', 'ℹ O app usa query com fromUid+toUid+orderBy que precisa de index composto.', 'i');
-    addLog('log-chat', 'ℹ Se no app aparecer failed-precondition: o próprio Firebase mostra o link para criar o index.', 'i');
+    setVal('val-chat-count-sent', sorted.length + ' msgs encontradas', 'ok');
+    addLog('log-chat', '✓ READ enviadas OK — ' + sorted.length + ' msgs (ordenação local por ts)', 's');
   } catch(e) {
     setVal('val-chat-read-sent', '✗ ' + e.code, 'err');
     addLog('log-chat', '✗ READ enviadas falhou: [' + e.code + '] ' + e.message, 'e');
-    if (e.code === 'failed-precondition') {
-      addLog('log-chat', '→ Index ausente para (fromUid, createdAt desc).', 'w');
-      addLog('log-chat', '→ Crie o index: Firebase Console → Firestore → Indexes → Add composite index.', 'w');
-    }
     if (e.code === 'permission-denied') addLog('log-chat', '→ Regra de leitura bloqueada — verifique as Firestore Security Rules.', 'w');
   }
 

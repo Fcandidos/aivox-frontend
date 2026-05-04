@@ -240,7 +240,6 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     width:100% !important;
     max-width:100vw !important;
     position:relative !important;
-    isolation:isolate !important;
   }
   #page-admin .adh{
     flex-shrink:0 !important;
@@ -303,6 +302,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
   /* Chats tab: achat-modal contido corretamente dentro do page-admin */
   .achat-modal .chat-input-bar{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
+  /* Fix: achat-modal não deve cobrir o header (.adh) do admin no mobile */
+  #page-admin .achat-modal{top:auto !important;bottom:0 !important;left:0 !important;right:0 !important;position:absolute !important;height:calc(100% - var(--adh-height, 98px)) !important;}
 
   /* Fix: udov (user detail panel) must be scrollable with bottom nav space */
   #page-admin .udov{position:absolute !important;inset:0 !important;}
@@ -824,8 +825,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .trow{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;}
 .tnm{font-size:13px;font-weight:600;}
 .tds{font-size:11px;color:var(--muted);margin-top:2px;}
-.achat-modal{position:absolute;inset:0;background:var(--bg);z-index:70;display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;visibility:hidden;}
-.achat-modal.sh{transform:translateX(0);pointer-events:all;visibility:visible;}
+.achat-modal{position:absolute;inset:0;background:var(--bg);z-index:70;display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.achat-modal.sh{transform:translateX(0);pointer-events:all;}
 .achat-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all .18s;}
 .achat-item:hover{border-color:rgba(0,229,255,.18);}
 .achat-item.unread{border-left:3px solid var(--accent);}
@@ -3257,7 +3258,7 @@ input, textarea, select {
       <div class="udov" id="udov"><div class="udhdl"></div><div class="udhdr"><button class="dcl" onclick="clsUser()">‹</button><div class="dtitle" id="udtit">Usuário</div><div style="margin-left:auto;" id="udplan"></div></div><div class="udsc scroll-area" id="udsc"></div></div>
       <!-- Admin chat modal -->
       <div class="achat-modal" id="achat-modal">
-        <div style="padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;background:var(--bg);"><button class="dcl" onclick="closeAdminChat()">‹</button><div style="flex:1;" id="achat-modal-title"><div style="font-size:15px;font-weight:700;">Chat</div></div><button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WA</button></div>
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;background:var(--bg);"><button class="dcl" onclick="closeAdminChat()">‹</button><div style="flex:1;" id="achat-modal-title"><div style="font-size:15px;font-weight:700;">Chat</div></div><button class="btn btn-ghost btn-sm" onclick="openWhatsApp()">📱 WA</button></div>
         <div class="chat-msgs scroll-area" id="achat-msgs" style="flex:1;min-height:0;padding-bottom:8px;"></div>
         <div class="chat-input-bar" style="flex-shrink:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));"><textarea class="chat-input" id="achat-reply-field" placeholder="Responder como admin..." rows="1" onkeydown="adminReplyKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendAdminReply()">➤</button></div>
       </div>
@@ -8102,6 +8103,9 @@ function openAdminChat(c){
     // Demo fallback
     c.msgs.forEach(m=>appendChatMsg(m.role,m.text,m.time,'achat-msgs'));
   }
+  // Fix mobile: mede altura real do .adh e aplica como variável CSS para o modal não sobrepor o header
+  const _adh=document.querySelector('#page-admin .adh');
+  if(_adh){document.getElementById('page-admin').style.setProperty('--adh-height',_adh.offsetHeight+'px');}
   document.getElementById('achat-modal').classList.add('sh');
 }
 function closeAdminChat(){document.getElementById('achat-modal').classList.remove('sh');if(adminChatUnsubscribe){adminChatUnsubscribe();adminChatUnsubscribe=null;}currentAdminChat=null;}

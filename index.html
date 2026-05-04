@@ -156,7 +156,17 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 @media(max-width:400px){.lnav-btn.ghost{display:none;}.lnav-btn.primary{font-size:11px;padding:0 10px;}}
 .landing-page.active{display:flex;width:100%;}
 
-/* ====== TOAST ====== */
+/* ====== IDLE TIMEOUT UI ====== */
+#idle-warn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:8500;background:linear-gradient(135deg,rgba(255,140,0,.95),rgba(255,68,102,.9));padding:12px 18px;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(255,68,102,.4);}
+#idle-warn-banner .iwb-icon{font-size:22px;flex-shrink:0;}
+#idle-warn-banner .iwb-txt{flex:1;font-size:13px;font-weight:700;color:#fff;line-height:1.4;}
+#idle-warn-banner .iwb-btn{background:#fff;color:#b91c1c;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--font);flex-shrink:0;transition:transform .15s;}
+#idle-warn-banner .iwb-btn:hover{transform:scale(1.04);}
+#idle-logout-modal{display:none;position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.85);align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:24px;}
+#idle-logout-modal .ilm-box{background:var(--surface);border:1px solid rgba(255,68,102,.3);border-radius:20px;padding:28px 24px;max-width:320px;width:100%;}
+#idle-logout-modal .ilm-icon{font-size:44px;margin-bottom:12px;}
+#idle-logout-modal .ilm-title{font-size:18px;font-weight:900;margin-bottom:6px;color:var(--red);}
+#idle-logout-modal .ilm-sub{font-size:13px;color:var(--muted);line-height:1.5;}
 #toast-portal{position:fixed;z-index:9999;pointer-events:none;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
 @media(max-width:767px){#toast-portal{bottom:80px;right:auto;left:50%;transform:translateX(-50%);align-items:center;}}
 .toast{background:var(--card);border-radius:14px;padding:12px 20px;font-size:13px;font-weight:600;color:var(--text);box-shadow:0 4px 24px rgba(0,0,0,.5);animation:toastIn .3s ease both;white-space:nowrap;}
@@ -221,9 +231,12 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
   #page-chat .chat-msgs{flex:1 !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;min-height:0 !important;}
   #page-chat .chat-input-bar{flex-shrink:0 !important;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
   #page-admin.active{height:100% !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
-  #page-admin .adh{flex-shrink:0 !important;}
-  #page-admin .atcont{flex:1 !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
-  #tab-sistema{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
+  #page-admin .adh{flex-shrink:0 !important;background:var(--bg) !important;border-bottom:1px solid var(--border) !important;}
+  #page-admin .atcont{flex:1 !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;min-height:0 !important;}
+  #tab-sistema{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;}
+  /* Fix: udov (user detail panel) must be scrollable with bottom nav space */
+  #page-admin .udov{position:absolute !important;inset:0 !important;}
+  #page-admin .udsc{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
 }
 .empty-state.sh{display:flex;}
 .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
@@ -397,6 +410,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .met-bar{display:flex;gap:14px;padding:9px 16px;padding-bottom:calc(9px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border);font-size:11px;font-family:var(--mono);color:var(--muted);flex-shrink:0;background:var(--bg);position:relative;z-index:10;}
 .met-item span{color:var(--text);font-weight:700;}
 .mic-area{padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px)) 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;background:var(--bg);}
+@media(max-width:767px){.mic-area{padding:16px 16px calc(90px + env(safe-area-inset-bottom,0px)) 16px !important;}}
 .micb{width:72px;height:72px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;font-family:var(--font);transition:all .18s;}
 .micb.idle{background:var(--card);border:2px solid var(--border);}
 .micb.rec{background:linear-gradient(135deg,var(--red),#ff0080);box-shadow:0 0 24px rgba(255,68,102,.5);animation:pulse .8s ease infinite;}
@@ -440,7 +454,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .lb-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--muted);font-family:var(--font);transition:all .15s;}
 .lb-btn:hover{color:var(--accent);border-color:rgba(0,229,255,.3);}
 .learn-input-area{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
-@media(max-width:1099px){.learn-input-area{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}}
+@media(max-width:1099px){.learn-input-area{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));}}
 .learn-mic-btn{width:54px;height:54px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),#0080ff);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;transition:all .2s;box-shadow:0 4px 14px rgba(0,229,255,.3);}
 .learn-mic-btn.listening{background:linear-gradient(135deg,var(--red),#ff6b35);animation:ctPulse 1s ease infinite;}
 .learn-status{text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:7px;}
@@ -707,7 +721,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .udhdl{display:flex;justify-content:center;padding:10px 0 3px;}
 .udhdl::before{content:'';width:34px;height:4px;background:rgba(255,255,255,.11);border-radius:2px;}
 .udhdr{padding:5px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
-.udsc{flex:1;overflow-y:auto;padding:14px 20px;}
+.udsc{flex:1;overflow-y:auto;padding:14px 20px;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));}
 .udsc::-webkit-scrollbar{display:none;}
 .ubr{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;}
 .ubrt{display:flex;justify-content:space-between;margin-bottom:6px;}
@@ -2214,7 +2228,7 @@ input, textarea, select {
         </div>
 
         <!-- ── ABA ASSISTENTE PESSOAL ── -->
-        <div class="learn-tab-panel" id="ltp-assistente" style="flex-direction:column;overflow-y:auto;padding:16px;gap:14px;">
+        <div class="learn-tab-panel" id="ltp-assistente" style="flex-direction:column;overflow-y:auto;padding:16px;gap:14px;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;">
           <!-- Header -->
           <div style="background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(0,229,255,.08));border:1.5px solid rgba(168,85,247,.25);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;background:radial-gradient(circle,rgba(168,85,247,.2),transparent 70%);pointer-events:none;"></div>
@@ -2273,7 +2287,7 @@ input, textarea, select {
         </div>
 
         <!-- ── ABA PROFESSOR IA ── -->
-        <div class="learn-tab-panel active" id="ltp-professor" style="flex-direction:column;overflow-y:auto;padding:16px;gap:14px;">
+        <div class="learn-tab-panel active" id="ltp-professor" style="flex-direction:column;overflow-y:auto;padding:16px;gap:14px;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;">
 
           <!-- Hero -->
           <div style="background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(0,229,255,.08));border:1.5px solid rgba(124,58,237,.3);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
@@ -3405,7 +3419,7 @@ input, textarea, select {
       </div>
 
       <!-- Microfone -->
-      <div class="mic-area" style="flex-shrink:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));">
+      <div class="mic-area" style="flex-shrink:0;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;">
         <!-- Toggle Modo Contínuo -->
         <div class="continuous-toggle" id="sala-continuous-toggle" onclick="salaToggleContinuous()">
           <div class="ct-dot"></div>
@@ -3604,8 +3618,8 @@ input, textarea, select {
 <!-- Hero header -->
         <div style="background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(0,229,255,.10));border:1.5px solid rgba(124,58,237,.3);border-radius:18px;padding:18px 20px;margin-bottom:4px;position:relative;overflow:hidden;">
           <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(0,229,255,.15),transparent 70%);pointer-events:none;"></div>
-          <div style="font-size:11px;font-family:var(--mono);font-weight:800;color:#a855f7;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">✦ AIVOX v5.2</div>
-          <div style="font-size:19px;font-weight:900;background:linear-gradient(90deg,#a855f7,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;">Novidades & Funcionalidades</div>
+          <div style="font-size:11px;font-family:var(--mono);font-weight:800;color:#a855f7;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;text-align:center;">✦ AIVOX v5.2</div>
+          <div style="font-size:19px;font-weight:900;background:linear-gradient(90deg,#a855f7,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;text-align:center;">Novidades & Funcionalidades</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">Tudo que o AIVOX já oferece — e o que vem por aí. Vote nas próximas funcionalidades que você mais quer! 🚀</div>
         </div>
 
@@ -5977,6 +5991,59 @@ const MAX_ATTEMPTS=5;
 let trialSec=5*60,trialT=null,sessT=null,sessSec=0;
 let isRec=false,wis=[],wc=0,di=0;
 let _escutaActive=false;
+
+// ════════════════════════════════════════════════════════════
+//  SISTEMA DE INATIVIDADE — Auto-logout após 10 min sem uso
+// ════════════════════════════════════════════════════════════
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutos
+const IDLE_WARN_MS    =  9 * 60 * 1000; // aviso 1 min antes
+let _idleTimer = null;
+let _idleWarnTimer = null;
+let _idleWarnShown = false;
+
+function _resetIdleTimer(){
+  clearTimeout(_idleTimer);
+  clearTimeout(_idleWarnTimer);
+  _idleWarnShown = false;
+  // Remove aviso se estiver visível
+  const warn = document.getElementById('idle-warn-banner');
+  if(warn) warn.style.display = 'none';
+
+  _idleWarnTimer = setTimeout(()=>{
+    // Mostra aviso 1 min antes
+    const b = document.getElementById('idle-warn-banner');
+    if(b && !_idleWarnShown){ b.style.display='flex'; _idleWarnShown=true; }
+  }, IDLE_WARN_MS);
+
+  _idleTimer = setTimeout(()=>{
+    // Encerra sessão ativa e faz logout por inatividade
+    _handleIdleLogout();
+  }, IDLE_TIMEOUT_MS);
+}
+
+function _handleIdleLogout(){
+  // Para qualquer sessão ativa
+  try{ if(isRec) stopRec(); }catch(e){}
+  try{ stopSess(); }catch(e){}
+  try{ stopEscuta(); }catch(e){}
+  try{ _escutaActive=false; }catch(e){}
+  // Mostra modal de aviso antes do logout
+  const m = document.getElementById('idle-logout-modal');
+  if(m){ m.style.display='flex'; }
+  // Aguarda 4s e faz logout
+  setTimeout(()=>{
+    try{ doLogout(); }catch(e){ location.reload(); }
+  }, 4000);
+}
+
+function _startIdleWatch(){
+  const events = ['mousemove','mousedown','touchstart','touchmove','keydown','scroll','click'];
+  events.forEach(ev => document.addEventListener(ev, _resetIdleTimer, {passive:true}));
+  _resetIdleTimer();
+}
+
+// Só ativa o idle watch após login (chamado em setupPlan)
+// ────────────────────────────────────────────────────────────
 // API monitor vars — declarados cedo para evitar TDZ em navApp
 let _apiMonitorInterval=null;
 let _apiCountdownInterval=null;
@@ -6505,6 +6572,8 @@ function setupPlan(){const it=userPlan==='trial';const tban=document.getElementB
   const isPaid=!it&&userPlan!=='expired';
   const homeBtn=document.getElementById('home-topup-btn');if(homeBtn)homeBtn.style.display=isPaid?'block':'none';
   const cfgBtn=document.getElementById('cfg-topup-row');if(cfgBtn)cfgBtn.style.display=isPaid?'flex':'none';
+  // Inicia monitoramento de inatividade (idle watch)
+  if(!window._idleWatchStarted){window._idleWatchStarted=true;_startIdleWatch();}
 }
 function startTrial(){stopTrial();trialSec=5*60;updTrial();trialT=setInterval(()=>{trialSec--;updTrial();if(trialSec<=60){const uw=document.getElementById('uw-warn');if(uw){uw.className='uw-banner sh over';uw.innerHTML='<span style="font-size:16px;">🔴</span><div style="flex:1;"><div style="font-size:11px;font-weight:700;color:var(--red);">Trial quase esgotado!</div></div><button onclick="showLanding()" style="background:var(--red);color:#fff;border:none;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);">Upgrade</button>';}}if(trialSec<=0){stopTrial();const el=document.getElementById('ttimer');if(el){el.textContent='00:00';el.style.color='var(--red)';};}},1000);}
 function stopTrial(){clearInterval(trialT);trialT=null;}
@@ -7374,14 +7443,30 @@ function goActive(){
   }
 }
 function leaveActive(){stopSess();stopViagemMode();navApp('home');}
-function startSess(){stopSess();sessSec=0;wc=0;di=0;const bubs=document.getElementById('bubs'),tind=document.getElementById('tind');if(bubs){bubs.innerHTML='';if(tind)bubs.appendChild(tind);}document.getElementById('tr1').textContent=_selectedMode==='viagem'?'✈️ Modo Offline — toque no microfone':'Toque no microfone para começar...';
-  // Badge modo viagem
+function startSess(){
+  stopSess();sessSec=0;wc=0;di=0;
+  const bubs=document.getElementById('bubs'),tind=document.getElementById('tind');
+  if(bubs){bubs.innerHTML='';if(tind)bubs.appendChild(tind);}
+  document.getElementById('tr1').textContent=_selectedMode==='viagem'?'✈️ Modo Offline — toque no microfone':'Toque no microfone para começar...';
   const vtag=document.getElementById('viagem-tag');
-  if(vtag)vtag.style.display=_selectedMode==='viagem'?'inline-flex':'none';document.getElementById('tr2').textContent='Aguardando resposta...';sessT=setInterval(()=>{sessSec++;const m=Math.floor(sessSec/60),s=sessSec%60,el=document.getElementById('sess-dur');if(el)el.textContent=m.toString().padStart(2,'0')+':'+s.toString().padStart(2,'0');},1000);}
+  if(vtag)vtag.style.display=_selectedMode==='viagem'?'inline-flex':'none';
+  document.getElementById('tr2').textContent='Aguardando resposta...';
+  // CORREÇÃO ANTI-DESPERDÍCIO: sessT só atualiza o cronômetro visual.
+  // sessSec (que é usado para billing) só incrementa quando isRec=true (mic ativo).
+  let _uiSec=0;
+  sessT=setInterval(()=>{
+    _uiSec++;
+    // Só conta minutos de uso quando o microfone está ativo (prevenção de crédito desperdiçado)
+    if(isRec) sessSec++;
+    const m=Math.floor(_uiSec/60),s=_uiSec%60,el=document.getElementById('sess-dur');
+    if(el)el.textContent=m.toString().padStart(2,'0')+':'+s.toString().padStart(2,'0');
+  },1000);
+}
 // stopSess defined below (complete version)
 
 // ====== MIC ======
 function togMic(){
+  _resetIdleTimer(); // interação com mic = usuário ativo
   if(_selectedMode==='viagem'){
     if(_viagemActive)stopViagemMode();else startViagemMode();
     return;
@@ -7837,7 +7922,12 @@ function renderUserRow(u,list){const el=document.createElement('div');el.classNa
 function filtUsers(p,btn){document.querySelectorAll('#tab-usuarios .fcat').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderUsers(p);}
 function _renderUserDetailPanel(u){document.getElementById('udtit').textContent=u.name||'—';document.getElementById('udplan').innerHTML=`<span class="badge badge-${u.plan||'trial'}">${(u.plan||'trial').toUpperCase()}</span>`;const pct=Math.round((u.minutesUsed||0)/(u.minutesLimit||5)*100),overPct=pct>=100,warnPct=pct>=80;document.getElementById('udsc').innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:12px;"><div class="uav ${u.online?'on':'off'}" style="width:44px;height:44px;font-size:16px;">${(u.name||'?')[0]}</div><div><div style="font-size:15px;font-weight:700;">${u.name||'—'}</div><div style="font-size:11px;color:var(--muted);">${u.email||'—'}</div></div></div><div class="ubr"><div class="ubrt"><span class="ubrl">Minutos usados</span><span class="ubrv">${u.minutesUsed||0} / ${u.minutesLimit||5}</span></div><div class="ubg"><div class="ubf ${overPct?'over':warnPct?'warn':''}" style="width:${Math.min(pct,100)}%;"></div></div></div><div style="display:flex;gap:8px;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openResetPw('${u.uid||''}','${u.name||''}')">🔑 Reset senha</button><button class="btn ${u.status==='suspended'?'btn-primary':'btn-danger'} btn-sm" style="flex:1;" onclick="toggleSuspend('${u.uid||''}',${u.status==='suspended'})">${u.status==='suspended'?'✓ Reativar':'⛔ Suspender'}</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','basic')">Basic</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','pro')">Pro</button><button class="btn btn-ghost btn-sm" onclick="adminUpgrade('${u.uid||''}','business')">Business</button><button class="btn btn-sm" style="background:rgba(255,208,0,.12);border:1px solid rgba(255,208,0,.3);color:var(--yellow);" onclick="adminTestPix('${u.uid||''}')">🧪 Teste R$1</button></div><div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">➕ Adicionar Minutos</div><div style="display:flex;gap:8px;align-items:center;"><input id="admin-add-min-input" type="number" min="1" max="9999" placeholder="Ex: 30" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;"><button class="btn btn-sm" style="background:var(--gdim);border:1px solid rgba(0,255,136,.25);color:var(--green);white-space:nowrap;" onclick="adminAddMinutes('${u.uid||''}')">✅ Adicionar</button></div><div style="font-size:10px;color:var(--muted);margin-top:5px;">Limite atual: ${u.minutesLimit||5} min · Usado: ${u.minutesUsed||0} min</div></div><div id="api-breakdown-${u.uid||'x'}" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:10px;"></div><div id="perm-panel-${u.uid||'x'}"></div>`;document.getElementById('udov').classList.add('sh');_renderPermPanel(u);_renderApiBreakdown(u);}
 function openUser(u){
+  // Salva posição do scroll do painel admin antes de abrir detalhe
+  const _atc=document.querySelector('.atcont');
+  const _saved=_atc?_atc.scrollTop:0;
   _renderUserDetailPanel(u);
+  // Restaura scroll após render
+  if(_atc)requestAnimationFrame(()=>{_atc.scrollTop=_saved;});
   if(u.uid&&typeof db!=='undefined'){
     db.collection('users').doc(u.uid).get().then(function(snap){
       if(snap.exists){_renderPermPanel(snap.data());}
@@ -12875,6 +12965,22 @@ function _salaMostrarUIVideo(show){
 </div>
 
 <div id="profIA-overlay" style="display:none;position:fixed;inset:0;z-index:9999;"></div>
+
+<!-- ====== IDLE WARNING BANNER ====== -->
+<div id="idle-warn-banner">
+  <div class="iwb-icon">⏰</div>
+  <div class="iwb-txt">Você está inativo há 9 minutos.<br>A sessão será encerrada em <strong>1 minuto</strong> por segurança.</div>
+  <button class="iwb-btn" onclick="_resetIdleTimer()">Continuar ativo</button>
+</div>
+
+<!-- ====== IDLE LOGOUT MODAL ====== -->
+<div id="idle-logout-modal">
+  <div class="ilm-box">
+    <div class="ilm-icon">🔒</div>
+    <div class="ilm-title">Sessão encerrada</div>
+    <div class="ilm-sub">Você ficou inativo por 10 minutos.<br>Por segurança, sua sessão foi encerrada.<br><br>Redirecionando para o login...</div>
+  </div>
+</div>
 
 <script src="professor-ia.js"></script>
 </body>

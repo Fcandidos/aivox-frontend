@@ -232,8 +232,32 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
   #page-chat .chat-input-bar{flex-shrink:0 !important;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
 
   /* ── ADMIN PAGE MOBILE ── */
-  #page-admin.active{height:100% !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
-  #page-admin .adh{flex-shrink:0 !important;background:var(--bg) !important;border-bottom:1px solid var(--border) !important;}
+  #page-admin.active{
+    height:100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+    width:100% !important;
+    max-width:100vw !important;
+    position:relative !important;
+  }
+  #page-admin .adh{
+    flex-shrink:0 !important;
+    background:var(--bg) !important;
+    border-bottom:1px solid var(--border) !important;
+    width:100% !important;
+    overflow:hidden !important;
+    max-width:100vw !important;
+  }
+  /* Impede scroll horizontal nas abas */
+  #page-admin .atabs{
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch !important;
+    max-width:100% !important;
+    width:100% !important;
+    scroll-snap-type:none !important;
+  }
 
   /* Header admin compacto no mobile */
   #page-admin .adtop{padding:10px 14px 8px !important;gap:8px !important;}
@@ -245,10 +269,13 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
   #page-admin .atcont{
     flex:1 !important;
     overflow-y:auto !important;
+    overflow-x:hidden !important;
     -webkit-overflow-scrolling:touch !important;
     min-height:0 !important;
     padding:12px 14px !important;
     padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;
+    width:100% !important;
+    box-sizing:border-box !important;
   }
 
   /* Sistema tab: toggles com layout correto */
@@ -259,18 +286,21 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     padding:12px 14px !important;
     gap:12px !important;
     min-height:52px !important;
+    width:100% !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
   }
   #tab-sistema .trow > div:first-child{
     flex:1 !important;
     min-width:0 !important;
+    overflow:hidden !important;
   }
-  #tab-sistema .tnm{font-size:13px !important;white-space:normal !important;}
-  #tab-sistema .tds{font-size:11px !important;white-space:normal !important;}
+  #tab-sistema .tnm{font-size:13px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+  #tab-sistema .tds{font-size:11px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
   #tab-sistema .tog{flex-shrink:0 !important;}
   #tab-sistema{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;}
 
-  /* Chats tab: achat-modal ocupa tela toda corretamente */
-  .achat-modal{position:fixed !important;inset:0 !important;z-index:200 !important;}
+  /* Chats tab: achat-modal contido corretamente dentro do page-admin */
   .achat-modal .chat-input-bar{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
 
   /* Fix: udov (user detail panel) must be scrollable with bottom nav space */
@@ -949,17 +979,21 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .atcont{
   flex:1;
   overflow-y:auto;
+  overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
   touch-action:pan-y;
   padding:16px 18px;
   scroll-behavior:smooth;
-  /* CRÍTICO: impede que elementos internos travem o scroll */
   position:relative;
+  width:100%;
+  box-sizing:border-box;
 }
 .atcont::-webkit-scrollbar{display:none;}
 .atpanel{
   min-height:0;
+  width:100%;
+  box-sizing:border-box;
 }
 
 /* ====== NO-ZOOM GLOBAL ====== */

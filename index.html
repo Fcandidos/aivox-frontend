@@ -1806,7 +1806,7 @@ input, textarea, select {
         <div class="sidebar-av" id="sb-avatar">R</div>
         <div><div class="sidebar-uname" id="sb-name">Usuário</div><div class="sidebar-uplan" id="sb-plan">TRIAL</div></div>
       </div>
-      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-02</div>
+      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-03</div>
     </div>
   </nav>
 
@@ -5348,6 +5348,8 @@ async function grpCriar() {
 // (Firestore é opcional; ativa automaticamente se tiver permissão)
 let _grpChatAtual = null;
 let _grpChatListener = null;
+let _grpPresenceListener = null;  // listener de presença Firestore
+let _grpPresenceRef = null;       // ref do doc de presença do usuário atual
 let _grpBC = null;          // BroadcastChannel para sincronizar abas
 let _grpMsgsLocal = {};     // cache em memória por groupId
 const _langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' };
@@ -5417,6 +5419,26 @@ function grpEntrar(grupo) {
     // Anuncia presença
     _grpBC.postMessage({ type:'online', count: 1 });
   } catch(e) {}
+
+  // ── PRESENÇA FIRESTORE ───────────────────────────────────────
+  // Cancela listener de presença anterior
+  if (_grpPresenceListener) { try { _grpPresenceListener(); } catch(e) {} _grpPresenceListener = null; }
+  if (_grpPresenceRef) {
+    try { _grpPresenceRef.delete(); } catch(e) {}
+    _grpPresenceRef = null;
+  }
+  if (db && uid) {
+    // Registra presença deste usuário na sala
+    _grpPresenceRef = db.collection('group_presence').doc(grupo.id).collection('online').doc(uid);
+    _grpPresenceRef.set({ uid, nome, entrou: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(() => {});
+    // Escuta quantos estão online neste grupo
+    _grpPresenceListener = db.collection('group_presence').doc(grupo.id).collection('online')
+      .onSnapshot(snap => {
+        const el = document.getElementById('grp-online-count');
+        if (el) el.textContent = `● ${snap.size} online`;
+      }, () => {});
+  }
 
   // Tenta Firestore silenciosamente (sem travar se não tiver permissão)
   if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
@@ -5519,6 +5541,9 @@ async function grpChatSend() {
 function grpChatClose() {
   try { if (_grpBC) { _grpBC.close(); _grpBC = null; } } catch(e) {}
   if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
+  // Remove presença do Firestore ao sair da sala
+  if (_grpPresenceListener) { try { _grpPresenceListener(); } catch(e) {} _grpPresenceListener = null; }
+  if (_grpPresenceRef) { try { _grpPresenceRef.delete(); } catch(e) {} _grpPresenceRef = null; }
   _grpChatAtual = null;
   document.getElementById('grp-chat-overlay').style.display = 'none';
 }

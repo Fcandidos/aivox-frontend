@@ -5344,81 +5344,134 @@ async function grpCriar() {
   }
 }
 
-// ── Estado do chat de grupo ──────────────────────────────────
+// ── Chat de Grupo — funciona via localStorage + BroadcastChannel ─
+// (Firestore é opcional; ativa automaticamente se tiver permissão)
 let _grpChatAtual = null;
 let _grpChatListener = null;
-let _grpOnlineRef = null;
+let _grpBC = null;          // BroadcastChannel para sincronizar abas
+let _grpMsgsLocal = {};     // cache em memória por groupId
 const _langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' };
+
+// ── Carrega msgs do localStorage ────────────────────────────────
+function _grpLoadLocal(groupId) {
+  try {
+    const raw = localStorage.getItem('grp_msgs_' + groupId);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+// ── Salva msgs no localStorage ──────────────────────────────────
+function _grpSaveLocal(groupId, msgs) {
+  try {
+    // Mantém só últimas 100 msgs no storage
+    const slice = msgs.slice(-100);
+    localStorage.setItem('grp_msgs_' + groupId, JSON.stringify(slice));
+    _grpMsgsLocal[groupId] = slice;
+  } catch(e) {}
+}
 
 function grpEntrar(grupo) {
   const uid  = window._fbUser?.uid;
   const nome = window._fbUser?.name || window._fbUser?.displayName || 'Usuário';
   if (!uid) { showToast('Faça login para entrar no grupo', 'error'); return; }
-  if (!db)  { showToast('Firestore não disponível', 'error'); return; }
+
   _grpChatAtual = grupo;
-  const emoji = _langEmoji[grupo.lang] || '🌍';
+  if (!_grpMsgsLocal[grupo.id]) _grpMsgsLocal[grupo.id] = _grpLoadLocal(grupo.id);
+
+  // Atualiza header
+  const emoji    = _langEmoji[grupo.lang] || '🌍';
   const nivelCor = _nivelCor[grupo.nivel] || 'var(--muted)';
   document.getElementById('grp-chat-avatar').textContent = emoji;
   document.getElementById('grp-chat-title').textContent  = grupo.tema;
   document.getElementById('grp-chat-meta').innerHTML =
     `<span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};">${grupo.nivel}</span>
-     <span id="grp-online-count" style="color:var(--muted);">● calculando...</span>`;
-  const ov = document.getElementById('grp-chat-overlay');
-  ov.style.display = 'flex';
-  document.getElementById('grp-chat-msgs').innerHTML =
-    '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Carregando mensagens...</div>';
+     <span id="grp-online-count" style="color:var(--muted);">● 1 online</span>
+     <span id="grp-fs-status" style="font-size:9px;color:var(--muted);font-family:var(--mono);">local</span>`;
+
+  // Abre overlay
+  document.getElementById('grp-chat-overlay').style.display = 'flex';
   document.getElementById('grp-chat-inp').placeholder = `Escreva em ${grupo.lang} aqui...`;
-  // Presença
+
+  // Renderiza msgs locais imediatamente
+  _grpRenderMsgs(_grpMsgsLocal[grupo.id] || [], uid);
+
+  // BroadcastChannel — sync entre abas do mesmo browser
   try {
-    _grpOnlineRef = db.collection('group_presence').doc(grupo.id).collection('online').doc(uid);
-    _grpOnlineRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-    db.collection('group_presence').doc(grupo.id).collection('online').onSnapshot(snap => {
-      const el = document.getElementById('grp-online-count');
-      if (el) el.textContent = `● ${snap.size} online`;
-      if (window._grpData) { const g = window._grpData.find(g2=>g2.id===grupo.id); if(g){g.membros=snap.size;_grpRender();} }
-    });
-  } catch(e) {}
-  // Listener mensagens
-  if (_grpChatListener) { _grpChatListener(); _grpChatListener = null; }
-  const startQuery = () => db.collection('group_messages').where('groupId','==',grupo.id).orderBy('createdAt','asc').limitToLast(80);
-  const fallbackQuery = () => db.collection('group_messages').where('groupId','==',grupo.id).limit(80);
-  try {
-    _grpChatListener = startQuery().onSnapshot(snap => {
-      _grpRenderMsgs(snap.docs.map(d=>({id:d.id,...d.data()})), uid);
-    }, err => {
-      if (err.code==='failed-precondition'||err.message?.includes('index')) {
-        _grpChatListener = fallbackQuery().onSnapshot(snap2 => {
-          const msgs = snap2.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.toMillis?.()??0)-(b.createdAt?.toMillis?.()??0));
+    if (_grpBC) { _grpBC.close(); _grpBC = null; }
+    _grpBC = new BroadcastChannel('aivox_grp_' + grupo.id);
+    _grpBC.onmessage = (e) => {
+      if (e.data?.type === 'msg' && e.data.msg) {
+        const msgs = _grpMsgsLocal[grupo.id] || [];
+        const dup = msgs.some(m => m._lid === e.data.msg._lid);
+        if (!dup) {
+          msgs.push(e.data.msg);
+          _grpSaveLocal(grupo.id, msgs);
           _grpRenderMsgs(msgs, uid);
-        });
+        }
       }
-    });
-  } catch(e) {
-    document.getElementById('grp-chat-msgs').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Erro ao carregar. Tente novamente.</div>';
+      if (e.data?.type === 'online') {
+        const el = document.getElementById('grp-online-count');
+        if (el) el.textContent = `● ${e.data.count} online`;
+      }
+    };
+    // Anuncia presença
+    _grpBC.postMessage({ type:'online', count: 1 });
+  } catch(e) {}
+
+  // Tenta Firestore silenciosamente (sem travar se não tiver permissão)
+  if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
+  if (db) {
+    const q = db.collection('group_messages')
+      .where('groupId','==',grupo.id)
+      .orderBy('createdAt','asc')
+      .limitToLast(80);
+    try {
+      _grpChatListener = q.onSnapshot(snap => {
+        // Mesclam msgs Firestore com locais
+        const fsMsgs = snap.docs.map(d => ({ _fsid: d.id, ...d.data(),
+          ts: d.data().createdAt?.toMillis?.() || Date.now()
+        }));
+        const local  = (_grpMsgsLocal[grupo.id] || []).filter(m => !m._fsid);
+        const merged = [...fsMsgs, ...local].sort((a,b)=>(a.ts||0)-(b.ts||0));
+        _grpMsgsLocal[grupo.id] = merged;
+        _grpSaveLocal(grupo.id, merged);
+        _grpRenderMsgs(merged, uid);
+        const st = document.getElementById('grp-fs-status');
+        if (st) { st.textContent = '🟢 ao vivo'; st.style.color = 'var(--green)'; }
+        const hint = document.getElementById('grp-rules-hint');
+        if (hint) hint.style.display = 'none';
+      }, () => {
+        // Permissão negada — fica em modo local silenciosamente
+        const st = document.getElementById('grp-fs-status');
+        if (st) { st.textContent = '📴 local'; st.style.color = 'var(--muted)'; }
+        const hint = document.getElementById('grp-rules-hint');
+        if (hint) hint.style.display = 'block';
+      });
+    } catch(e) {}
   }
-  setTimeout(() => {
-    const el = document.getElementById('grp-chat-msgs');
-    if (el && el.textContent.includes('Carregando')) {
-      el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">🌍 Bem-vindo(a) a <strong style="color:var(--text);">${grupo.tema}</strong>!<br>Seja o(a) primeiro(a) a escrever 👇</div>`;
-    }
-  }, 3500);
 }
 
 function _grpRenderMsgs(msgs, myUid) {
   const el = document.getElementById('grp-chat-msgs');
   if (!el) return;
-  if (!msgs.length) { el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">Seja o(a) primeiro(a) a escrever! 👋</div>'; return; }
+  if (!msgs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">🌍 Seja o(a) primeiro(a) a escrever! 👋</div>';
+    return;
+  }
   const wasAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
   el.innerHTML = '';
   msgs.forEach(m => {
     const mine = m.uid === myUid;
-    const ts = m.createdAt?.toDate?.() || new Date();
+    const ts   = m.createdAt?.toDate?.() || (m.ts ? new Date(m.ts) : new Date());
     const hora = ts.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const bubble = document.createElement('div');
-    bubble.style.cssText = `display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;`;
+    bubble.style.cssText = `display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;margin-bottom:2px;`;
     if (!mine) bubble.innerHTML = `<div style="font-size:10px;color:var(--muted);margin-left:4px;">${_esc(m.nome||'Usuário')}</div>`;
     const inner = document.createElement('div');
-    inner.style.cssText = `max-width:78%;padding:9px 13px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};font-size:13px;line-height:1.5;background:${mine?'rgba(168,85,247,.18)':'rgba(255,255,255,.06)'};border:1px solid ${mine?'rgba(168,85,247,.3)':'rgba(255,255,255,.08)'};color:${mine?'#d8b4fe':'var(--text)'};`;
+    inner.style.cssText = `max-width:78%;padding:9px 13px;border-radius:${mine?'14px 14px 4px 14px':'14px 14px 14px 4px'};font-size:13px;line-height:1.5;
+      background:${mine?'rgba(168,85,247,.18)':'rgba(255,255,255,.06)'};
+      border:1px solid ${mine?'rgba(168,85,247,.3)':'rgba(255,255,255,.08)'};
+      color:${mine?'#d8b4fe':'var(--text)'};`;
     inner.innerHTML = `${_esc(m.text)}<span style="font-size:9px;color:var(--muted);margin-left:8px;opacity:.7;">${hora}</span>`;
     bubble.appendChild(inner);
     el.appendChild(bubble);
@@ -5427,21 +5480,46 @@ function _grpRenderMsgs(msgs, myUid) {
 }
 
 async function grpChatSend() {
-  const inp = document.getElementById('grp-chat-inp');
+  const inp  = document.getElementById('grp-chat-inp');
   const text = inp?.value?.trim();
-  if (!text || !_grpChatAtual || !db) return;
+  if (!text || !_grpChatAtual) return;
   const uid  = window._fbUser?.uid;
   const nome = window._fbUser?.name || window._fbUser?.displayName || 'Usuário';
   if (!uid) { showToast('Faça login para enviar','error'); return; }
   inp.value = '';
-  try {
-    await db.collection('group_messages').add({ groupId:_grpChatAtual.id, uid, nome, text, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
-  } catch(e) { showToast('Erro ao enviar mensagem','error'); inp.value = text; }
+
+  const gid = _grpChatAtual.id;
+  const msg = { _lid: uid + '_' + Date.now(), uid, nome, text, groupId: gid, ts: Date.now() };
+
+  // Salva local imediatamente (resposta instantânea)
+  const msgs = _grpMsgsLocal[gid] || [];
+  msgs.push(msg);
+  _grpSaveLocal(gid, msgs);
+  _grpRenderMsgs(msgs, uid);
+
+  // Broadcast para outras abas
+  try { _grpBC?.postMessage({ type:'msg', msg }); } catch(e) {}
+
+  // Tenta salvar no Firestore (silencioso se falhar)
+  if (db) {
+    try {
+      await db.collection('group_messages').add({
+        groupId: gid, uid, nome, text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e) {
+      // Sem permissão — ok, msg já está local
+      const st = document.getElementById('grp-fs-status');
+      if (st && !st.textContent.includes('ao vivo')) {
+        st.textContent = '📴 local'; st.style.color = 'var(--muted)';
+      }
+    }
+  }
 }
 
 function grpChatClose() {
-  try { _grpOnlineRef?.delete(); } catch(e) {}
-  if (_grpChatListener) { _grpChatListener(); _grpChatListener = null; }
+  try { if (_grpBC) { _grpBC.close(); _grpBC = null; } } catch(e) {}
+  if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
   _grpChatAtual = null;
   document.getElementById('grp-chat-overlay').style.display = 'none';
 }
@@ -12651,6 +12729,17 @@ function _salaMostrarUIVideo(show){
     </div>
     <!-- Messages -->
     <div id="grp-chat-msgs" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent;"></div>
+    <!-- Rules hint (shown only in local mode) -->
+    <div id="grp-rules-hint" style="display:none;margin:0 16px 8px;padding:8px 12px;background:rgba(255,208,0,.07);border:1px solid rgba(255,208,0,.2);border-radius:10px;font-size:11px;color:#ffd000;line-height:1.5;">
+      📴 <strong>Modo local</strong> — mensagens salvas só neste dispositivo.<br>
+      Para chat em tempo real entre usuários, adicione as regras no <a href="https://console.firebase.google.com" target="_blank" style="color:#ffd000;text-decoration:underline;">Firebase Console → Firestore → Rules</a>:<br>
+      <code style="font-size:10px;color:rgba(255,255,255,.7);display:block;margin-top:4px;white-space:pre-wrap;">match /group_messages/{id} {
+  allow read, create: if request.auth != null;
+}
+match /group_presence/{g}/online/{uid} {
+  allow read, write: if request.auth != null &amp;&amp; request.auth.uid == uid;
+}</code>
+    </div>
     <!-- Input -->
     <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;align-items:flex-end;">
       <input id="grp-chat-inp" class="input-field" placeholder="Escreva em inglês aqui..." style="flex:1;border-radius:12px;font-size:13px;padding:10px 14px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();grpChatSend();}">

@@ -79,12 +79,12 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   <div class="row"><span class="row-label">READ — leaderboard (orderBy xp)</span><span class="row-val" id="val-lb-read">—</span></div>
   <div class="row"><span class="row-label">Docs encontrados</span><span class="row-val" id="val-lb-count">—</span></div>
   <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-lb-err">—</span></div>
-  <div class="log" id="log-ranking"></div>
-  <div style="margin-top:10px;">
+    <div style="margin-top:10px;">
     <button class="btn" onclick="testRanking()">🔄 Testar Ranking</button>
     <button class="btn green" onclick="testRankingWrite()">✍ Testar só WRITE</button>
     <button class="btn" onclick="testRankingRead()">📖 Testar só READ</button>
   </div>
+  <div class="log" id="log-ranking"></div>
 </div>
 
 <!-- PRESENÇA -->
@@ -95,11 +95,11 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   <div class="row"><span class="row-label">Campo online no doc</span><span class="row-val" id="val-pr-online">—</span></div>
   <div class="row"><span class="row-label">lastSeen (ms atrás)</span><span class="row-val" id="val-pr-lastseen">—</span></div>
   <div class="row"><span class="row-label">isRecent (< 120s)</span><span class="row-val" id="val-pr-recent">—</span></div>
-  <div class="log" id="log-presence"></div>
-  <div style="margin-top:10px;">
+    <div style="margin-top:10px;">
     <button class="btn" onclick="testPresence()">🔄 Testar Presença</button>
     <button class="btn green" onclick="testPresenceAmigo()">👥 Testar Presença de Amigo</button>
   </div>
+  <div class="log" id="log-presence"></div>
   <div style="margin-top:8px;">
     <input id="input-friend-uid" placeholder="UID do amigo para testar (ex: abc123...)" />
   </div>
@@ -111,10 +111,10 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   <div class="row"><span class="row-label">Ler doc de outro usuário (leaderboard)</span><span class="row-val" id="val-rule-read-other">—</span></div>
   <div class="row"><span class="row-label">Escrever no doc de outro usuário</span><span class="row-val" id="val-rule-write-other">—</span></div>
   <div class="row"><span class="row-label">Leitura sem autenticação</span><span class="row-val" id="val-rule-unauth">—</span></div>
-  <div class="log" id="log-rules"></div>
-  <div style="margin-top:10px;">
+    <div style="margin-top:10px;">
     <button class="btn" onclick="testRules()">🔒 Testar Regras</button>
   </div>
+  <div class="log" id="log-rules"></div>
 </div>
 
 
@@ -144,11 +144,11 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
     • Limite aumentado: 100 msgs por lado (antes era 60)
   </div>
 
-  <div class="log" id="log-chat"></div>
-  <div style="margin-top:10px;">
+    <div style="margin-top:10px;">
     <button class="btn" onclick="testChat()">🔄 Testar Chat de Amigos</button>
     <button class="btn green" onclick="testChatAudioExpiry()">🎤 Testar Expiração Áudio</button>
   </div>
+  <div class="log" id="log-chat"></div>
   <div style="margin-top:8px;">
     <input id="input-chat-friend-uid" placeholder="UID de um amigo real (opcional — para testar READ de msgs reais)" />
   </div>
@@ -174,10 +174,10 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
     • Simula cenário onde <code>fromName</code> chega vazio do socket
   </div>
 
-  <div class="log" id="log-notif"></div>
-  <div style="margin-top:10px;">
+    <div style="margin-top:10px;">
     <button class="btn" onclick="testNotifName()">🔄 Testar Resolução de Nome</button>
   </div>
+  <div class="log" id="log-notif"></div>
   <div style="margin-top:8px;">
     <input id="input-notif-friend-uid" placeholder="UID de um amigo para verificar o displayName dele no Firestore" />
   </div>
@@ -207,29 +207,30 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
     • Latência da chamada à API — acima de 10s pode indicar timeout no front
   </div>
 
-  <div class="log" id="log-resumo"></div>
-  <div style="margin-top:10px;">
+    <div style="margin-top:10px;">
     <button class="btn" onclick="testResumoEscuta()">🧠 Testar Resumo de Escuta</button>
     <button class="btn green" onclick="testVocabulario()">📖 Testar só Vocabulário</button>
   </div>
+  <div class="log" id="log-resumo"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<!-- SEÇÃO: CHAT DE GRUPO — DIAGNÓSTICO COMPLETO               -->
+<!-- SEÇÃO: CHAT DE GRUPO                                      -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="section">
-  <div class="section-title"><span id="dot-grp" class="warn"></span>Chat de Grupo — group_messages & group_presence <span class="section-tag new">NOVO</span></div>
+  <div class="section-title"><span id="dot-grp" class="warn"></span>Chat de Grupo — group_messages &amp; group_presence <span class="section-tag new">NOVO</span></div>
 
   <div class="grid2">
     <div>
       <div class="row"><span class="row-label">WRITE — group_messages</span><span class="row-val" id="val-grp-write">—</span></div>
-      <div class="row"><span class="row-label">READ — group_messages (onSnapshot)</span><span class="row-val" id="val-grp-read">—</span></div>
-      <div class="row"><span class="row-label">Docs encontrados no grupo</span><span class="row-val" id="val-grp-count">—</span></div>
+      <div class="row"><span class="row-label">READ — onSnapshot com orderBy</span><span class="row-val" id="val-grp-read">—</span></div>
       <div class="row"><span class="row-label">Índice composto (groupId+createdAt)</span><span class="row-val" id="val-grp-index">—</span></div>
+      <div class="row"><span class="row-label">READ — fallback sem orderBy</span><span class="row-val" id="val-grp-fallback">—</span></div>
+      <div class="row"><span class="row-label">Docs encontrados</span><span class="row-val" id="val-grp-count">—</span></div>
       <div class="row"><span class="row-label">DELETE test msg (limpeza)</span><span class="row-val" id="val-grp-delete">—</span></div>
     </div>
     <div>
-      <div class="row"><span class="row-label">WRITE — group_presence</span><span class="row-val" id="val-grp-pres-write">—</span></div>
+      <div class="row"><span class="row-label">WRITE — group_presence/{g}/online/{uid}</span><span class="row-val" id="val-grp-pres-write">—</span></div>
       <div class="row"><span class="row-label">READ — group_presence (count)</span><span class="row-val" id="val-grp-pres-read">—</span></div>
       <div class="row"><span class="row-label">Online count retornado</span><span class="row-val" id="val-grp-pres-count">—</span></div>
       <div class="row"><span class="row-label">DELETE presença (limpeza)</span><span class="row-val" id="val-grp-pres-del">—</span></div>
@@ -239,24 +240,24 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
 
   <div class="detail-box">
     <strong>O que este teste verifica:</strong><br>
-    • <code>WRITE</code> em <code>group_messages</code> — se a mensagem consegue ser salva no Firestore<br>
-    • <code>READ onSnapshot</code> com <code>where("groupId") + orderBy("createdAt")</code> — se o índice composto existe<br>
-    • <code>WRITE/READ/DELETE</code> em <code>group_presence/{groupId}/online/{uid}</code> — presença em tempo real<br>
-    • Se o índice falhar → mensagens chegam ao remetente mas não ao destinatário (bug principal)<br>
-    • Se a presença falhar → contador fica em 0 ou 1 em vez do real
+    • <strong>WRITE</strong> em <code>group_messages</code> — se a mensagem chega ao Firestore<br>
+    • <strong>onSnapshot com orderBy</strong> — precisa de índice composto; se falhar: <code>failed-precondition</code><br>
+    • <strong>Fallback sem orderBy</strong> — funciona mesmo sem índice; mensagens chegam para todos<br>
+    • <strong>Presença WRITE/READ</strong> em <code>group_presence/{groupId}/online/{uid}</code> — contador de online<br>
+    • Se READ presença falhar (<code>permission-denied</code>) → contador fica em 0
   </div>
 
-  <div class="log" id="log-grp"></div>
   <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
     <button class="btn" onclick="testGrpAll()">▶ Testar Tudo</button>
-    <button class="btn" onclick="testGrpWrite()">✍ Testar WRITE msgs</button>
-    <button class="btn" onclick="testGrpRead()">📖 Testar READ/onSnapshot</button>
-    <button class="btn green" onclick="testGrpPresence()">👥 Testar Presença</button>
-    <button class="btn red" onclick="clearGrpLog()">🗑 Limpar log</button>
+    <button class="btn" onclick="testGrpWrite()">✍ WRITE msgs</button>
+    <button class="btn" onclick="testGrpRead()">📖 READ/onSnapshot</button>
+    <button class="btn green" onclick="testGrpPresence()">👥 Presença</button>
+    <button class="btn red" onclick="clearGrpLog()">🗑 Limpar</button>
   </div>
   <div style="margin-top:8px;">
-    <input id="input-grp-id" placeholder="ID do grupo para testar (ex: grp_ingles_b1 — deixe em branco para usar o padrão)" />
+    <input id="input-grp-id" placeholder="ID do grupo (ex: grp_ingles_b1 — deixe vazio para usar ID de teste)" />
   </div>
+  <div class="log" id="log-grp"></div>
 </div>
 
 <!-- LOG GERAL -->
@@ -995,232 +996,256 @@ async function testVocabulario() {
 }
 
 
-// ── GRUPO CHAT TESTS ──────────────────────────────────────────────
-
+// ────────────────────────────────────────────────────────────────
+// CHAT DE GRUPO — TESTES
+// ────────────────────────────────────────────────────────────────
 function clearGrpLog(){ const el=document.getElementById('log-grp'); if(el) el.innerHTML=''; }
 
-function _grpId() {
-  const v = document.getElementById('input-grp-id')?.value?.trim();
-  return v || 'grp_test_debug_b1';
+function _grpTestId() {
+  return (document.getElementById('input-grp-id')?.value?.trim()) || 'grp_debug_test_' + Date.now();
 }
 
 async function testGrpWrite() {
-  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login','w'); return null; }
+  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login no app primeiro','w'); return null; }
   const uid = currentUser.uid;
-  const nome = currentUser.displayName || currentUser.email || 'Debug';
-  const groupId = _grpId();
-  addLog('log-grp', '=== TESTE WRITE group_messages ===', 'i');
+  const nome = currentUser.displayName || currentUser.email?.split('@')[0] || 'Debug';
+  const groupId = _grpTestId();
+
+  addLog('log-grp', '── WRITE group_messages ──', 'i');
   addLog('log-grp', 'groupId: ' + groupId, 'm');
-  addLog('log-grp', 'Tentando escrever mensagem de teste...', 'i');
+
+  let docId = null;
   try {
     const ref = await db.collection('group_messages').add({
       groupId, uid, nome,
-      text: '__debug_test_msg_' + Date.now() + '__',
+      text: '[debug-test] ' + new Date().toLocaleTimeString('pt-BR'),
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    setVal('val-grp-write', '✓ WRITE OK (id: ' + ref.id.substring(0,12) + '...)', 'ok');
-    addLog('log-grp', '✓ WRITE bem-sucedido — doc: ' + ref.id, 's');
-
-    // Aguarda e deleta
-    await new Promise(r => setTimeout(r, 1000));
-    try {
-      await db.collection('group_messages').doc(ref.id).delete();
-      setVal('val-grp-delete', '✓ DELETE OK', 'ok');
-      addLog('log-grp', '✓ Msg de teste deletada (limpeza OK)', 's');
-    } catch(de) {
-      setVal('val-grp-delete', '⚠ ' + de.code + ' (msg de teste ficou)', 'warn');
-      addLog('log-grp', '⚠ DELETE falhou: ' + de.code, 'w');
-    }
-    return ref.id;
+    docId = ref.id;
+    setVal('val-grp-write', '✓ WRITE OK — ' + ref.id.substring(0,10) + '...', 'ok');
+    addLog('log-grp', '✓ WRITE OK — doc: ' + ref.id, 's');
   } catch(e) {
     setVal('val-grp-write', '✗ ' + e.code, 'err');
-    setVal('val-grp-err', e.code + ' — ' + e.message, 'err');
+    setVal('val-grp-err', e.code + ': ' + e.message.substring(0,80), 'err');
     addLog('log-grp', '✗ WRITE falhou: [' + e.code + '] ' + e.message, 'e');
     if (e.code === 'permission-denied') {
-      addLog('log-grp', '→ CAUSA: Regra do Firestore bloqueando WRITE em group_messages', 'w');
-      addLog('log-grp', '→ Verifique: match /group_messages/{id} { allow create: if request.auth != null; }', 'w');
+      addLog('log-grp', '→ Regra necessária: match /group_messages/{id} { allow create: if request.auth != null; }', 'w');
     }
     return null;
   }
+
+  // Limpeza
+  if (docId) {
+    await new Promise(r => setTimeout(r, 800));
+    try {
+      await db.collection('group_messages').doc(docId).delete();
+      setVal('val-grp-delete', '✓ DELETE OK', 'ok');
+      addLog('log-grp', '✓ Msg de teste removida', 's');
+    } catch(e) {
+      setVal('val-grp-delete', '⚠ ' + e.code, 'warn');
+      addLog('log-grp', '⚠ DELETE: ' + e.code + ' — msg de teste ficou no Firestore', 'w');
+    }
+  }
+  return docId;
 }
 
 async function testGrpRead() {
-  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login','w'); return; }
-  const groupId = _grpId();
-  addLog('log-grp', '=== TESTE READ/onSnapshot group_messages ===', 'i');
-  addLog('log-grp', 'groupId: ' + groupId, 'm');
-  addLog('log-grp', 'Montando query: where("groupId"==...) + orderBy("createdAt","asc") + limitToLast(20)...', 'i');
+  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db','w'); return false; }
+  const groupId = document.getElementById('input-grp-id')?.value?.trim() || 'grp_ingles_b1';
+  addLog('log-grp', '── READ onSnapshot (groupId: ' + groupId + ') ──', 'i');
 
-  const q = db.collection('group_messages')
-    .where('groupId', '==', groupId)
-    .orderBy('createdAt', 'asc')
-    .limitToLast(20);
-
-  return new Promise(resolve => {
-    let unsub;
-    const timeout = setTimeout(() => {
-      if (unsub) try { unsub(); } catch(e) {}
-      setVal('val-grp-read', '✗ Timeout — sem resposta em 8s', 'err');
-      setVal('val-grp-index', '✗ Provavelmente índice ausente', 'err');
-      addLog('log-grp', '✗ TIMEOUT — o onSnapshot não respondeu em 8s', 'e');
-      addLog('log-grp', '→ CAUSA MAIS PROVÁVEL: índice composto ausente no Firestore', 'w');
-      addLog('log-grp', '→ Crie em: Firebase Console → Firestore → Índices → Composto', 'w');
+  // ── Teste 1: com orderBy (requer índice composto) ──────────────
+  const ok1 = await new Promise(resolve => {
+    const timer = setTimeout(() => {
+      addLog('log-grp', '✗ TIMEOUT 8s — onSnapshot com orderBy não respondeu', 'e');
+      addLog('log-grp', '→ Isso indica ÍNDICE COMPOSTO AUSENTE no Firestore', 'e');
+      addLog('log-grp', '→ Crie: Firebase Console → Firestore → Índices → + Composto', 'w');
       addLog('log-grp', '→ Coleção: group_messages | groupId ASC | createdAt ASC', 'w');
-      addLog('log-grp', '→ Sem esse índice: remetente vê a msg mas destinatário NÃO recebe', 'e');
+      setVal('val-grp-read', '✗ Timeout (índice ausente)', 'err');
+      setVal('val-grp-index', '✗ Não existe — crie no Firebase Console', 'err');
       resolve(false);
     }, 8000);
 
+    let unsub;
     try {
-      unsub = q.onSnapshot(snap => {
-        clearTimeout(timeout);
-        if (unsub) try { unsub(); } catch(e) {}
-        const count = snap.size;
-        setVal('val-grp-read', '✓ onSnapshot OK', 'ok');
-        setVal('val-grp-count', count + ' msg(s) encontrada(s)', count >= 0 ? 'ok' : 'warn');
-        setVal('val-grp-index', '✓ Índice composto OK', 'ok');
-        addLog('log-grp', '✓ onSnapshot funcionou — ' + count + ' msg(s) no grupo', 's');
-        if (count === 0) {
-          addLog('log-grp', '→ Grupo vazio ou ID não bate com msgs existentes — isso é normal para grupo de teste', 'm');
-        } else {
-          snap.forEach(doc => {
-            const d = doc.data();
-            addLog('log-grp', '  msg: uid=' + (d.uid||'?').substring(0,8) + '... nome="' + (d.nome||'?') + '" text="' + (d.text||'').substring(0,40) + '"', 'm');
+      unsub = db.collection('group_messages')
+        .where('groupId', '==', groupId)
+        .orderBy('createdAt', 'asc')
+        .limitToLast(20)
+        .onSnapshot(snap => {
+          clearTimeout(timer);
+          try { unsub(); } catch(e2) {}
+          const n = snap.size;
+          setVal('val-grp-read', '✓ onSnapshot OK', 'ok');
+          setVal('val-grp-index', '✓ Índice composto OK — sem ação necessária', 'ok');
+          setVal('val-grp-count', n + ' msg(s) encontrada(s)', 'ok');
+          addLog('log-grp', '✓ onSnapshot com orderBy OK — ' + n + ' msg(s)', 's');
+          if (n === 0) addLog('log-grp', '  (grupo vazio — normal para ID de teste)', 'm');
+          snap.forEach(d => {
+            const v = d.data();
+            addLog('log-grp', '  → "' + (v.text||'').substring(0,40) + '" de ' + (v.nome||'?'), 'm');
           });
-        }
-        resolve(true);
-      }, err => {
-        clearTimeout(timeout);
-        setVal('val-grp-read', '✗ ' + err.code, 'err');
-        setVal('val-grp-err', err.code + ' — ' + err.message, 'err');
-        addLog('log-grp', '✗ onSnapshot ERRO: [' + err.code + '] ' + err.message, 'e');
-        if (err.code === 'failed-precondition' || (err.message && err.message.includes('index'))) {
-          setVal('val-grp-index', '✗ ÍNDICE AUSENTE', 'err');
-          addLog('log-grp', '→ ÍNDICE COMPOSTO AUSENTE — este é o bug principal!', 'e');
-          addLog('log-grp', '→ Vá ao Firebase Console → Firestore → Índices → Composto', 'w');
-          addLog('log-grp', '→ Coleção: group_messages', 'w');
-          addLog('log-grp', '→ Campo 1: groupId — Crescente', 'w');
-          addLog('log-grp', '→ Campo 2: createdAt — Crescente', 'w');
-          addLog('log-grp', '→ Sem esse índice o remetente vê a msg (localStorage) mas o destinatário NÃO recebe', 'e');
-          if (err.message && err.message.includes('https://')) {
-            const link = err.message.match(/https:\/\/\S+/);
-            if (link) addLog('log-grp', '→ LINK DIRETO para criar o índice: ' + link[0], 'i');
+          resolve(true);
+        }, err => {
+          clearTimeout(timer);
+          try { unsub?.(); } catch(e2) {}
+          if (err.code === 'failed-precondition' || err.message?.includes('index')) {
+            setVal('val-grp-read', '✗ failed-precondition', 'err');
+            setVal('val-grp-index', '✗ ÍNDICE AUSENTE', 'err');
+            addLog('log-grp', '✗ failed-precondition — ÍNDICE COMPOSTO AUSENTE', 'e');
+            // Extrai link direto
+            const link = err.message?.match(/https:\/\/[^\s]+/)?.[0];
+            if (link) {
+              addLog('log-grp', '→ Link direto para criar: ' + link, 'i');
+              setVal('val-grp-err', 'Índice ausente — link: ' + link.substring(0,60) + '...', 'warn');
+            } else {
+              addLog('log-grp', '→ Crie manualmente: Firebase Console > Firestore > Índices > Composto', 'w');
+              addLog('log-grp', '   Coleção: group_messages | groupId (ASC) | createdAt (ASC)', 'w');
+            }
+          } else if (err.code === 'permission-denied') {
+            setVal('val-grp-read', '✗ permission-denied', 'err');
+            addLog('log-grp', '✗ permission-denied no READ — verifique as regras', 'e');
+            addLog('log-grp', '→ Regra necessária: match /group_messages/{id} { allow read: if request.auth != null; }', 'w');
+          } else {
+            setVal('val-grp-read', '✗ ' + err.code, 'err');
+            addLog('log-grp', '✗ Erro: [' + err.code + '] ' + err.message, 'e');
           }
-        } else if (err.code === 'permission-denied') {
-          setVal('val-grp-index', '— (bloqueado por permissão)', 'warn');
-          addLog('log-grp', '→ CAUSA: Regra de READ bloqueando — verifique as regras do Firestore', 'w');
-        }
-        resolve(false);
-      });
+          resolve(false);
+        });
     } catch(e) {
-      clearTimeout(timeout);
-      setVal('val-grp-read', '✗ Exceção: ' + e.message, 'err');
-      addLog('log-grp', '✗ Exceção ao montar query: ' + e.message, 'e');
+      clearTimeout(timer);
+      addLog('log-grp', '✗ Exceção: ' + e.message, 'e');
       resolve(false);
     }
   });
+
+  // ── Teste 2: fallback sem orderBy ─────────────────────────────
+  addLog('log-grp', '── READ fallback (sem orderBy, sem índice) ──', 'i');
+  const ok2 = await new Promise(resolve => {
+    const timer2 = setTimeout(() => {
+      setVal('val-grp-fallback', '✗ Timeout', 'err');
+      addLog('log-grp', '✗ Fallback também deu timeout', 'e');
+      resolve(false);
+    }, 6000);
+    let unsub2;
+    try {
+      unsub2 = db.collection('group_messages')
+        .where('groupId', '==', groupId)
+        .limit(20)
+        .onSnapshot(snap => {
+          clearTimeout(timer2);
+          try { unsub2(); } catch(e3) {}
+          setVal('val-grp-fallback', '✓ Fallback OK — ' + snap.size + ' msg(s)', 'ok');
+          addLog('log-grp', '✓ Fallback sem orderBy funcionou — ' + snap.size + ' msg(s)', 's');
+          if (!ok1) {
+            addLog('log-grp', '→ O app usa o fallback automaticamente quando o índice falta', 'i');
+            addLog('log-grp', '→ Mensagens chegam para todos, mas crie o índice para melhor ordenação', 'w');
+          }
+          resolve(true);
+        }, err2 => {
+          clearTimeout(timer2);
+          setVal('val-grp-fallback', '✗ ' + err2.code, 'err');
+          addLog('log-grp', '✗ Fallback também falhou: ' + err2.code, 'e');
+          resolve(false);
+        });
+    } catch(e) { clearTimeout(timer2); resolve(false); }
+  });
+
+  return ok1 || ok2;
 }
 
 async function testGrpPresence() {
-  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login','w'); return; }
+  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db','w'); return; }
   const uid = currentUser.uid;
   const nome = currentUser.displayName || 'Debug';
-  const groupId = _grpId();
-  addLog('log-grp', '=== TESTE PRESENÇA group_presence ===', 'i');
-  addLog('log-grp', 'Caminho: group_presence/' + groupId + '/online/' + uid.substring(0,8) + '...', 'm');
+  const groupId = document.getElementById('input-grp-id')?.value?.trim() || 'grp_ingles_b1';
 
-  // WRITE presença
+  addLog('log-grp', '── PRESENÇA group_presence/' + groupId + '/online/' + uid.substring(0,8) + '... ──', 'i');
+
+  // WRITE
   const presRef = db.collection('group_presence').doc(groupId).collection('online').doc(uid);
-  addLog('log-grp', 'Tentando WRITE de presença...', 'i');
   try {
-    await presRef.set({ uid, nome, entrou: firebase.firestore.FieldValue.serverTimestamp() });
+    await presRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() });
     setVal('val-grp-pres-write', '✓ WRITE OK', 'ok');
     addLog('log-grp', '✓ WRITE presença OK', 's');
   } catch(e) {
     setVal('val-grp-pres-write', '✗ ' + e.code, 'err');
-    setVal('val-grp-err', e.code + ' — ' + e.message, 'err');
+    setVal('val-grp-err', e.code + ': ' + e.message.substring(0,80), 'err');
     addLog('log-grp', '✗ WRITE presença falhou: [' + e.code + '] ' + e.message, 'e');
     if (e.code === 'permission-denied') {
       addLog('log-grp', '→ CAUSA: Regra bloqueando WRITE em group_presence/{g}/online/{uid}', 'w');
-      addLog('log-grp', '→ Verifique as regras: allow read, write: if request.auth != null && request.auth.uid == uid', 'w');
+      addLog('log-grp', '→ A regra atual no seu arquivo de regras está correta, mas pode não ter sido publicada', 'w');
+      addLog('log-grp', '→ Publique as regras no Firebase Console → Firestore → Rules → Publicar', 'w');
     }
     return;
   }
 
-  // READ onSnapshot para contar online
-  addLog('log-grp', 'Testando onSnapshot de presença (contagem de online)...', 'i');
+  // READ/onSnapshot para contar online
   await new Promise(resolve => {
-    const timeout = setTimeout(() => {
+    const timer = setTimeout(() => {
       setVal('val-grp-pres-read', '✗ Timeout 6s', 'err');
-      addLog('log-grp', '✗ TIMEOUT no listener de presença', 'e');
+      addLog('log-grp', '✗ Timeout no listener de presença', 'e');
       resolve();
     }, 6000);
-
-    let unsub2;
+    let unsub;
     try {
-      unsub2 = db.collection('group_presence').doc(groupId).collection('online')
+      unsub = db.collection('group_presence').doc(groupId).collection('online')
         .onSnapshot(snap => {
-          clearTimeout(timeout);
-          if (unsub2) try { unsub2(); } catch(e2) {}
+          clearTimeout(timer);
+          try { unsub(); } catch(e2) {}
           setVal('val-grp-pres-read', '✓ onSnapshot OK', 'ok');
           setVal('val-grp-pres-count', snap.size + ' usuário(s) online', snap.size > 0 ? 'ok' : 'warn');
           addLog('log-grp', '✓ Presença onSnapshot OK — ' + snap.size + ' online', 's');
-          if (snap.size === 0) addLog('log-grp', '→ 0 online — presença pode não ter sido gravada ainda (timing)', 'w');
-          snap.forEach(doc => {
-            const d = doc.data();
-            addLog('log-grp', '  online: uid=' + (d.uid||'?').substring(0,8) + '... nome="' + (d.nome||'?') + '"', 'm');
-          });
+          snap.forEach(d => addLog('log-grp', '  online: ' + (d.data().nome||'?') + ' (' + (d.data().uid||'?').substring(0,8) + '...)', 'm'));
           resolve();
         }, err => {
-          clearTimeout(timeout);
+          clearTimeout(timer);
           setVal('val-grp-pres-read', '✗ ' + err.code, 'err');
+          setVal('val-grp-err', err.code + ': ' + err.message.substring(0,80), 'err');
           addLog('log-grp', '✗ onSnapshot presença ERRO: [' + err.code + '] ' + err.message, 'e');
           if (err.code === 'permission-denied') {
-            addLog('log-grp', '→ Regra de READ na group_presence está bloqueando — isso faz o contador ficar em 0', 'w');
+            addLog('log-grp', '→ READ em group_presence bloqueado — contador fica em 0', 'e');
+            addLog('log-grp', '→ Regra correta no arquivo, mas provavelmente NÃO PUBLICADA ainda', 'w');
+            addLog('log-grp', '→ Acesse: Firebase Console → Firestore → Rules → clique Publicar', 'w');
           }
           resolve();
         });
-    } catch(e) {
-      clearTimeout(timeout);
-      addLog('log-grp', '✗ Exceção: ' + e.message, 'e');
-      resolve();
-    }
+    } catch(e) { clearTimeout(timer); resolve(); }
   });
 
   // Limpeza
-  await new Promise(r => setTimeout(r, 500));
-  addLog('log-grp', 'Deletando presença de teste...', 'm');
+  await new Promise(r => setTimeout(r, 400));
   try {
     await presRef.delete();
     setVal('val-grp-pres-del', '✓ DELETE OK', 'ok');
     addLog('log-grp', '✓ Presença de teste removida', 's');
   } catch(e) {
     setVal('val-grp-pres-del', '⚠ ' + e.code, 'warn');
-    addLog('log-grp', '⚠ DELETE presença falhou: ' + e.code, 'w');
+    addLog('log-grp', '⚠ DELETE presença: ' + e.code, 'w');
   }
 }
 
 async function testGrpAll() {
   setDot('dot-grp', 'run');
-  addLog('log-grp', '════════════════════════════════', 'i');
-  addLog('log-grp', '  DIAGNÓSTICO COMPLETO DO GRUPO ', 'i');
-  addLog('log-grp', '════════════════════════════════', 'i');
-  const w = await testGrpWrite();
-  const r = await testGrpRead();
+  clearGrpLog();
+  addLog('log-grp', '════ DIAGNÓSTICO COMPLETO DO GRUPO ════', 'i');
+
+  const writeOk = await testGrpWrite();
+  const readOk  = await testGrpRead();
   await testGrpPresence();
+
   addLog('log-grp', '════ RESUMO ════', 'i');
-  if (w !== null && r) {
+  if (writeOk !== null && readOk) {
     setDot('dot-grp', 'ok');
-    addLog('log-grp', '✅ WRITE OK + READ/onSnapshot OK + Presença OK', 's');
-    addLog('log-grp', '→ O problema pode ser no índice composto (se READ demorou) ou cache no celular', 'm');
-  } else if (w !== null && !r) {
+    addLog('log-grp', '✅ Tudo OK — mensagens devem chegar para todos os usuários', 's');
+  } else if (writeOk !== null && !readOk) {
+    setDot('dot-grp', 'warn');
+    addLog('log-grp', '⚠ WRITE OK mas READ com orderBy falhou (índice ausente)', 'w');
+    addLog('log-grp', '→ O fallback automático do app deve funcionar mesmo assim', 'i');
+    addLog('log-grp', '→ Crie o índice composto para garantir ordenação correta', 'w');
+  } else {
     setDot('dot-grp', 'err');
-    addLog('log-grp', '❌ WRITE OK mas READ/onSnapshot FALHOU', 'e');
-    addLog('log-grp', '→ Causa mais provável: ÍNDICE COMPOSTO ausente no Firestore', 'e');
-    addLog('log-grp', '→ Firebase Console → Firestore → Índices → Composto:', 'w');
-    addLog('log-grp', '   Coleção: group_messages | groupId (ASC) | createdAt (ASC)', 'w');
-  } else if (w === null) {
-    setDot('dot-grp', 'err');
-    addLog('log-grp', '❌ WRITE FALHOU — verificar regras de segurança', 'e');
+    addLog('log-grp', '❌ WRITE falhou — verifique as regras do Firestore', 'e');
   }
 }
 

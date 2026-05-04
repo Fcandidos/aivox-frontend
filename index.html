@@ -1806,7 +1806,7 @@ input, textarea, select {
         <div class="sidebar-av" id="sb-avatar">R</div>
         <div><div class="sidebar-uname" id="sb-name">Usuário</div><div class="sidebar-uplan" id="sb-plan">TRIAL</div></div>
       </div>
-      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-03b</div>
+      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-03c</div>
     </div>
   </nav>
 
@@ -5388,116 +5388,106 @@ function grpEntrar(grupo) {
   document.getElementById('grp-chat-meta').innerHTML =
     `<span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};">${grupo.nivel}</span>
      <span id="grp-online-count" style="color:var(--muted);">● 1 online</span>
-     <span id="grp-fs-status" style="font-size:9px;color:var(--muted);font-family:var(--mono);">local</span>`;
+     <span id="grp-fs-status" style="font-size:9px;color:var(--muted);font-family:var(--mono);">conectando…</span>`;
 
-  // Abre overlay
   document.getElementById('grp-chat-overlay').style.display = 'flex';
   document.getElementById('grp-chat-inp').placeholder = `Escreva em ${grupo.lang} aqui...`;
-
-  // Renderiza msgs locais imediatamente
   _grpRenderMsgs(_grpMsgsLocal[grupo.id] || [], uid);
 
-  // BroadcastChannel — sync entre abas do mesmo browser
+  // ── BroadcastChannel (sync entre abas do mesmo browser) ──────
   try {
     if (_grpBC) { _grpBC.close(); _grpBC = null; }
     _grpBC = new BroadcastChannel('aivox_grp_' + grupo.id);
     _grpBC.onmessage = (e) => {
       if (e.data?.type === 'msg' && e.data.msg) {
         const msgs = _grpMsgsLocal[grupo.id] || [];
-        const dup = msgs.some(m => m._lid === e.data.msg._lid);
-        if (!dup) {
+        if (!msgs.some(m => m._lid === e.data.msg._lid)) {
           msgs.push(e.data.msg);
           _grpSaveLocal(grupo.id, msgs);
           _grpRenderMsgs(msgs, uid);
         }
       }
-      if (e.data?.type === 'online') {
-        const el = document.getElementById('grp-online-count');
-        if (el) el.textContent = `● ${e.data.count} online`;
-      }
     };
-    // Anuncia presença
-    _grpBC.postMessage({ type:'online', count: 1 });
   } catch(e) {}
 
-  // ── PRESENÇA FIRESTORE ───────────────────────────────────────
-  // Cancela listener de presença anterior
+  if (!db) return;
+
+  // ── PRESENÇA FIRESTORE ────────────────────────────────────────
+  // Usa a coleção group_presence/{groupId}/online/{uid}
+  // Regra necessária: allow read, write: if request.auth != null && request.auth.uid == uid
   if (_grpPresenceListener) { try { _grpPresenceListener(); } catch(e) {} _grpPresenceListener = null; }
-  if (_grpPresenceRef) {
-    try { _grpPresenceRef.delete(); } catch(e) {}
-    _grpPresenceRef = null;
-  }
-  if (db && uid) {
-    // Registra presença deste usuário na sala
-    _grpPresenceRef = db.collection('group_presence').doc(grupo.id).collection('online').doc(uid);
-    _grpPresenceRef.set({ uid, nome, entrou: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(() => {});
-    // Escuta quantos estão online neste grupo
-    _grpPresenceListener = db.collection('group_presence').doc(grupo.id).collection('online')
-      .onSnapshot(snap => {
-        const el = document.getElementById('grp-online-count');
-        if (el) el.textContent = `● ${snap.size} online`;
-      }, () => {});
+  if (_grpPresenceRef) { try { _grpPresenceRef.delete(); } catch(e) {} _grpPresenceRef = null; }
+
+  _grpPresenceRef = db.collection('group_presence').doc(grupo.id).collection('online').doc(uid);
+  _grpPresenceRef.set({ uid, nome, ts: firebase.firestore.FieldValue.serverTimestamp() })
+    .then(() => {
+      // Só monta o listener de contagem APÓS confirmar que o write funcionou
+      // Isso evita o permission-denied em cascata
+      _grpPresenceListener = db.collection('group_presence').doc(grupo.id).collection('online')
+        .onSnapshot(snap => {
+          const el = document.getElementById('grp-online-count');
+          if (el) el.textContent = '● ' + snap.size + ' online';
+        }, () => {
+          // Se READ falhar, mostra pelo menos 1 (o próprio usuário)
+          const el = document.getElementById('grp-online-count');
+          if (el) el.textContent = '● 1+ online';
+        });
+    })
+    .catch(() => {});
+
+  // ── MENSAGENS FIRESTORE ───────────────────────────────────────
+  // Estratégia: tenta com orderBy (precisa de índice composto).
+  // Se falhar com failed-precondition → cai no fallback sem orderBy (sem índice).
+  // O fallback ordena por timestamp local após receber os docs.
+  if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
+
+  function _grpApplySnap(snap) {
+    const fsMsgs = snap.docs.map(d => ({
+      _fsid: d.id, ...d.data(),
+      ts: d.data().createdAt?.toMillis?.() || d.data().ts || Date.now()
+    }));
+    const fsLids = new Set(fsMsgs.map(m => m._lid).filter(Boolean));
+    const pending = (_grpMsgsLocal[grupo.id] || []).filter(m => !m._fsid && !fsLids.has(m._lid));
+    const merged  = [...fsMsgs, ...pending].sort((a,b) => (a.ts||0) - (b.ts||0));
+    _grpMsgsLocal[grupo.id] = merged;
+    _grpSaveLocal(grupo.id, merged);
+    _grpRenderMsgs(merged, uid);
   }
 
-  // Tenta Firestore silenciosamente (sem travar se não tiver permissão)
-  if (_grpChatListener) { try { _grpChatListener(); } catch(e) {} _grpChatListener = null; }
-  if (db) {
-    const q = db.collection('group_messages')
-      .where('groupId','==',grupo.id)
-      .orderBy('createdAt','asc')
-      .limitToLast(80);
-    try {
-      _grpChatListener = q.onSnapshot(snap => {
-        // Mensagens vindas do Firestore (de todos os usuários)
-        const fsMsgs = snap.docs.map(d => ({ _fsid: d.id, ...d.data(),
-          ts: d.data().createdAt?.toMillis?.() || Date.now()
-        }));
-        // Mantém apenas msgs locais ainda não confirmadas pelo Firestore (pending)
-        const fsIds  = new Set(fsMsgs.map(m => m._lid).filter(Boolean));
-        const pending = (_grpMsgsLocal[grupo.id] || []).filter(m => !m._fsid && !fsIds.has(m._lid));
-        const merged = [...fsMsgs, ...pending].sort((a,b)=>(a.ts||0)-(b.ts||0));
-        _grpMsgsLocal[grupo.id] = merged;
-        _grpSaveLocal(grupo.id, merged);
-        _grpRenderMsgs(merged, uid);
-        const st = document.getElementById('grp-fs-status');
-        if (st) { st.textContent = '🟢 ao vivo'; st.style.color = 'var(--green)'; }
-      }, (err) => {
-        const st = document.getElementById('grp-fs-status');
-        if (err?.code === 'failed-precondition' || err?.message?.includes('index')) {
-          // Índice composto ausente — tenta fallback sem orderBy
-          console.error('[grpChat] ÍNDICE COMPOSTO AUSENTE — crie em Firebase Console → Firestore → Índices → Composto:');
-          console.error('  Coleção: group_messages | groupId (ASC) | createdAt (ASC)');
-          const link = err?.message?.match(/https:\/\/\S+/)?.[0];
-          if (link) console.error('  Link direto para criar:', link);
-          if (st) { st.textContent = '⚠ índice'; st.style.color = 'var(--orange)'; }
-          // Fallback: tenta sem orderBy (funciona sem índice, sem garantia de ordem)
+  function _grpSetStatus(txt, color) {
+    const st = document.getElementById('grp-fs-status');
+    if (st) { st.textContent = txt; st.style.color = color; }
+  }
+
+  // Tenta query com índice composto primeiro (orderBy garante ordem cronológica)
+  try {
+    _grpChatListener = db.collection('group_messages')
+      .where('groupId', '==', grupo.id)
+      .orderBy('createdAt', 'asc')
+      .limitToLast(80)
+      .onSnapshot(snap => {
+        _grpApplySnap(snap);
+        _grpSetStatus('🟢 ao vivo', 'var(--green)');
+      }, err => {
+        if (err.code === 'failed-precondition' || err.message?.includes('index')) {
+          // Índice ausente — usa fallback sem orderBy (funciona sem índice)
+          console.warn('[grpChat] Índice composto ausente, usando fallback. Crie em:', err.message?.match(/https:\/\/\S+/)?.[0] || 'Firebase Console > Índices > group_messages(groupId ASC, createdAt ASC)');
+          _grpSetStatus('🟡 sem índice', 'var(--yellow)');
           try {
             _grpChatListener = db.collection('group_messages')
-              .where('groupId','==',grupo.id)
-              .limitToLast(80)
+              .where('groupId', '==', grupo.id)
+              .limit(80)
               .onSnapshot(snap2 => {
-                const fsMsgs2 = snap2.docs.map(d => ({ _fsid: d.id, ...d.data(),
-                  ts: d.data().createdAt?.toMillis?.() || Date.now()
-                })).sort((a,b)=>(a.ts||0)-(b.ts||0));
-                const fsIds2  = new Set(fsMsgs2.map(m => m._lid).filter(Boolean));
-                const pending2 = (_grpMsgsLocal[grupo.id] || []).filter(m => !m._fsid && !fsIds2.has(m._lid));
-                const merged2 = [...fsMsgs2, ...pending2].sort((a,b)=>(a.ts||0)-(b.ts||0));
-                _grpMsgsLocal[grupo.id] = merged2;
-                _grpSaveLocal(grupo.id, merged2);
-                _grpRenderMsgs(merged2, uid);
-                if (st) { st.textContent = '🟡 sem índice'; st.style.color = 'var(--yellow)'; }
-              }, () => {
-                if (st) { st.textContent = '📴 local'; st.style.color = 'var(--muted)'; }
-              });
+                _grpApplySnap(snap2);
+                _grpSetStatus('🟢 ao vivo', 'var(--green)');
+              }, () => _grpSetStatus('📴 local', 'var(--muted)'));
           } catch(e2) {}
         } else {
-          console.warn('[grpChat] Firestore erro:', err?.code, err?.message);
-          if (st) { st.textContent = '📴 local'; st.style.color = 'var(--muted)'; }
+          console.warn('[grpChat] Firestore erro:', err?.code);
+          _grpSetStatus('📴 local', 'var(--muted)');
         }
       });
-    } catch(e) {}
-  }
+  } catch(e) {}
 }
 
 function _grpRenderMsgs(msgs, myUid) {

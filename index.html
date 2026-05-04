@@ -4513,11 +4513,19 @@ async function _amiLoadChatMsgs(friendUid) {
     _amiRenderChat(friendUid); // mostra o que já tem enquanto carrega
   }
   try {
-    const [snapSent,snapRec]=await Promise.all([
-      db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).orderBy('createdAt').limit(100).get(),
-      db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).orderBy('createdAt').limit(100).get(),
+    // Queries por campo único (fromUid e toUid separados) + orderBy = índice simples, sem índice composto
+    const [snapSent, snapRec] = await Promise.all([
+      db.collection('friend_messages').where('fromUid','==',myUid).orderBy('createdAt').limit(100).get(),
+      db.collection('friend_messages').where('toUid','==',myUid).orderBy('createdAt').limit(100).get(),
     ]);
-    const fsmsgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
+    // Filtra no cliente para manter só msgs da conversa com friendUid
+    const sentMsgs = snapSent.docs
+      .filter(d => d.data().toUid === friendUid)
+      .map(d => ({...d.data(), mine:true,  ts:d.data().createdAt?.toMillis?.() || 0}));
+    const recMsgs = snapRec.docs
+      .filter(d => d.data().fromUid === friendUid)
+      .map(d => ({...d.data(), mine:false, ts:d.data().createdAt?.toMillis?.() || 0}));
+    const fsmsgs = [...sentMsgs, ...recMsgs].sort((a,b) => a.ts - b.ts);
     // Mescla com msgs em memória (ex: enviadas localmente ainda não confirmadas)
     const existing=_ami.chatMessages[friendUid]||[];
     const merged=[...fsmsgs];
@@ -4529,25 +4537,7 @@ async function _amiLoadChatMsgs(friendUid) {
     _ami.chatMessages[friendUid]=merged;
     _amiRenderChat(friendUid);
   } catch(e) {
-    // failed-precondition = índice composto ausente no Firestore
-    if(e.code==='failed-precondition'||e.message?.includes('index')){
-      console.warn('[AIVOX] friend_messages precisa de índice composto. Crie em: Firebase Console → Firestore → Índices → Composto: fromUid(ASC) + toUid(ASC) + createdAt(ASC). Detalhes:',e.message);
-      // Fallback: busca sem orderBy (sem índice, funciona mas sem ordenação garantida)
-      try {
-        const [snapSent,snapRec]=await Promise.all([
-          db.collection('friend_messages').where('fromUid','==',myUid).where('toUid','==',friendUid).limit(100).get(),
-          db.collection('friend_messages').where('fromUid','==',friendUid).where('toUid','==',myUid).limit(100).get(),
-        ]);
-        const fsmsgs=[...snapSent.docs.map(d=>({...d.data(),mine:true,ts:d.data().createdAt?.toMillis?.()|| 0})),...snapRec.docs.map(d=>({...d.data(),mine:false,ts:d.data().createdAt?.toMillis?.()|| 0}))].sort((a,b)=>a.ts-b.ts);
-        const existing=_ami.chatMessages[friendUid]||[];
-        const merged=[...fsmsgs];
-        existing.forEach(m=>{ const dup=merged.some(fm=>fm.text===m.text&&fm.mine===m.mine&&Math.abs((fm.ts||0)-(m.ts||0))<3000); if(!dup)merged.push(m); });
-        merged.sort((a,b)=>a.ts-b.ts);
-        _ami.chatMessages[friendUid]=merged;
-      } catch(e2){ console.warn('_amiLoadChatMsgs fallback:',e2); }
-    } else {
-      console.warn('_amiLoadChatMsgs',e);
-    }
+    console.warn('_amiLoadChatMsgs',e);
     _amiRenderChat(friendUid);
   }
 }

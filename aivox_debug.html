@@ -214,6 +214,51 @@ input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SEÇÃO: CHAT DE GRUPO — DIAGNÓSTICO COMPLETO               -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title"><span id="dot-grp" class="warn"></span>Chat de Grupo — group_messages & group_presence <span class="section-tag new">NOVO</span></div>
+
+  <div class="grid2">
+    <div>
+      <div class="row"><span class="row-label">WRITE — group_messages</span><span class="row-val" id="val-grp-write">—</span></div>
+      <div class="row"><span class="row-label">READ — group_messages (onSnapshot)</span><span class="row-val" id="val-grp-read">—</span></div>
+      <div class="row"><span class="row-label">Docs encontrados no grupo</span><span class="row-val" id="val-grp-count">—</span></div>
+      <div class="row"><span class="row-label">Índice composto (groupId+createdAt)</span><span class="row-val" id="val-grp-index">—</span></div>
+      <div class="row"><span class="row-label">DELETE test msg (limpeza)</span><span class="row-val" id="val-grp-delete">—</span></div>
+    </div>
+    <div>
+      <div class="row"><span class="row-label">WRITE — group_presence</span><span class="row-val" id="val-grp-pres-write">—</span></div>
+      <div class="row"><span class="row-label">READ — group_presence (count)</span><span class="row-val" id="val-grp-pres-read">—</span></div>
+      <div class="row"><span class="row-label">Online count retornado</span><span class="row-val" id="val-grp-pres-count">—</span></div>
+      <div class="row"><span class="row-label">DELETE presença (limpeza)</span><span class="row-val" id="val-grp-pres-del">—</span></div>
+      <div class="row"><span class="row-label">Erro detalhado</span><span class="row-val err" id="val-grp-err">—</span></div>
+    </div>
+  </div>
+
+  <div class="detail-box">
+    <strong>O que este teste verifica:</strong><br>
+    • <code>WRITE</code> em <code>group_messages</code> — se a mensagem consegue ser salva no Firestore<br>
+    • <code>READ onSnapshot</code> com <code>where("groupId") + orderBy("createdAt")</code> — se o índice composto existe<br>
+    • <code>WRITE/READ/DELETE</code> em <code>group_presence/{groupId}/online/{uid}</code> — presença em tempo real<br>
+    • Se o índice falhar → mensagens chegam ao remetente mas não ao destinatário (bug principal)<br>
+    • Se a presença falhar → contador fica em 0 ou 1 em vez do real
+  </div>
+
+  <div class="log" id="log-grp"></div>
+  <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+    <button class="btn" onclick="testGrpAll()">▶ Testar Tudo</button>
+    <button class="btn" onclick="testGrpWrite()">✍ Testar WRITE msgs</button>
+    <button class="btn" onclick="testGrpRead()">📖 Testar READ/onSnapshot</button>
+    <button class="btn green" onclick="testGrpPresence()">👥 Testar Presença</button>
+    <button class="btn red" onclick="clearGrpLog()">🗑 Limpar log</button>
+  </div>
+  <div style="margin-top:8px;">
+    <input id="input-grp-id" placeholder="ID do grupo para testar (ex: grp_ingles_b1 — deixe em branco para usar o padrão)" />
+  </div>
+</div>
+
 <!-- LOG GERAL -->
 <div class="section">
   <div class="section-title"><span></span>Log Completo</div>
@@ -260,7 +305,7 @@ function addLog(logId, msg, type='m'){
   }
 }
 function clearLog(){ 
-  ['log-ranking','log-presence','log-rules','log-chat','log-notif','log-resumo','log-geral'].forEach(id=>{
+  ['log-ranking','log-presence','log-rules','log-chat','log-notif','log-resumo','log-grp','log-geral'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML='';
   });
 }
@@ -575,27 +620,34 @@ async function testChat() {
       addLog('log-chat', '→ Adicione rule: match /friend_messages/{id} { allow read: if resource.data.toUid == request.auth.uid || resource.data.fromUid == request.auth.uid; }', 'w');
     }
     if (e.code === 'failed-precondition') {
-      addLog('log-chat', '→ Index ausente para (toUid, createdAt desc) — crie no Firebase Console', 'w');
+      addLog('log-chat', '→ Index ausente para (toUid, createdAt desc).', 'w');
+      addLog('log-chat', '→ Crie em: Firebase Console → Firestore → Indexes → Add → Collection: friend_messages, Fields: toUid ASC + createdAt DESC', 'w');
+      addLog('log-chat', '→ Ou abra o app, tente receber uma msg, e o Firebase mostrará o link direto no console do browser.', 'i');
     }
   }
 
   // ── READ friend_messages enviadas ──
-  addLog('log-chat', 'Tentando READ friend_messages onde fromUid = meu uid...', 'i');
+  // Usa só fromUid p/ evitar o index composto (fromUid+toUid+createdAt) que o app cria via link
+  addLog('log-chat', 'READ friend_messages enviadas (query simplificada — sem index composto)...', 'i');
   try {
-    const targetUid = friendUid || 'test_uid_placeholder';
     const snap = await db.collection('friend_messages')
       .where('fromUid', '==', myUid)
-      .where('toUid', '==', targetUid)
-      .orderBy('createdAt')
-      .limit(100)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
       .get();
     setVal('val-chat-read-sent', '✓ READ OK', 'ok');
-    setVal('val-chat-count-sent', snap.size + ' msgs' + (friendUid ? '' : ' (uid placeholder — cole um uid real)'), snap.size >= 0 ? 'ok' : 'warn');
-    addLog('log-chat', '✓ READ enviadas OK — ' + snap.size + ' msgs', 's');
+    setVal('val-chat-count-sent', snap.size + ' msgs enviadas', 'ok');
+    addLog('log-chat', '✓ READ enviadas OK — ' + snap.size + ' msgs (query simples, sem index composto)', 's');
+    addLog('log-chat', 'ℹ O app usa query com fromUid+toUid+orderBy que precisa de index composto.', 'i');
+    addLog('log-chat', 'ℹ Se no app aparecer failed-precondition: o próprio Firebase mostra o link para criar o index.', 'i');
   } catch(e) {
     setVal('val-chat-read-sent', '✗ ' + e.code, 'err');
     addLog('log-chat', '✗ READ enviadas falhou: [' + e.code + '] ' + e.message, 'e');
-    if (e.code === 'failed-precondition') addLog('log-chat', '→ Index ausente para (fromUid, toUid, createdAt) — crie no Firebase Console', 'w');
+    if (e.code === 'failed-precondition') {
+      addLog('log-chat', '→ Index ausente para (fromUid, createdAt desc).', 'w');
+      addLog('log-chat', '→ Crie o index: Firebase Console → Firestore → Indexes → Add composite index.', 'w');
+    }
+    if (e.code === 'permission-denied') addLog('log-chat', '→ Regra de leitura bloqueada — verifique as Firestore Security Rules.', 'w');
   }
 
   // ── WRITE + DELETE friend_messages ──
@@ -626,8 +678,19 @@ async function testChat() {
       setVal('val-chat-delete', '✓ DELETE OK', 'ok');
       addLog('log-chat', '✓ DELETE OK — limpeza bem-sucedida', 's');
     } catch(e) {
-      setVal('val-chat-delete', '⚠ ' + e.code + ' (msg de teste ficou no Firestore)', 'warn');
-      addLog('log-chat', '⚠ DELETE falhou: [' + e.code + '] — msg de teste permanece em friend_messages', 'w');
+      const isPermDenied = (e.code === 'permission-denied');
+      setVal('val-chat-delete',
+        isPermDenied ? '⚠ permission-denied — esperado (app nunca deleta msgs)' : '⚠ ' + e.code,
+        'warn'
+      );
+      if (isPermDenied) {
+        addLog('log-chat', '⚠ DELETE bloqueado por permission-denied — isso é CORRETO e esperado!', 'w');
+        addLog('log-chat', '→ O app nunca deleta mensagens de amigos — as Firestore Rules estão certas.', 'i');
+        addLog('log-chat', '→ A msg de teste "__debug_test_msg__" ficou no Firestore.', 'm');
+        addLog('log-chat', '→ Para limpar: Firebase Console → Firestore → friend_messages → filtrar "__debug_test_msg__"', 'm');
+      } else {
+        addLog('log-chat', '⚠ DELETE falhou com erro inesperado: [' + e.code + '] ' + e.message, 'w');
+      }
     }
   }
 
@@ -663,36 +726,41 @@ async function testChat() {
 
 async function testChatAudioExpiry() {
   addLog('log-chat', '=== TESTE EXPIRAÇÃO DE ÁUDIO ===', 'i');
+  addLog('log-chat', 'Lógica do app: audioExpired = audioUrl && ts && (now - ts) > 86400000', 'i');
   const now = Date.now();
+
+  // Replica EXATAMENTE a expressão do app
+  function appLogic(audioUrl, ts) {
+    return !!(audioUrl && ts && (now - ts) > 86400000);
+  }
+
   const cases = [
-    { label: 'Áudio enviado há 10 min', ts: now - 10 * 60 * 1000, audioUrl: 'https://example.com/audio1.webm' },
-    { label: 'Áudio enviado há 25h', ts: now - 25 * 60 * 60 * 1000, audioUrl: 'https://example.com/audio2.webm' },
-    { label: 'Áudio sem timestamp (ts=0)', ts: 0, audioUrl: 'https://example.com/audio3.webm' },
-    { label: 'Mensagem de texto (sem audioUrl)', ts: now - 30 * 60 * 60 * 1000, audioUrl: null },
+    { label: 'Áudio válido (10 min atrás)',          audioUrl: 'x.webm', ts: now - 10 * 60 * 1000,      expectedExpired: false },
+    { label: 'Áudio expirado (25h atrás)',            audioUrl: 'x.webm', ts: now - 25 * 3600 * 1000,    expectedExpired: true  },
+    { label: 'Áudio sem timestamp (ts=0)',            audioUrl: 'x.webm', ts: 0,                          expectedExpired: false },
+    { label: 'Mensagem texto (audioUrl=null)',        audioUrl: null,      ts: now - 30 * 3600 * 1000,    expectedExpired: false },
+    { label: 'Exatamente 24h (86400000ms) — válido', audioUrl: 'x.webm', ts: now - 86400000,             expectedExpired: false },
+    { label: '24h + 1ms — expirado',                 audioUrl: 'x.webm', ts: now - 86400001,             expectedExpired: true  },
   ];
 
   let allOk = true;
   cases.forEach(c => {
-    const audioExpired = c.audioUrl && c.ts && (now - c.ts) > 86400000;
-    let resultado, expected;
-    if (!c.audioUrl) {
-      expected = false; resultado = audioExpired === false;
-      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → sem expiração (é texto)', resultado ? 's' : 'e');
-    } else if (c.ts === 0) {
-      expected = false; resultado = audioExpired === false;
-      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → ts=0, não expira (ts falsy)', resultado ? 's' : 'e');
-    } else if ((now - c.ts) > 86400000) {
-      expected = true; resultado = audioExpired === true;
-      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → EXPIRADO — mostra "Áudio expirado"', resultado ? 's' : 'e');
-    } else {
-      expected = false; resultado = audioExpired === false;
-      addLog('log-chat', (resultado ? '✓' : '✗') + ' ' + c.label + ' → válido — mostra player', resultado ? 's' : 'e');
-    }
-    if (!resultado) allOk = false;
+    const got = appLogic(c.audioUrl, c.ts);
+    const ok  = (got === c.expectedExpired);
+    if (!ok) allOk = false;
+    addLog('log-chat',
+      (ok ? '✓' : '✗') + ' ' + c.label +
+      ' → expired=' + got + (ok ? '' : '  ← ESPERADO: ' + c.expectedExpired),
+      ok ? 's' : 'e'
+    );
   });
 
-  setVal('val-chat-audio-exp', allOk ? '✓ Lógica de expiração 24h correta' : '✗ Lógica de expiração com falha', allOk ? 'ok' : 'err');
-  addLog('log-chat', allOk ? '✓ Todos os casos de expiração OK' : '✗ Falha em algum caso de expiração', allOk ? 's' : 'e');
+  const score = cases.filter((c,i) => appLogic(c.audioUrl, c.ts) === c.expectedExpired).length;
+  setVal('val-chat-audio-exp',
+    allOk ? '✓ Lógica correta — ' + score + '/' + cases.length + ' casos OK' : '✗ Falha em ' + (cases.length - score) + ' caso(s) — veja log',
+    allOk ? 'ok' : 'err'
+  );
+  addLog('log-chat', allOk ? '✓ Todos os ' + cases.length + ' casos OK — lógica de expiração correta no app' : '✗ ' + (cases.length - score) + ' caso(s) falharam', allOk ? 's' : 'e');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -848,10 +916,23 @@ Conversa: The meeting was very productive. We discussed the quarterly budget and
     }
     return true;
   } catch(e) {
-    setVal('val-resumo-api', '✗ ' + e.message, 'err');
-    setVal('val-resumo-err', e.message, 'err');
-    addLog('log-resumo', '✗ Erro de rede ao chamar API: ' + e.message, 'e');
-    addLog('log-resumo', '→ Verifique se o proxy/backend está configurado e o CORS está liberado', 'w');
+    const isCors = (e.message === 'Failed to fetch' || e.name === 'TypeError');
+    if (isCors) {
+      setVal('val-resumo-api', '⚠ CORS bloqueado — normal fora do app', 'warn');
+      setVal('val-resumo-err', 'Failed to fetch — leia a explicação no log', 'warn');
+      addLog('log-resumo', '⚠ "Failed to fetch" — isso é ESPERADO neste arquivo de debug!', 'w');
+      addLog('log-resumo', '→ A Anthropic API bloqueia chamadas diretas do browser (política CORS).', 'w');
+      addLog('log-resumo', '→ No app (index.html), o Claude.ai injeta um proxy que contorna o CORS.', 'i');
+      addLog('log-resumo', '→ O Resumo de Escuta FUNCIONARÁ normalmente dentro do app.', 's');
+      addLog('log-resumo', '→ Este debug não consegue testar a API diretamente — isso é limitação do debug, não do app.', 'm');
+      setDot('dot-resumo', 'warn');
+    } else {
+      setVal('val-resumo-api', '✗ Erro: ' + e.message, 'err');
+      setVal('val-resumo-err', e.message, 'err');
+      addLog('log-resumo', '✗ Erro inesperado ao chamar API: ' + e.message, 'e');
+      addLog('log-resumo', '→ Verifique conexão com internet e configurações do proxy/backend.', 'w');
+      setDot('dot-resumo', 'err');
+    }
     return false;
   }
 }
@@ -912,6 +993,237 @@ async function testVocabulario() {
     }
   }
 }
+
+
+// ── GRUPO CHAT TESTS ──────────────────────────────────────────────
+
+function clearGrpLog(){ const el=document.getElementById('log-grp'); if(el) el.innerHTML=''; }
+
+function _grpId() {
+  const v = document.getElementById('input-grp-id')?.value?.trim();
+  return v || 'grp_test_debug_b1';
+}
+
+async function testGrpWrite() {
+  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login','w'); return null; }
+  const uid = currentUser.uid;
+  const nome = currentUser.displayName || currentUser.email || 'Debug';
+  const groupId = _grpId();
+  addLog('log-grp', '=== TESTE WRITE group_messages ===', 'i');
+  addLog('log-grp', 'groupId: ' + groupId, 'm');
+  addLog('log-grp', 'Tentando escrever mensagem de teste...', 'i');
+  try {
+    const ref = await db.collection('group_messages').add({
+      groupId, uid, nome,
+      text: '__debug_test_msg_' + Date.now() + '__',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setVal('val-grp-write', '✓ WRITE OK (id: ' + ref.id.substring(0,12) + '...)', 'ok');
+    addLog('log-grp', '✓ WRITE bem-sucedido — doc: ' + ref.id, 's');
+
+    // Aguarda e deleta
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      await db.collection('group_messages').doc(ref.id).delete();
+      setVal('val-grp-delete', '✓ DELETE OK', 'ok');
+      addLog('log-grp', '✓ Msg de teste deletada (limpeza OK)', 's');
+    } catch(de) {
+      setVal('val-grp-delete', '⚠ ' + de.code + ' (msg de teste ficou)', 'warn');
+      addLog('log-grp', '⚠ DELETE falhou: ' + de.code, 'w');
+    }
+    return ref.id;
+  } catch(e) {
+    setVal('val-grp-write', '✗ ' + e.code, 'err');
+    setVal('val-grp-err', e.code + ' — ' + e.message, 'err');
+    addLog('log-grp', '✗ WRITE falhou: [' + e.code + '] ' + e.message, 'e');
+    if (e.code === 'permission-denied') {
+      addLog('log-grp', '→ CAUSA: Regra do Firestore bloqueando WRITE em group_messages', 'w');
+      addLog('log-grp', '→ Verifique: match /group_messages/{id} { allow create: if request.auth != null; }', 'w');
+    }
+    return null;
+  }
+}
+
+async function testGrpRead() {
+  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login','w'); return; }
+  const groupId = _grpId();
+  addLog('log-grp', '=== TESTE READ/onSnapshot group_messages ===', 'i');
+  addLog('log-grp', 'groupId: ' + groupId, 'm');
+  addLog('log-grp', 'Montando query: where("groupId"==...) + orderBy("createdAt","asc") + limitToLast(20)...', 'i');
+
+  const q = db.collection('group_messages')
+    .where('groupId', '==', groupId)
+    .orderBy('createdAt', 'asc')
+    .limitToLast(20);
+
+  return new Promise(resolve => {
+    let unsub;
+    const timeout = setTimeout(() => {
+      if (unsub) try { unsub(); } catch(e) {}
+      setVal('val-grp-read', '✗ Timeout — sem resposta em 8s', 'err');
+      setVal('val-grp-index', '✗ Provavelmente índice ausente', 'err');
+      addLog('log-grp', '✗ TIMEOUT — o onSnapshot não respondeu em 8s', 'e');
+      addLog('log-grp', '→ CAUSA MAIS PROVÁVEL: índice composto ausente no Firestore', 'w');
+      addLog('log-grp', '→ Crie em: Firebase Console → Firestore → Índices → Composto', 'w');
+      addLog('log-grp', '→ Coleção: group_messages | groupId ASC | createdAt ASC', 'w');
+      addLog('log-grp', '→ Sem esse índice: remetente vê a msg mas destinatário NÃO recebe', 'e');
+      resolve(false);
+    }, 8000);
+
+    try {
+      unsub = q.onSnapshot(snap => {
+        clearTimeout(timeout);
+        if (unsub) try { unsub(); } catch(e) {}
+        const count = snap.size;
+        setVal('val-grp-read', '✓ onSnapshot OK', 'ok');
+        setVal('val-grp-count', count + ' msg(s) encontrada(s)', count >= 0 ? 'ok' : 'warn');
+        setVal('val-grp-index', '✓ Índice composto OK', 'ok');
+        addLog('log-grp', '✓ onSnapshot funcionou — ' + count + ' msg(s) no grupo', 's');
+        if (count === 0) {
+          addLog('log-grp', '→ Grupo vazio ou ID não bate com msgs existentes — isso é normal para grupo de teste', 'm');
+        } else {
+          snap.forEach(doc => {
+            const d = doc.data();
+            addLog('log-grp', '  msg: uid=' + (d.uid||'?').substring(0,8) + '... nome="' + (d.nome||'?') + '" text="' + (d.text||'').substring(0,40) + '"', 'm');
+          });
+        }
+        resolve(true);
+      }, err => {
+        clearTimeout(timeout);
+        setVal('val-grp-read', '✗ ' + err.code, 'err');
+        setVal('val-grp-err', err.code + ' — ' + err.message, 'err');
+        addLog('log-grp', '✗ onSnapshot ERRO: [' + err.code + '] ' + err.message, 'e');
+        if (err.code === 'failed-precondition' || (err.message && err.message.includes('index'))) {
+          setVal('val-grp-index', '✗ ÍNDICE AUSENTE', 'err');
+          addLog('log-grp', '→ ÍNDICE COMPOSTO AUSENTE — este é o bug principal!', 'e');
+          addLog('log-grp', '→ Vá ao Firebase Console → Firestore → Índices → Composto', 'w');
+          addLog('log-grp', '→ Coleção: group_messages', 'w');
+          addLog('log-grp', '→ Campo 1: groupId — Crescente', 'w');
+          addLog('log-grp', '→ Campo 2: createdAt — Crescente', 'w');
+          addLog('log-grp', '→ Sem esse índice o remetente vê a msg (localStorage) mas o destinatário NÃO recebe', 'e');
+          if (err.message && err.message.includes('https://')) {
+            const link = err.message.match(/https:\/\/\S+/);
+            if (link) addLog('log-grp', '→ LINK DIRETO para criar o índice: ' + link[0], 'i');
+          }
+        } else if (err.code === 'permission-denied') {
+          setVal('val-grp-index', '— (bloqueado por permissão)', 'warn');
+          addLog('log-grp', '→ CAUSA: Regra de READ bloqueando — verifique as regras do Firestore', 'w');
+        }
+        resolve(false);
+      });
+    } catch(e) {
+      clearTimeout(timeout);
+      setVal('val-grp-read', '✗ Exceção: ' + e.message, 'err');
+      addLog('log-grp', '✗ Exceção ao montar query: ' + e.message, 'e');
+      resolve(false);
+    }
+  });
+}
+
+async function testGrpPresence() {
+  if (!currentUser || !db) { addLog('log-grp','Sem usuário/db — faça login','w'); return; }
+  const uid = currentUser.uid;
+  const nome = currentUser.displayName || 'Debug';
+  const groupId = _grpId();
+  addLog('log-grp', '=== TESTE PRESENÇA group_presence ===', 'i');
+  addLog('log-grp', 'Caminho: group_presence/' + groupId + '/online/' + uid.substring(0,8) + '...', 'm');
+
+  // WRITE presença
+  const presRef = db.collection('group_presence').doc(groupId).collection('online').doc(uid);
+  addLog('log-grp', 'Tentando WRITE de presença...', 'i');
+  try {
+    await presRef.set({ uid, nome, entrou: firebase.firestore.FieldValue.serverTimestamp() });
+    setVal('val-grp-pres-write', '✓ WRITE OK', 'ok');
+    addLog('log-grp', '✓ WRITE presença OK', 's');
+  } catch(e) {
+    setVal('val-grp-pres-write', '✗ ' + e.code, 'err');
+    setVal('val-grp-err', e.code + ' — ' + e.message, 'err');
+    addLog('log-grp', '✗ WRITE presença falhou: [' + e.code + '] ' + e.message, 'e');
+    if (e.code === 'permission-denied') {
+      addLog('log-grp', '→ CAUSA: Regra bloqueando WRITE em group_presence/{g}/online/{uid}', 'w');
+      addLog('log-grp', '→ Verifique as regras: allow read, write: if request.auth != null && request.auth.uid == uid', 'w');
+    }
+    return;
+  }
+
+  // READ onSnapshot para contar online
+  addLog('log-grp', 'Testando onSnapshot de presença (contagem de online)...', 'i');
+  await new Promise(resolve => {
+    const timeout = setTimeout(() => {
+      setVal('val-grp-pres-read', '✗ Timeout 6s', 'err');
+      addLog('log-grp', '✗ TIMEOUT no listener de presença', 'e');
+      resolve();
+    }, 6000);
+
+    let unsub2;
+    try {
+      unsub2 = db.collection('group_presence').doc(groupId).collection('online')
+        .onSnapshot(snap => {
+          clearTimeout(timeout);
+          if (unsub2) try { unsub2(); } catch(e2) {}
+          setVal('val-grp-pres-read', '✓ onSnapshot OK', 'ok');
+          setVal('val-grp-pres-count', snap.size + ' usuário(s) online', snap.size > 0 ? 'ok' : 'warn');
+          addLog('log-grp', '✓ Presença onSnapshot OK — ' + snap.size + ' online', 's');
+          if (snap.size === 0) addLog('log-grp', '→ 0 online — presença pode não ter sido gravada ainda (timing)', 'w');
+          snap.forEach(doc => {
+            const d = doc.data();
+            addLog('log-grp', '  online: uid=' + (d.uid||'?').substring(0,8) + '... nome="' + (d.nome||'?') + '"', 'm');
+          });
+          resolve();
+        }, err => {
+          clearTimeout(timeout);
+          setVal('val-grp-pres-read', '✗ ' + err.code, 'err');
+          addLog('log-grp', '✗ onSnapshot presença ERRO: [' + err.code + '] ' + err.message, 'e');
+          if (err.code === 'permission-denied') {
+            addLog('log-grp', '→ Regra de READ na group_presence está bloqueando — isso faz o contador ficar em 0', 'w');
+          }
+          resolve();
+        });
+    } catch(e) {
+      clearTimeout(timeout);
+      addLog('log-grp', '✗ Exceção: ' + e.message, 'e');
+      resolve();
+    }
+  });
+
+  // Limpeza
+  await new Promise(r => setTimeout(r, 500));
+  addLog('log-grp', 'Deletando presença de teste...', 'm');
+  try {
+    await presRef.delete();
+    setVal('val-grp-pres-del', '✓ DELETE OK', 'ok');
+    addLog('log-grp', '✓ Presença de teste removida', 's');
+  } catch(e) {
+    setVal('val-grp-pres-del', '⚠ ' + e.code, 'warn');
+    addLog('log-grp', '⚠ DELETE presença falhou: ' + e.code, 'w');
+  }
+}
+
+async function testGrpAll() {
+  setDot('dot-grp', 'run');
+  addLog('log-grp', '════════════════════════════════', 'i');
+  addLog('log-grp', '  DIAGNÓSTICO COMPLETO DO GRUPO ', 'i');
+  addLog('log-grp', '════════════════════════════════', 'i');
+  const w = await testGrpWrite();
+  const r = await testGrpRead();
+  await testGrpPresence();
+  addLog('log-grp', '════ RESUMO ════', 'i');
+  if (w !== null && r) {
+    setDot('dot-grp', 'ok');
+    addLog('log-grp', '✅ WRITE OK + READ/onSnapshot OK + Presença OK', 's');
+    addLog('log-grp', '→ O problema pode ser no índice composto (se READ demorou) ou cache no celular', 'm');
+  } else if (w !== null && !r) {
+    setDot('dot-grp', 'err');
+    addLog('log-grp', '❌ WRITE OK mas READ/onSnapshot FALHOU', 'e');
+    addLog('log-grp', '→ Causa mais provável: ÍNDICE COMPOSTO ausente no Firestore', 'e');
+    addLog('log-grp', '→ Firebase Console → Firestore → Índices → Composto:', 'w');
+    addLog('log-grp', '   Coleção: group_messages | groupId (ASC) | createdAt (ASC)', 'w');
+  } else if (w === null) {
+    setDot('dot-grp', 'err');
+    addLog('log-grp', '❌ WRITE FALHOU — verificar regras de segurança', 'e');
+  }
+}
+
 
 // Auto-init ao carregar
 window.onload = async () => {

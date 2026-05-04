@@ -1806,7 +1806,7 @@ input, textarea, select {
         <div class="sidebar-av" id="sb-avatar">R</div>
         <div><div class="sidebar-uname" id="sb-name">Usuário</div><div class="sidebar-uplan" id="sb-plan">TRIAL</div></div>
       </div>
-      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-03</div>
+      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-03b</div>
     </div>
   </nav>
 
@@ -5463,10 +5463,38 @@ function grpEntrar(grupo) {
         const st = document.getElementById('grp-fs-status');
         if (st) { st.textContent = '🟢 ao vivo'; st.style.color = 'var(--green)'; }
       }, (err) => {
-        // Permissão negada — fica em modo local silenciosamente
-        console.warn('[grpChat] Firestore sem permissão, modo local:', err?.code);
         const st = document.getElementById('grp-fs-status');
-        if (st) { st.textContent = '📴 local'; st.style.color = 'var(--muted)'; }
+        if (err?.code === 'failed-precondition' || err?.message?.includes('index')) {
+          // Índice composto ausente — tenta fallback sem orderBy
+          console.error('[grpChat] ÍNDICE COMPOSTO AUSENTE — crie em Firebase Console → Firestore → Índices → Composto:');
+          console.error('  Coleção: group_messages | groupId (ASC) | createdAt (ASC)');
+          const link = err?.message?.match(/https:\/\/\S+/)?.[0];
+          if (link) console.error('  Link direto para criar:', link);
+          if (st) { st.textContent = '⚠ índice'; st.style.color = 'var(--orange)'; }
+          // Fallback: tenta sem orderBy (funciona sem índice, sem garantia de ordem)
+          try {
+            _grpChatListener = db.collection('group_messages')
+              .where('groupId','==',grupo.id)
+              .limitToLast(80)
+              .onSnapshot(snap2 => {
+                const fsMsgs2 = snap2.docs.map(d => ({ _fsid: d.id, ...d.data(),
+                  ts: d.data().createdAt?.toMillis?.() || Date.now()
+                })).sort((a,b)=>(a.ts||0)-(b.ts||0));
+                const fsIds2  = new Set(fsMsgs2.map(m => m._lid).filter(Boolean));
+                const pending2 = (_grpMsgsLocal[grupo.id] || []).filter(m => !m._fsid && !fsIds2.has(m._lid));
+                const merged2 = [...fsMsgs2, ...pending2].sort((a,b)=>(a.ts||0)-(b.ts||0));
+                _grpMsgsLocal[grupo.id] = merged2;
+                _grpSaveLocal(grupo.id, merged2);
+                _grpRenderMsgs(merged2, uid);
+                if (st) { st.textContent = '🟡 sem índice'; st.style.color = 'var(--yellow)'; }
+              }, () => {
+                if (st) { st.textContent = '📴 local'; st.style.color = 'var(--muted)'; }
+              });
+          } catch(e2) {}
+        } else {
+          console.warn('[grpChat] Firestore erro:', err?.code, err?.message);
+          if (st) { st.textContent = '📴 local'; st.style.color = 'var(--muted)'; }
+        }
       });
     } catch(e) {}
   }

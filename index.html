@@ -135,7 +135,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .auth-box::before{content:'';position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.55),rgba(124,58,237,.4),transparent);border-radius:1px;}
 /* brilho sutil canto inferior direito */
 .auth-box::after{content:'';position:absolute;bottom:-1px;right:20px;left:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,.2),transparent);border-radius:1px;}
-.landing-page{min-height:100vh;background:var(--bg);display:none;flex-direction:column;width:100%;position:relative;z-index:1;}
+.landing-page{min-height:100vh;background:var(--bg);display:none;flex-direction:column;width:100%;position:fixed;inset:0;z-index:150;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 /* ── LANDING NAVBAR ── */
 .landing-nav{position:fixed;top:0;left:0;right:0;z-index:600;
   background:rgba(6,8,15,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
@@ -5836,6 +5836,8 @@ auth.onAuthStateChanged(async(user)=>{
   }else{
     window._userRequestedLogin=false;
     window._fbUser=null;
+    // Garante que o app-shell some independente do currentPage
+    const _as=document.getElementById('app-shell');if(_as)_as.style.display='none';
     if(currentPage!=='landing'&&typeof showLanding==='function')showLanding();
   }
 });

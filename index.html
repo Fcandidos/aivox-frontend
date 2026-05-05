@@ -1085,13 +1085,13 @@ input, textarea, select {
 }
 /* ====== BOTTOM NAV ====== */
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:90;}
-/* Garante que o bnav nunca apareça fora do app autenticado */
+/* Garante bnav invisível fora do app autenticado */
 body[data-page="landing"] .bnav,
 body[data-page="login"] .bnav,
 body[data-page="register"] .bnav,
 body[data-page="reset"] .bnav,
 body[data-page="2fa"] .bnav{display:none!important;}
-/* Landing cobre tudo quando ativa */
+/* Landing cobre tudo (inclusive bnav z-index:90) quando ativa */
 .landing-page.active{z-index:150!important;}
 
 /* ====== AMIGOS — ESTRUTURA GERAL ====== */
@@ -1735,7 +1735,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- ====== LANDING ====== -->
-<div class="landing-page active" id="page-landing" data-init-landing="1">
+<div class="landing-page active" id="page-landing">
   <!-- ── Navbar fixa ── -->
   <nav class="landing-nav">
     <div class="landing-nav-inner">
@@ -2928,7 +2928,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
     <!-- ====== ADMIN ====== -->
     <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
       <div class="adh">
-        <div class="adtop"><button id="admin-back-btn" class="btn btn-icon btn-ghost" onclick="navApp('home')" style="display:none;flex-shrink:0;">‹</button><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:8px;align-items:center;"><div class="adba">🛡️ Admin</div><button class="btn btn-danger" onclick="doLogout()">Sair</button></div></div>
+        <div class="adtop"><button id="admin-back-btn" class="btn btn-icon btn-ghost" onclick="navApp('home')" style="display:none;flex-shrink:0;">‹</button><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:8px;align-items:center;"><div class="adba">🛡️ Admin</div><button id="__dbg-toggle" onclick="__dbgToggle()" title="Debug Panel" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--accent);border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;flex-shrink:0;line-height:1;">🐛</button><button class="btn btn-danger" onclick="doLogout()">Sair</button></div></div>
         <div class="atabs">
           <div class="atab active" onclick="adTab('visao',this)">📊 Visão Geral</div>
           <div class="atab" onclick="adTab('usuarios',this)">👥 Usuários</div>
@@ -5812,13 +5812,14 @@ auth.onAuthStateChanged(async(user)=>{
           enterApp(data);
           showToast('✅ Bem-vindo, '+data.name.split(' ')[0]+'!');
           if(data.role!=='admin') _startUserPermListener(user.uid);
-        }else if(onAuthScreen && !window._userRequestedLogin){
-          // REFRESH com sessão ativa: re-entra automaticamente no app (não desconecta)
+        }else if(onAuthScreen && !window._userRequestedLogin && !window._2faJustVerified){
+          // REFRESH com sessão ativa: re-entra silenciosamente (sem toast)
           window._userRequestedLogin=false;
           enterApp(data);
           if(data.role!=='admin') _startUserPermListener(user.uid);
         }else if(!onAuthScreen){
           // Já está no app: apenas atualiza dados
+          window._2faJustVerified=false;
           updateSidebarUser(data);if(data.role!=='admin')setupPlan();
         }
       }
@@ -5845,7 +5846,6 @@ auth.onAuthStateChanged(async(user)=>{
   }else{
     window._userRequestedLogin=false;
     window._fbUser=null;
-    // Garante app-shell oculto e body marcado, independente do currentPage
     const _as=document.getElementById('app-shell');if(_as)_as.style.display='none';
     document.body.dataset.page='landing';
     if(currentPage!=='landing'&&typeof showLanding==='function')showLanding();
@@ -6264,7 +6264,7 @@ async function doLogin(){
       // Sinaliza que o login foi solicitado pelo usuário (evita auto-login indevido)
       window._userRequestedLogin=true;
       const res=await window.FB.login(email,pass);
-      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;try{localStorage.setItem('aivox_role',res.data.role||'user');localStorage.setItem('aivox_uid',res.data.uid||'');}catch(_){}enterApp(res.data);showToast('✅ Bem-vindo, '+(res.data.name?.split(' ')[0]||'')+'!');return;}
+      if(res.ok){window._fbUser=res.data;userPlan=res.data.plan||'trial';userRole=res.data.role||'user';loginAttempts=0;try{localStorage.setItem('aivox_role',res.data.role||'user');localStorage.setItem('aivox_uid',res.data.uid||'');}catch(_){}/* enterApp e toast serão chamados pelo onAuthStateChanged */return;}
       else{window._userRequestedLogin=false;loginAttempts++;if(loginAttempts>=MAX_ATTEMPTS){lockLogin(30);return;}let msg=res.error||'E-mail ou senha incorretos.';if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential'))msg='E-mail ou senha incorretos. '+(MAX_ATTEMPTS-loginAttempts)+' tentativa(s) restante(s).';errEl.textContent=msg;errEl.classList.add('show');}
     }catch(e){window._userRequestedLogin=false;errEl.textContent='Erro de conexão.';errEl.classList.add('show');}
   }else{
@@ -6420,8 +6420,9 @@ async function verify2FA(){
           try{const fresh=await window.FB.getUser(u.uid);if(fresh){u=fresh;window._fbUser=fresh;userPlan=fresh.plan||'trial';userRole=fresh.role||'user';
           try{localStorage.setItem('aivox_role',fresh.role||'user');localStorage.setItem('aivox_uid',fresh.uid);}catch(_){}}}catch(e){}
         }
-        // 2FA aprovado = usuário solicitou acesso conscientemente
-        window._userRequestedLogin=false; // já vai entrar direto via enterApp
+        // 2FA aprovado — entra direto, onAuthStateChanged não disparará toast (já está no app)
+        window._userRequestedLogin=false;
+        window._2faJustVerified=true; // flag para onAuthStateChanged ignorar
         enterApp(u);
         showToast('✅ Acesso verificado! Bem-vindo, '+(u.name?.split(' ')[0]||'')+'!','success');
       },500);
@@ -13124,8 +13125,8 @@ function _salaMostrarUIVideo(show){
 
 <!-- ====== DEBUG PANEL — REMOVER EM PRODUÇÃO ====== -->
 <style>
-#__dbg-toggle{position:fixed;bottom:90px;right:12px;z-index:99998;width:42px;height:42px;border-radius:50%;background:#1a1a2e;border:2px solid #00e5ff;color:#00e5ff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,229,255,.4);user-select:none;}
-#__dbg-panel{position:fixed;bottom:140px;right:12px;z-index:99999;width:270px;height:420px;min-width:180px;min-height:200px;max-width:95vw;max-height:85vh;background:#0d0d1a;border:1px solid #00e5ff44;border-radius:12px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.8);font-family:'Space Mono',monospace;font-size:10px;}
+#__dbg-toggle{display:inline-flex;align-items:center;justify-content:center;user-select:none;}
+#__dbg-panel{position:fixed;bottom:80px;right:12px;z-index:99999;width:270px;height:420px;min-width:180px;min-height:200px;max-width:95vw;max-height:85vh;background:#0d0d1a;border:1px solid #00e5ff44;border-radius:12px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.8);font-family:'Space Mono',monospace;font-size:10px;}
 #__dbg-panel.open{display:flex;}
 #__dbg-head{background:#111130;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #00e5ff33;flex-shrink:0;cursor:move;user-select:none;}
 #__dbg-head span{color:#00e5ff;font-size:11px;font-weight:700;letter-spacing:1px;}
@@ -13143,7 +13144,7 @@ function _salaMostrarUIVideo(show){
 #__dbg-resizer::after{content:'';display:block;width:10px;height:10px;border-left:2px solid #00e5ff66;border-bottom:2px solid #00e5ff66;border-radius:0 0 0 3px;}
 </style>
 
-<div id="__dbg-toggle" onclick="__dbgToggle()" title="Debug">🐛</div>
+<!-- Debug toggle movido para dentro do header admin -->
 <div id="__dbg-panel">
   <div id="__dbg-head">
     <span>⣿ DEBUG PANEL</span>
@@ -13355,72 +13356,43 @@ function _salaMostrarUIVideo(show){
     if(offenders.length>8)log('...+'+(offenders.length-8)+' mais','warn');
 
     sep('BNAV / LANDING');
-    // Estado atual das páginas
     const landingEl=document.getElementById('page-landing');
     const appShellEl=document.getElementById('app-shell');
     const bnavEl=document.getElementById('bnav');
-
-    // Landing
-    if(!landingEl){log('page-landing: não encontrado','warn');}
-    else{
-      const lActive=landingEl.classList.contains('active');
+    const landingActive=landingEl&&landingEl.classList.contains('active');
+    if(landingEl){
       const lDisp=getComputedStyle(landingEl).display;
-      const lPos=getComputedStyle(landingEl).position;
       const lZ=getComputedStyle(landingEl).zIndex;
-      const lInl=landingEl.style.cssText||'(nenhum)';
-      log('landing .active: '+(lActive?'SIM':'não'),lActive?'ok':'info');
+      log('landing .active: '+(landingActive?'SIM':'não'),landingActive?'ok':'info');
       log('landing computed display: '+lDisp,'info');
-      log('landing position: '+lPos,'info');
       log('landing z-index: '+lZ,'info');
-      log('landing inline style: '+lInl,'info');
     }
-
-    // App-shell
-    if(!appShellEl){log('app-shell: não encontrado','warn');}
-    else{
+    if(appShellEl){
       const aDisp=getComputedStyle(appShellEl).display;
       const aInl=appShellEl.style.display||'(nenhum)';
-      const aZ=getComputedStyle(appShellEl).zIndex;
-      const landingActive=landingEl&&landingEl.classList.contains('active');
       log('app-shell computed display: '+aDisp,(landingActive&&aDisp!=='none')?'err':'ok');
       log('app-shell inline display: '+aInl,'info');
-      log('app-shell z-index: '+aZ,'info');
-      if(landingActive&&aDisp!=='none') log('⚠ ERRO: app-shell VISÍVEL enquanto landing está ativa!','err');
+      if(landingActive&&aDisp!=='none')log('⚠ ERRO: app-shell visível com landing ativa!','err');
     }
-
-    // Bnav
-    if(!bnavEl){log('bnav: não encontrado','warn');}
-    else{
+    if(bnavEl){
       const bDisp=getComputedStyle(bnavEl).display;
       const bInl=bnavEl.style.display||'(nenhum)';
       const bRect=bnavEl.getBoundingClientRect();
       const bZ=getComputedStyle(bnavEl).zIndex;
       const bVisible=bDisp!=='none'&&bRect.height>0;
-      const landingActive=landingEl&&landingEl.classList.contains('active');
       log('bnav computed display: '+bDisp,'info');
       log('bnav inline display: '+bInl,'info');
       log('bnav z-index: '+bZ,'info');
-      log('bnav rect: '+Math.round(bRect.width)+'×'+Math.round(bRect.height)+' top:'+Math.round(bRect.top),'info');
-      log('bnav visível na tela: '+(bVisible?'SIM':'não'),bVisible?'warn':'ok');
-      if(landingActive&&bVisible) log('⚠ ERRO: bnav aparecendo sobre a landing!','err');
-      else if(!landingActive&&bVisible) log('bnav visível dentro do app ✓','ok');
-      else log('bnav oculto ✓','ok');
+      log('bnav visível: '+(bVisible?'⚠ SIM':'não ✓'),bVisible&&landingActive?'err':bVisible?'warn':'ok');
+      if(landingActive&&bVisible)log('⚠ ERRO: bnav aparecendo sobre a landing!','err');
     }
-
-    // currentPage var
-    try{
-      const cp=window.currentPage||'(indefinido)';
-      log('currentPage JS: '+cp,'info');
-    }catch(e){log('currentPage: erro ao ler','warn');}
-
-    // Stacking context — quem está por cima?
+    try{log('currentPage JS: '+(window.currentPage||'?'),'info');}catch(e){}
+    try{log('body data-page: '+(document.body.dataset.page||'(não setado)'),'info');}catch(e){}
     if(bnavEl&&landingEl){
-      const bRect=bnavEl.getBoundingClientRect();
-      const lRect=landingEl.getBoundingClientRect();
       const bZ=parseInt(getComputedStyle(bnavEl).zIndex)||0;
       const lZ=parseInt(getComputedStyle(landingEl).zIndex)||0;
-      if(bZ>lZ) log('⚠ bnav z-index ('+bZ+') > landing z-index ('+lZ+') — bnav fica acima!','err');
-      else log('landing z-index ('+lZ+') >= bnav z-index ('+bZ+') ✓','ok');
+      if(bZ>=lZ)log('⚠ bnav z('+bZ+') >= landing z('+lZ+') — bnav pode ficar acima!','err');
+      else log('landing z('+lZ+') > bnav z('+bZ+') ✓','ok');
     }
 
     log('── FIM ──','sep');

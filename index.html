@@ -1084,7 +1084,7 @@ input, textarea, select {
   }
 }
 /* ====== BOTTOM NAV ====== */
-.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:100;}
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:90;}
 
 /* ====== AMIGOS — ESTRUTURA GERAL ====== */
 #page-amigos { position: relative; overflow: hidden; padding: 0; }
@@ -2920,7 +2920,7 @@ input, textarea, select {
     <!-- ====== ADMIN ====== -->
     <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
       <div class="adh">
-        <div class="adtop"><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:8px;align-items:center;"><div class="adba">🛡️ Admin</div><button class="btn btn-danger" onclick="doLogout()">Sair</button></div></div>
+        <div class="adtop"><button id="admin-back-btn" class="btn btn-icon btn-ghost" onclick="navApp('home')" style="display:none;flex-shrink:0;">‹</button><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:8px;align-items:center;"><div class="adba">🛡️ Admin</div><button class="btn btn-danger" onclick="doLogout()">Sair</button></div></div>
         <div class="atabs">
           <div class="atab active" onclick="adTab('visao',this)">📊 Visão Geral</div>
           <div class="atab" onclick="adTab('usuarios',this)">👥 Usuários</div>
@@ -6198,6 +6198,24 @@ function navApp(name){
       _topbar.classList.remove('admin-hidden');
     }
   }
+  // Botão menu (☰): mostrar em todas páginas exceto admin
+  const _mb=document.getElementById('menu-btn');
+  if(_mb){
+    if(name==='admin') _mb.style.display='none';
+    else _mb.style.display=window.innerWidth<1100?'flex':'none';
+  }
+  // Botão voltar (‹) no header admin: só no mobile
+  const _ab=document.getElementById('admin-back-btn');
+  if(_ab) _ab.style.display=(name==='admin'&&window.innerWidth<768)?'flex':'none';
+  // Remove position:fixed do admin quando sair dele
+  if(name!=='admin'){
+    const _pa=document.getElementById('page-admin');
+    if(_pa&&_pa.classList.contains('active')===false){
+      _pa.style.position='';_pa.style.top='';_pa.style.left='';
+      _pa.style.right='';_pa.style.bottom='';_pa.style.zIndex='';
+      _pa.style.width='';_pa.style.height='';
+    }
+  }
   closeSidebar();
 }
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebar-overlay').classList.add('open');}
@@ -6316,6 +6334,14 @@ function doLogout(){
   // BUGFIX: limpa localStorage ao sair para não vazar role entre sessões/usuários
   try{localStorage.removeItem('aivox_role');localStorage.removeItem('aivox_uid');}catch(_){}
   // 6. Mostrar landing
+  // Remove position:fixed do admin para não ficar sobreposto após logout
+  const _pa=document.getElementById('page-admin');
+  if(_pa){_pa.classList.remove('active');_pa.style.cssText='';}
+  // Esconde bnav
+  const _bn=document.getElementById('bnav');if(_bn)_bn.style.display='none';
+  // Restaura topbar
+  const _tb=document.querySelector('.main-area > .topbar');
+  if(_tb){_tb.style.display='';_tb.classList.remove('admin-hidden');}
   document.getElementById('app-shell').style.display='none';
   document.querySelectorAll('.auth-page.active,.landing-page.active').forEach(el=>el.classList.remove('active'));
   document.getElementById('page-landing').classList.add('active');

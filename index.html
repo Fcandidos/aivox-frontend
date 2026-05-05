@@ -4276,23 +4276,47 @@ function _amiListenPresence() {
     if (!uid || !db) { setTimeout(_doPresence, 1000); return; }
     // Escreve presença online no Firestore
     const presRef = db.collection('presence').doc(uid);
-    presRef.set({ uid, name, online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-      .catch(()=>{});
-    // Marca offline ao fechar aba
-    window.addEventListener('beforeunload', () => {
+
+    // Grava online imediatamente
+    const _setOnline = () => {
+      presRef.set({ uid, name, online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+        .catch(()=>{});
+    };
+    const _setOffline = () => {
       presRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+    };
+
+    _setOnline();
+
+    // beforeunload — funciona no desktop
+    window.addEventListener('beforeunload', _setOffline);
+
+    // pagehide — mais confiável que beforeunload no mobile (iOS Safari)
+    window.addEventListener('pagehide', _setOffline);
+
+    // visibilitychange — dispara quando usuário minimiza app, troca aba ou bloqueia tela
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        _setOffline();
+      } else if (document.visibilityState === 'visible') {
+        // Voltou — marca online de novo
+        _setOnline();
+      }
     });
+
     window._amiDebug = window._amiDebug || {};
     window._amiDebug.presenceEmitted = { uid, name, ts: new Date().toISOString(), method: 'firestore' };
     console.log('[AIVOX] Presença Firestore registrada:', uid);
-    // Heartbeat a cada 60s para manter online
+
+    // Heartbeat a cada 20s (bem mais curto para detectar queda rápido)
     clearInterval(window._presenceInterval);
     window._presenceInterval = setInterval(() => {
-      if (window._fbUser?.uid) {
-        db.collection('presence').doc(window._fbUser.uid)
-          .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp(), online: true }).catch(()=>{});
-      }
-    }, 60000);
+      if (!window._fbUser?.uid) return;
+      if (document.visibilityState === 'hidden') return; // Não heartbeat se aba oculta
+      db.collection('presence').doc(window._fbUser.uid)
+        .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp(), online: true }).catch(()=>{});
+    }, 20000);
+
     // Também tenta via socket se disponível (sem criar novo socket)
     const s = window._salaSocket;
     if (s && s.connected) {
@@ -4319,7 +4343,7 @@ function _amiListenPresence() {
             const data = doc.data();
             const wasOnline = !!_ami.online[fUid];
             const lastSeen = data.lastSeen?.toMillis?.() || 0;
-            const isRecent = (Date.now() - lastSeen) < 120000;
+            const isRecent = (Date.now() - lastSeen) < 45000; // 45s: heartbeat 20s + 25s margem
             const isOnline = data.online === true && isRecent;
             if (isOnline) { _ami.online[fUid] = true; }
             else { delete _ami.online[fUid]; }

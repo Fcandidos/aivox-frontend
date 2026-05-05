@@ -248,33 +248,8 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     width:100% !important;
     overflow:hidden !important;
     max-width:100vw !important;
-    padding-top:env(safe-area-inset-top,0px) !important;
   }
-
-  /* Header admin compacto no mobile */
-  #page-admin .adtop{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:space-between !important;
-    padding:10px 14px 8px !important;
-    gap:8px !important;
-    width:100% !important;
-    box-sizing:border-box !important;
-    overflow:hidden !important;
-  }
-  /* Título não empurra os botões para fora */
-  #page-admin .adtitle{
-    font-size:15px !important;
-    flex:1 !important;
-    min-width:0 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-  }
-  #page-admin .adba{font-size:10px !important;padding:5px 10px !important;border-radius:8px !important;flex-shrink:0 !important;}
-  #page-admin .adtop .btn-danger{font-size:11px !important;padding:7px 12px !important;flex-shrink:0 !important;}
-
-  /* Abas: scroll horizontal só nas abas */
+  /* Abas em linha com scroll horizontal — sem deixar a página scrollar */
   #page-admin .atabs{
     display:flex !important;
     flex-wrap:nowrap !important;
@@ -286,18 +261,17 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     box-sizing:border-box !important;
     scroll-snap-type:none !important;
     scrollbar-width:none !important;
-    padding:4px 14px 10px !important;
-    gap:4px !important;
   }
   #page-admin .atabs::-webkit-scrollbar{display:none !important;}
-  #page-admin .atab{
-    flex-shrink:0 !important;
-    font-size:11px !important;
-    padding:6px 10px !important;
-    white-space:nowrap !important;
-  }
+  #page-admin .atab{flex-shrink:0 !important;font-size:11px !important;padding:6px 10px !important;}
 
-  /* Conteúdo das abas: ocupa resto, rola verticalmente */
+  /* Header admin compacto no mobile */
+  #page-admin .adtop{display:flex !important;align-items:center !important;padding:10px 14px 8px !important;gap:8px !important;overflow:hidden !important;box-sizing:border-box !important;}
+  #page-admin .adtitle{font-size:15px !important;flex:1 !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+  #page-admin .adba{font-size:10px !important;padding:5px 10px !important;border-radius:8px !important;flex-shrink:0 !important;}
+  #page-admin .adtop .btn-danger{font-size:11px !important;padding:7px 12px !important;flex-shrink:0 !important;}
+
+  /* atcont ocupa resto da tela e rola */
   #page-admin .atcont{
     flex:1 !important;
     overflow-y:auto !important;
@@ -310,7 +284,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     box-sizing:border-box !important;
   }
 
-  /* Sistema tab: label ocupa flex:1, toggle fica à direita fixo */
+  /* Sistema tab: toggles com layout correto */
   #tab-sistema .trow{
     display:flex !important;
     align-items:center !important;
@@ -332,20 +306,14 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
   #tab-sistema .tog{flex-shrink:0 !important;}
   #tab-sistema{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;}
 
-  /* Chats tab: itens de chat contidos */
-  #admin-chat-list > div{width:100% !important;box-sizing:border-box !important;overflow:hidden !important;}
-  .achat-name{max-width:calc(100vw - 170px) !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
-
-  /* achat-modal */
+  /* Chats tab: achat-modal contido corretamente dentro do page-admin */
   .achat-modal .chat-input-bar{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
+  /* Fix: achat-modal não deve cobrir o header (.adh) do admin no mobile */
   #page-admin .achat-modal{top:auto !important;bottom:0 !important;left:0 !important;right:0 !important;position:absolute !important;height:calc(100% - var(--adh-height, 98px)) !important;}
 
-  /* udov */
+  /* Fix: udov (user detail panel) must be scrollable with bottom nav space */
   #page-admin .udov{position:absolute !important;inset:0 !important;}
   #page-admin .udsc{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
-
-  /* Botão de tema do admin header: visível só no mobile */
-  .admin-theme-toggle{display:flex !important;}
 }
 .empty-state.sh{display:flex;}
 .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
@@ -1016,7 +984,25 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
 
 /* ====== SCROLL FIX ADMIN TABS ====== */
-
+.atcont{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+  padding:16px 18px;
+  scroll-behavior:smooth;
+  position:relative;
+  width:100%;
+  box-sizing:border-box;
+}
+.atcont::-webkit-scrollbar{display:none;}
+.atpanel{
+  min-height:0;
+  width:100%;
+  box-sizing:border-box;
+}
 
 /* ====== NO-ZOOM GLOBAL ====== */
 input, textarea, select {
@@ -1038,21 +1024,12 @@ input, textarea, select {
   margin-bottom:7px;
   cursor:pointer;
   transition:all .18s;
-  width:100%;
-  box-sizing:border-box;
-  overflow:hidden;
 }
 #tab-chats .section-label {
   margin-bottom: 10px;
 }
 #admin-chat-list {
   overflow:visible;
-  width:100%;
-}
-/* Mobile: fix achat name max-width */
-@media(max-width:767px){
-  .achat-name{max-width:calc(100vw - 160px) !important;}
-  #admin-chat-list .achat-item{width:100% !important;box-sizing:border-box !important;overflow:hidden !important;}
 }
 
 /* ====== FIX SISTEMA TAB ====== */
@@ -2946,7 +2923,7 @@ input, textarea, select {
     <!-- ====== ADMIN ====== -->
     <div class="page" id="page-admin" style="flex-direction:column;overflow:hidden;flex:1;min-height:0;position:relative;">
       <div class="adh">
-        <div class="adtop"><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:8px;align-items:center;"><div class="adba">🛡️ Admin</div><button class="btn btn-danger" onclick="doLogout()">Sair</button><button class="theme-toggle admin-theme-toggle" onclick="toggleTheme()" title="Tema" style="width:32px;height:32px;border-radius:10px;display:none;"><span class="t-moon">🌙</span><span class="t-sun">☀️</span></button></div></div>
+        <div class="adtop"><div class="adtitle">Admin <span>AIVOX</span></div><div style="display:flex;gap:8px;align-items:center;"><div class="adba">🛡️ Admin</div><button class="btn btn-danger" onclick="doLogout()">Sair</button></div></div>
         <div class="atabs">
           <div class="atab active" onclick="adTab('visao',this)">📊 Visão Geral</div>
           <div class="atab" onclick="adTab('usuarios',this)">👥 Usuários</div>
@@ -6213,8 +6190,6 @@ function navApp(name){
   }
   const hideBnav=['active','chat','admin','payment','langsel','sala-ativa'];
   const bnav=document.getElementById('bnav');if(bnav)bnav.style.display=hideBnav.includes(name)?'none':'';
-  // Esconde topbar do shell quando admin ativo no mobile (admin tem header próprio)
-  const _tb=document.querySelector('.main-area > .topbar');if(_tb)_tb.style.display=(name==='admin'&&window.innerWidth<768)?'none':'';
   closeSidebar();
 }
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebar-overlay').classList.add('open');}

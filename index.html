@@ -88,12 +88,15 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
 /* ====== MOBILE ====== */
 @media(max-width:767px){
-  .sidebar{transform:translateX(-100%);width:260px;}
+  /* Sidebar: position:fixed, nao afeta o fluxo do layout */
+  .sidebar{transform:translateX(-100%);width:260px;position:fixed !important;left:0 !important;}
   .sidebar.open{transform:translateX(0);}
   .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
   .sidebar-overlay.open{display:block;}
-  .main-area{margin-left:0;height:100%;overflow:hidden;max-width:100vw;width:100%;box-sizing:border-box;}
-  .app-shell{max-width:100vw;overflow:hidden;}
+  /* app-shell vira block para evitar que a sidebar fixed reserve espaco */
+  .app-shell{display:block !important;overflow:hidden !important;max-width:100vw !important;width:100vw !important;}
+  /* main-area ocupa tela toda sem margem */
+  .main-area{margin-left:0 !important;width:100vw !important;max-width:100vw !important;min-width:0 !important;height:100vh !important;overflow:hidden !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;position:relative !important;}
   .topbar{padding:env(safe-area-inset-top,0px) 16px 0 16px;height:calc(58px + env(safe-area-inset-top,0px));}
   .topbar-title{font-size:16px;}
   .content-area{padding:16px 14px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
@@ -239,13 +242,18 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 
   /* ── ADMIN PAGE MOBILE ── */
   #page-admin.active{
-    height:100% !important;
+    height:100vh !important;
     display:flex !important;
     flex-direction:column !important;
     overflow:hidden !important;
-    width:100% !important;
+    width:100vw !important;
     max-width:100vw !important;
-    position:relative !important;
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    z-index:200 !important;
   }
   #page-admin .adh{
     flex-shrink:0 !important;

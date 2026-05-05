@@ -246,24 +246,42 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     background:var(--bg) !important;
     border-bottom:1px solid var(--border) !important;
     width:100% !important;
-    overflow:hidden !important;
     max-width:100vw !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
   }
-  /* Impede scroll horizontal nas abas */
+  /* Header admin compacto no mobile */
+  #page-admin .adtop{
+    padding:10px 14px 8px !important;
+    gap:8px !important;
+    width:100% !important;
+    max-width:100vw !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+  #page-admin .adtitle{font-size:15px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
+  #page-admin .adba{font-size:10px !important;padding:5px 10px !important;border-radius:8px !important;flex-shrink:0 !important;white-space:nowrap !important;}
+  #page-admin .adtop .btn-danger{font-size:11px !important;padding:7px 12px !important;flex-shrink:0 !important;white-space:nowrap !important;}
+  /* Impede scroll horizontal nas abas — scroll só nas abas, não na página */
   #page-admin .atabs{
     overflow-x:auto !important;
     overflow-y:hidden !important;
     -webkit-overflow-scrolling:touch !important;
-    max-width:100% !important;
+    max-width:100vw !important;
     width:100% !important;
+    box-sizing:border-box !important;
     scroll-snap-type:none !important;
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    padding:0 14px 10px !important;
+    gap:4px !important;
   }
-
-  /* Header admin compacto no mobile */
-  #page-admin .adtop{padding:10px 14px 8px !important;gap:8px !important;}
-  #page-admin .adtitle{font-size:15px !important;}
-  #page-admin .adba{font-size:10px !important;padding:5px 10px !important;border-radius:8px !important;}
-  #page-admin .adtop .btn-danger{font-size:11px !important;padding:7px 12px !important;}
+  #page-admin .atab{
+    flex-shrink:0 !important;
+    font-size:11px !important;
+    padding:6px 10px !important;
+    white-space:nowrap !important;
+  }
 
   /* atcont ocupa resto da tela e rola */
   #page-admin .atcont{
@@ -1018,12 +1036,21 @@ input, textarea, select {
   margin-bottom:7px;
   cursor:pointer;
   transition:all .18s;
+  width:100%;
+  box-sizing:border-box;
+  overflow:hidden;
 }
 #tab-chats .section-label {
   margin-bottom: 10px;
 }
 #admin-chat-list {
   overflow:visible;
+  width:100%;
+}
+/* Mobile: fix achat name max-width */
+@media(max-width:767px){
+  .achat-name{max-width:calc(100vw - 160px) !important;}
+  #admin-chat-list .achat-item{width:100% !important;box-sizing:border-box !important;overflow:hidden !important;}
 }
 
 /* ====== FIX SISTEMA TAB ====== */

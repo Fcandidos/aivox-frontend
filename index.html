@@ -535,8 +535,12 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-tab-panel.active{display:flex;}
 /* LANG STRIP */
 .learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
-.learn-lang-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;flex-shrink:0;}
+.learn-lang-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
+/* ── Bandeiras como imagem (compatível Windows/Linux/Mac) ── */
+.flag-img{width:18px;height:13px;object-fit:cover;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px;flex-shrink:0;}
+.learn-lang-btn .flag-img{width:16px;height:11px;}
+
 /* PROFESSOR CHAT */
 .learn-bubs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
 .learn-bubble{border-radius:14px;padding:11px 14px;max-width:90%;font-size:14px;line-height:1.55;}
@@ -1929,7 +1933,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
       </div>
       <div class="grid-2" style="gap:14px;margin-bottom:18px;">
         <div class="vc" onclick="navApp('active')"><div class="vorb">🎙️</div><div style="flex:1;"><div class="vlbl">Voz ativa</div><div class="vname">IA Multilíngue</div><div class="vst"><div class="dot"></div>Pronto</div></div><div style="color:var(--muted);font-size:18px;">›</div></div>
-        <div class="lp" onclick="openIdiomaSelector('home')" style="cursor:pointer;"><div class="lb"><div class="lfl" id="lfrom" style="font-size:32px;line-height:1.2;">🇧🇷</div><div class="lnm" id="lnfrom">Português</div><div class="lco" id="lcfrom">PT-BR</div></div><div class="lsw" id="lswbtn" onclick="event.stopPropagation();">⇄</div><div class="lb"><div class="lfl" id="lto" style="font-size:32px;line-height:1.2;">🇺🇸</div><div class="lnm" id="lnto">Inglês</div><div class="lco" id="lcto">EN-US</div></div></div>
+        <div class="lp" onclick="openIdiomaSelector('home')" style="cursor:pointer;"><div class="lb"><div class="lfl" id="lfrom" style="font-size:32px;line-height:1.2;"><img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br"></div><div class="lnm" id="lnfrom">Português</div><div class="lco" id="lcfrom">PT-BR</div></div><div class="lsw" id="lswbtn" onclick="event.stopPropagation();">⇄</div><div class="lb"><div class="lfl" id="lto" style="font-size:32px;line-height:1.2;"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us"></div><div class="lnm" id="lnto">Inglês</div><div class="lco" id="lcto">EN-US</div></div></div>
       </div>
       <div class="section-label">Modo de uso</div>
       <div class="mgrid">
@@ -1947,9 +1951,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
       <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
         <button class="dcl" onclick="leaveActive()">‹</button>
         <div style="display:flex;align-items:center;gap:10px;flex:1;">
-          <div style="text-align:center;flex:1;"><div style="font-size:18px;" id="aff">🇧🇷</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="afs">PT</div></div>
+          <div style="text-align:center;flex:1;"><div style="font-size:18px;" id="aff"><img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br"></div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="afs">PT</div></div>
           <div class="lsw" id="active-swbtn" onclick="swapActiveSession()" style="width:32px;height:32px;font-size:14px;">⇄</div>
-          <div style="text-align:center;flex:1;"><div style="font-size:18px;" id="atf">🇺🇸</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="ats">EN</div></div>
+          <div style="text-align:center;flex:1;"><div style="font-size:18px;" id="atf"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us"></div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="ats">EN</div></div>
         </div>
         <span id="viagem-tag" style="display:none;background:rgba(255,140,0,.15);border:1px solid rgba(255,140,0,.3);color:var(--orange);font-size:9px;font-family:var(--mono);font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.5px;">✈️ OFFLINE</span>
         <div style="font-size:11px;font-family:var(--mono);color:var(--muted);" id="sess-dur">00:00</div>
@@ -2024,12 +2028,12 @@ body[data-page="2fa"] .bnav{display:none!important;}
             <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:22px;">Seu tradutor de voz em tempo real com inteligência artificial. Em 4 passos você aprende tudo.</div>
             <!-- Animated demo: language pills -->
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-              <div class="lang-demo-pill" style="animation-delay:0s">🇧🇷 PT-BR</div>
+              <div class="lang-demo-pill" style="animation-delay:0s"><img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br">PT-BR</div>
               <div style="font-size:20px;display:flex;align-items:center;animation:pulse 1.5s ease infinite;">⇄</div>
-              <div class="lang-demo-pill" style="animation-delay:.3s">🇺🇸 EN-US</div>
-              <div class="lang-demo-pill" style="animation-delay:.6s">🇩🇪 DE</div>
-              <div class="lang-demo-pill" style="animation-delay:.9s">🇪🇸 ES</div>
-              <div class="lang-demo-pill" style="animation-delay:1.2s">🇯🇵 JA</div>
+              <div class="lang-demo-pill" style="animation-delay:.3s"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">EN-US</div>
+              <div class="lang-demo-pill" style="animation-delay:.6s"><img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">DE</div>
+              <div class="lang-demo-pill" style="animation-delay:.9s"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">ES</div>
+              <div class="lang-demo-pill" style="animation-delay:1.2s"><img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">JA</div>
             </div>
           </div>
 
@@ -2073,7 +2077,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
               <div style="display:flex;gap:10px;margin-bottom:12px;align-items:flex-end;">
                 <div style="width:32px;height:32px;border-radius:50%;background:var(--adim);border:1px solid rgba(0,229,255,.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👤</div>
                 <div style="background:var(--surface);border-radius:12px 12px 12px 2px;padding:8px 12px;max-width:70%;">
-                  <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">🇧🇷 Você</div>
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:2px;"><img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br">Você</div>
                   <div style="font-size:12px;">"Olá, como vai?"</div>
                   <div style="font-size:11px;color:var(--accent);margin-top:3px;">→ "Hello, how are you?"</div>
                 </div>
@@ -2081,7 +2085,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
               <div style="display:flex;gap:10px;align-items:flex-end;flex-direction:row-reverse;">
                 <div style="width:32px;height:32px;border-radius:50%;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👤</div>
                 <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15);border-radius:12px 12px 2px 12px;padding:8px 12px;max-width:70%;">
-                  <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">🇺🇸 Parceiro</div>
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:2px;"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Parceiro</div>
                   <div style="font-size:12px;">"I'm fine, thanks!"</div>
                   <div style="font-size:11px;color:#a855f7;margin-top:3px;">→ "Estou bem, obrigado!"</div>
                 </div>
@@ -2196,14 +2200,14 @@ body[data-page="2fa"] .bnav{display:none!important;}
       <div style="margin-bottom:14px;">
         <div style="font-size:10px;color:var(--muted);letter-spacing:2px;font-family:var(--mono);margin-bottom:8px;">IDIOMA QUE ESTÃO FALANDO</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="escuta-lang-pills">
-          <button onclick="setEscutaLang('en',this)" class="escuta-lang-pill active">🇺🇸 Inglês</button>
-          <button onclick="setEscutaLang('es',this)" class="escuta-lang-pill">🇪🇸 Espanhol</button>
-          <button onclick="setEscutaLang('fr',this)" class="escuta-lang-pill">🇫🇷 Francês</button>
-          <button onclick="setEscutaLang('de',this)" class="escuta-lang-pill">🇩🇪 Alemão</button>
-          <button onclick="setEscutaLang('it',this)" class="escuta-lang-pill">🇮🇹 Italiano</button>
-          <button onclick="setEscutaLang('zh',this)" class="escuta-lang-pill">🇨🇳 Chinês</button>
-          <button onclick="setEscutaLang('ja',this)" class="escuta-lang-pill">🇯🇵 Japonês</button>
-          <button onclick="setEscutaLang('ru',this)" class="escuta-lang-pill">🇷🇺 Russo</button>
+          <button onclick="setEscutaLang('en',this)" class="escuta-lang-pill active"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Inglês</button>
+          <button onclick="setEscutaLang('es',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">Espanhol</button>
+          <button onclick="setEscutaLang('fr',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">Francês</button>
+          <button onclick="setEscutaLang('de',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">Alemão</button>
+          <button onclick="setEscutaLang('it',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">Italiano</button>
+          <button onclick="setEscutaLang('zh',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/cn.png" alt="cn">Chinês</button>
+          <button onclick="setEscutaLang('ja',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">Japonês</button>
+          <button onclick="setEscutaLang('ru',this)" class="escuta-lang-pill"><img class="flag-img" src="https://flagcdn.com/w20/ru.png" alt="ru">Russo</button>
         </div>
         <!-- hidden select mantido para compatibilidade com JS existente -->
         <select id="escuta-lang-from" style="display:none;"><option value="en">Inglês</option><option value="es">Espanhol</option><option value="fr">Francês</option><option value="de">Alemão</option><option value="it">Italiano</option><option value="zh">Chinês</option><option value="ja">Japonês</option><option value="ko">Coreano</option><option value="ar">Árabe</option><option value="ru">Russo</option></select>
@@ -2333,9 +2337,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;">
             <span style="font-size:12px;color:var(--muted);font-family:var(--mono);">IDIOMA ALVO:</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap;" id="ast-lang-btns">
-              <button onclick="astSetLang(this,'inglês')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(0,229,255,.4);background:var(--adim);color:var(--accent);cursor:pointer;">🇺🇸 Inglês</button>
-              <button onclick="astSetLang(this,'espanhol')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇪🇸 Espanhol</button>
-              <button onclick="astSetLang(this,'francês')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇫🇷 Francês</button>
+              <button onclick="astSetLang(this,'inglês')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(0,229,255,.4);background:var(--adim);color:var(--accent);cursor:pointer;"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Inglês</button>
+              <button onclick="astSetLang(this,'espanhol')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">Espanhol</button>
+              <button onclick="astSetLang(this,'francês')" class="ast-lang-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;"><img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">Francês</button>
             </div>
           </div>
 
@@ -2414,9 +2418,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
             <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:2px;">IDIOMA</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <div class="profIA-lang active" data-val="English" onclick="profIA_sel('lang',this)">🇺🇸 Inglês</div>
-              <div class="profIA-lang" data-val="Spanish" onclick="profIA_sel('lang',this)">🇪🇸 Espanhol</div>
-              <div class="profIA-lang" data-val="French" onclick="profIA_sel('lang',this)">🇫🇷 Francês</div>
+              <div class="profIA-lang active" data-val="English" onclick="profIA_sel('lang',this)"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Inglês</div>
+              <div class="profIA-lang" data-val="Spanish" onclick="profIA_sel('lang',this)"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">Espanhol</div>
+              <div class="profIA-lang" data-val="French" onclick="profIA_sel('lang',this)"><img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">Francês</div>
             </div>
           </div>
 
@@ -2434,12 +2438,12 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <div class="learn-tab-panel" id="ltp-licoes" style="flex-direction:column;overflow:hidden;position:relative;">
           <div class="licoes-lang-bar" id="licoes-lang-bar" style="align-items:center;">
             <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
-            <div class="learn-lang-btn active" data-lang="inglês" onclick="setLicaoLang(this)">🇺🇸 Inglês</div>
-            <div class="learn-lang-btn" data-lang="espanhol" onclick="setLicaoLang(this)">🇪🇸 Espanhol</div>
-            <div class="learn-lang-btn" data-lang="francês" onclick="setLicaoLang(this)">🇫🇷 Francês</div>
-            <div class="learn-lang-btn" data-lang="alemão" onclick="setLicaoLang(this)">🇩🇪 Alemão</div>
-            <div class="learn-lang-btn" data-lang="italiano" onclick="setLicaoLang(this)">🇮🇹 Italiano</div>
-            <div class="learn-lang-btn" data-lang="japonês" onclick="setLicaoLang(this)">🇯🇵 Japonês</div>
+            <div class="learn-lang-btn active" data-lang="inglês" onclick="setLicaoLang(this)"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Inglês</div>
+            <div class="learn-lang-btn" data-lang="espanhol" onclick="setLicaoLang(this)"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">Espanhol</div>
+            <div class="learn-lang-btn" data-lang="francês" onclick="setLicaoLang(this)"><img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">Francês</div>
+            <div class="learn-lang-btn" data-lang="alemão" onclick="setLicaoLang(this)"><img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">Alemão</div>
+            <div class="learn-lang-btn" data-lang="italiano" onclick="setLicaoLang(this)"><img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">Italiano</div>
+            <div class="learn-lang-btn" data-lang="japonês" onclick="setLicaoLang(this)"><img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">Japonês</div>
           </div>
           <div class="licoes-scroll" id="licoes-scroll"></div>
           <!-- Modal da lição -->
@@ -3368,9 +3372,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <!-- Filtros por idioma -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="grp-lang-filter">
           <button onclick="grpFilter(this,'todos')" class="grp-filter-btn active" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(0,229,255,.4);background:var(--adim);color:var(--accent);cursor:pointer;">🌐 Todos</button>
-          <button onclick="grpFilter(this,'inglês')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇺🇸 Inglês</button>
-          <button onclick="grpFilter(this,'espanhol')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇪🇸 Espanhol</button>
-          <button onclick="grpFilter(this,'francês')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">🇫🇷 Francês</button>
+          <button onclick="grpFilter(this,'inglês')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Inglês</button>
+          <button onclick="grpFilter(this,'espanhol')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">Espanhol</button>
+          <button onclick="grpFilter(this,'francês')" class="grp-filter-btn" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;"><img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">Francês</button>
         </div>
 
         <!-- Lista de grupos -->
@@ -3384,11 +3388,11 @@ body[data-page="2fa"] .bnav{display:none!important;}
             <input id="grp-tema-inp" class="input-field" placeholder="Tema — ex: Inglês B2 · Negócios" style="font-size:14px;">
             <div style="display:flex;gap:8px;">
               <select id="grp-lang-sel" class="input-field" style="flex:1;font-size:13px;">
-                <option value="inglês">🇺🇸 Inglês</option>
-                <option value="espanhol">🇪🇸 Espanhol</option>
-                <option value="francês">🇫🇷 Francês</option>
-                <option value="alemão">🇩🇪 Alemão</option>
-                <option value="japonês">🇯🇵 Japonês</option>
+                <option value="inglês"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">Inglês</option>
+                <option value="espanhol"><img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">Espanhol</option>
+                <option value="francês"><img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">Francês</option>
+                <option value="alemão"><img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">Alemão</option>
+                <option value="japonês"><img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">Japonês</option>
               </select>
               <select id="grp-nivel-sel" class="input-field" style="flex:1;font-size:13px;">
                 <option value="A1">A1 · Iniciante</option>
@@ -3571,9 +3575,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;"><button class="dcl" onclick="navApp(idiomaFrom||'home')">‹</button><div class="page-title" style="margin-bottom:0;font-size:20px;">Idiomas</div></div>
       <div class="si-toggle"><div class="si-toggle-btn active" id="si-from-tab" onclick="siChoose('from')">Origem</div><div class="si-toggle-btn" id="si-to-tab" onclick="siChoose('to')">Destino</div></div>
       <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 15px;margin-bottom:16px;">
-        <div style="flex:1;text-align:center;"><div style="font-size:22px;" id="si-from-flag">🇧🇷</div><div style="font-size:13px;font-weight:600;" id="si-from-name">Português</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="si-from-code">PT-BR</div></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:22px;" id="si-from-flag"><img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br"></div><div style="font-size:13px;font-weight:600;" id="si-from-name">Português</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="si-from-code">PT-BR</div></div>
         <button class="lsw" onclick="swapIdiomaPreview()">⇄</button>
-        <div style="flex:1;text-align:center;"><div style="font-size:22px;" id="si-to-flag">🇺🇸</div><div style="font-size:13px;font-weight:600;" id="si-to-name">Inglês</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="si-to-code">EN-US</div></div>
+        <div style="flex:1;text-align:center;"><div style="font-size:22px;" id="si-to-flag"><img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us"></div><div style="font-size:13px;font-weight:600;" id="si-to-name">Inglês</div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);" id="si-to-code">EN-US</div></div>
       </div>
       <div class="section-label" id="si-choosing-label">Toque no idioma de ORIGEM ↓</div>
       <div id="si-lang-list"></div>
@@ -3969,7 +3973,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
               <div style="font-size:11px;color:var(--muted);line-height:1.5;">IA analisa seu histórico e define o tema da aula: <em>"Today we'll practice ordering food at a restaurant. Ready?"</em></div>
             </div>
             <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:12px;">
-              <div style="font-size:18px;margin-bottom:5px;">🚫🇧🇷</div>
+              <div style="font-size:18px;margin-bottom:5px;">🚫<img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br"></div>
               <div style="font-size:12px;font-weight:700;margin-bottom:4px;">Imersão total — zero português</div>
               <div style="font-size:11px;color:var(--muted);line-height:1.5;">Se você falar em PT, o professor responde em inglês com uma dica gentil: <em>"Try to say that in English! I believe in you."</em></div>
             </div>
@@ -4276,47 +4280,23 @@ function _amiListenPresence() {
     if (!uid || !db) { setTimeout(_doPresence, 1000); return; }
     // Escreve presença online no Firestore
     const presRef = db.collection('presence').doc(uid);
-
-    // Grava online imediatamente
-    const _setOnline = () => {
-      presRef.set({ uid, name, online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-        .catch(()=>{});
-    };
-    const _setOffline = () => {
+    presRef.set({ uid, name, online: true, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+      .catch(()=>{});
+    // Marca offline ao fechar aba
+    window.addEventListener('beforeunload', () => {
       presRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
-    };
-
-    _setOnline();
-
-    // beforeunload — funciona no desktop
-    window.addEventListener('beforeunload', _setOffline);
-
-    // pagehide — mais confiável que beforeunload no mobile (iOS Safari)
-    window.addEventListener('pagehide', _setOffline);
-
-    // visibilitychange — dispara quando usuário minimiza app, troca aba ou bloqueia tela
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        _setOffline();
-      } else if (document.visibilityState === 'visible') {
-        // Voltou — marca online de novo
-        _setOnline();
-      }
     });
-
     window._amiDebug = window._amiDebug || {};
     window._amiDebug.presenceEmitted = { uid, name, ts: new Date().toISOString(), method: 'firestore' };
     console.log('[AIVOX] Presença Firestore registrada:', uid);
-
-    // Heartbeat a cada 20s (bem mais curto para detectar queda rápido)
+    // Heartbeat a cada 60s para manter online
     clearInterval(window._presenceInterval);
     window._presenceInterval = setInterval(() => {
-      if (!window._fbUser?.uid) return;
-      if (document.visibilityState === 'hidden') return; // Não heartbeat se aba oculta
-      db.collection('presence').doc(window._fbUser.uid)
-        .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp(), online: true }).catch(()=>{});
-    }, 20000);
-
+      if (window._fbUser?.uid) {
+        db.collection('presence').doc(window._fbUser.uid)
+          .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp(), online: true }).catch(()=>{});
+      }
+    }, 60000);
     // Também tenta via socket se disponível (sem criar novo socket)
     const s = window._salaSocket;
     if (s && s.connected) {
@@ -4343,7 +4323,7 @@ function _amiListenPresence() {
             const data = doc.data();
             const wasOnline = !!_ami.online[fUid];
             const lastSeen = data.lastSeen?.toMillis?.() || 0;
-            const isRecent = (Date.now() - lastSeen) < 45000; // 45s: heartbeat 20s + 25s margem
+            const isRecent = (Date.now() - lastSeen) < 120000;
             const isOnline = data.online === true && isRecent;
             if (isOnline) { _ami.online[fUid] = true; }
             else { delete _ami.online[fUid]; }
@@ -5410,7 +5390,7 @@ function _grpRender(grupos) {
     div.onmouseout = () => { div.style.borderColor = 'var(--border)'; div.style.transform = ''; };
     div.onclick = () => grpEntrar(g);
     const nivelCor = _nivelCor[g.nivel] || 'var(--muted)';
-    const langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' }[g.lang] || '🌐';
+    const langEmoji = { inglês:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">', espanhol:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">', francês:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">', alemão:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">', japonês:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">' }[g.lang] || '🌐';
     div.innerHTML = `
       <div style="width:44px;height:44px;border-radius:12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${langEmoji}</div>
       <div style="flex:1;min-width:0;overflow:hidden;">
@@ -5466,7 +5446,7 @@ let _grpPresenceListener = null;  // listener de presença Firestore
 let _grpPresenceRef = null;       // ref do doc de presença do usuário atual
 let _grpBC = null;          // BroadcastChannel para sincronizar abas
 let _grpMsgsLocal = {};     // cache em memória por groupId
-const _langEmoji = { inglês:'🇺🇸', espanhol:'🇪🇸', francês:'🇫🇷', alemão:'🇩🇪', japonês:'🇯🇵' };
+const _langEmoji = { inglês:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">', espanhol:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">', francês:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">', alemão:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">', japonês:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">' };
 
 // ── Carrega msgs do localStorage ────────────────────────────────
 function _grpLoadLocal(groupId) {
@@ -6990,7 +6970,7 @@ function toggleKeyVisibility(inputId,btn){const inp=document.getElementById(inpu
 
 
 // ====== LANGUAGES ======
-const LO=[{flag:'🇧🇷',name:'Português',code:'PT-BR',s:'PT'},{flag:'🇺🇸',name:'Inglês',code:'EN-US',s:'EN'}];
+const LO=[{flag:'<img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br">',name:'Português',code:'PT-BR',s:'PT'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">',name:'Inglês',code:'EN-US',s:'EN'}];
 let lfi=0,lti=1;
 function appLang(){const f=LO[lfi],t=LO[lti];const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};s('lfrom',f.flag);s('lnfrom',f.name);s('lcfrom',f.code);s('lto',t.flag);s('lnto',t.name);s('lcto',t.code);s('aff',f.flag);s('afs',f.s);s('atf',t.flag);s('ats',t.s);s('sl1','VOCÊ ('+f.code+')');s('sl2','OUVINTE ('+t.code+')');s('mic-lang-hint',f.code);}
 function swapActiveSession(){
@@ -7026,7 +7006,7 @@ document.getElementById('lswbtn').addEventListener('click',function(e){
   }
 });
 appLang();
-const allLangs=[{flag:'🇧🇷',name:'Português',code:'PT-BR',s:'PT'},{flag:'🇺🇸',name:'Inglês',code:'EN-US',s:'EN'},{flag:'🇪🇸',name:'Espanhol',code:'ES',s:'ES'},{flag:'🇫🇷',name:'Francês',code:'FR',s:'FR'},{flag:'🇩🇪',name:'Alemão',code:'DE',s:'DE'},{flag:'🇮🇹',name:'Italiano',code:'IT',s:'IT'},{flag:'🇯🇵',name:'Japonês',code:'JA',s:'JA'},{flag:'🇨🇳',name:'Mandarim',code:'ZH',s:'ZH'},{flag:'🇷🇺',name:'Russo',code:'RU',s:'RU'},{flag:'🇦🇪',name:'Árabe',code:'AR',s:'AR'},{flag:'🇰🇷',name:'Coreano',code:'KO',s:'KO'},{flag:'🇳🇱',name:'Holandês',code:'NL',s:'NL'},{flag:'🇮🇳',name:'Hindi',code:'HI',s:'HI'},{flag:'🇹🇷',name:'Turco',code:'TR',s:'TR'},{flag:'🇵🇱',name:'Polonês',code:'PL',s:'PL'},{flag:'🇸🇪',name:'Sueco',code:'SV',s:'SV'},{flag:'🇵🇹',name:'Português (PT)',code:'PT',s:'PT'},{flag:'🇲🇽',name:'Espanhol (MX)',code:'ES-MX',s:'ES'}];
+const allLangs=[{flag:'<img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br">',name:'Português',code:'PT-BR',s:'PT'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">',name:'Inglês',code:'EN-US',s:'EN'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">',name:'Espanhol',code:'ES',s:'ES'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">',name:'Francês',code:'FR',s:'FR'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">',name:'Alemão',code:'DE',s:'DE'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">',name:'Italiano',code:'IT',s:'IT'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">',name:'Japonês',code:'JA',s:'JA'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/cn.png" alt="cn">',name:'Mandarim',code:'ZH',s:'ZH'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/ru.png" alt="ru">',name:'Russo',code:'RU',s:'RU'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/ae.png" alt="ae">',name:'Árabe',code:'AR',s:'AR'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/kr.png" alt="kr">',name:'Coreano',code:'KO',s:'KO'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/nl.png" alt="nl">',name:'Holandês',code:'NL',s:'NL'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/in.png" alt="in">',name:'Hindi',code:'HI',s:'HI'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/tr.png" alt="tr">',name:'Turco',code:'TR',s:'TR'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/pl.png" alt="pl">',name:'Polonês',code:'PL',s:'PL'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/se.png" alt="se">',name:'Sueco',code:'SV',s:'SV'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/pt.png" alt="pt">',name:'Português (PT)',code:'PT',s:'PT'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/mx.png" alt="mx">',name:'Espanhol (MX)',code:'ES-MX',s:'ES'}];
 let siChoosingFrom=true;
 function openIdiomaSelector(from){idiomaFrom=from||currentPage;siChoosingFrom=true;updateSiPreview();renderSiList();navApp('langsel');}
 function siChoose(side){siChoosingFrom=(side==='from');document.getElementById('si-from-tab').classList.toggle('active',siChoosingFrom);document.getElementById('si-to-tab').classList.toggle('active',!siChoosingFrom);updateSiPreview();renderSiList();}
@@ -11679,7 +11659,7 @@ function licaoAskProf(){
 // ── FLASHCARDS ───────────────────────────────────────────────
 function _buildLangBar(containerId, langVar, setter){
   const bar=document.getElementById(containerId); if(!bar||bar.innerHTML)return;
-  const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
+  const flags={'inglês':'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">','espanhol':'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">','francês':'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">','alemão':'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">','italiano':'<img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">','japonês':'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">'};
   Object.keys(flags).forEach((l,i)=>{
     const btn=document.createElement('div');
     btn.className='learn-lang-btn'+(i===0?' active':''); btn.dataset.lang=l;
@@ -11754,7 +11734,7 @@ function renderVocab(skipLoad){
     scroll.innerHTML='<div class="vocab-empty"><div style="font-size:44px;margin-bottom:10px;">📖</div><div style="font-size:14px;font-weight:700;margin-bottom:6px;">Vocabulário vazio</div><div style="font-size:12px;">Salve palavras do Professor ou das Lições</div></div>';
     return;
   }
-  const flags={'inglês':'🇺🇸','espanhol':'🇪🇸','francês':'🇫🇷','alemão':'🇩🇪','italiano':'🇮🇹','japonês':'🇯🇵'};
+  const flags={'inglês':'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">','espanhol':'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">','francês':'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">','alemão':'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">','italiano':'<img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">','japonês':'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">'};
   scroll.innerHTML=_vocabFiltered.map((v,i)=>{
     const wo=v.word.replace(/'/g,"\'");
     return `<div class="vocab-item"><div class="vocab-info"><div class="vocab-word">${v.word}</div><div class="vocab-trans">${v.trans||'—'}</div></div><span class="vocab-lang-tag">${flags[v.lang]||''} ${v.lang}</span><button class="vocab-speak" onclick="_speakTranslation('${wo}')" title="Ouvir">🔊</button><button class="vocab-del" onclick="deleteVocabWord(${i})" title="Remover">🗑️</button></div>`;
@@ -12458,7 +12438,7 @@ function setLivreNivel(el){
 // ══════════════════════════════════════════════════════════
 (function(){
   let _pLang='inglês',_pScore=0,_pCurrentWord=null,_pHistory=[],_pRecording=false,_pMediaRec=null,_pChunks=[],_pSpeaking=false;
-  const LANGS=[{key:'inglês',flag:'🇺🇸',label:'Inglês'},{key:'espanhol',flag:'🇪🇸',label:'Espanhol'},{key:'francês',flag:'🇫🇷',label:'Francês'},{key:'alemão',flag:'🇩🇪',label:'Alemão'},{key:'italiano',flag:'🇮🇹',label:'Italiano'},{key:'japonês',flag:'🇯🇵',label:'Japonês'}];
+  const LANGS=[{key:'inglês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">',label:'Inglês'},{key:'espanhol',flag:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">',label:'Espanhol'},{key:'francês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">',label:'Francês'},{key:'alemão',flag:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">',label:'Alemão'},{key:'italiano',flag:'<img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">',label:'Italiano'},{key:'japonês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">',label:'Japonês'}];
   const WORD_POOLS={
     inglês:[{w:'Hello',t:'Olá',ph:'/həˈloʊ/'},{w:'Beautiful',t:'Bonito(a)',ph:'/ˈbjuːtɪfəl/'},{w:'Schedule',t:'Agenda',ph:'/ˈʃɛdjuːl/'},{w:'Pronunciation',t:'Pronúncia',ph:'/prəˌnʌnsiˈeɪʃən/'},{w:'Comfortable',t:'Confortável',ph:'/ˈkʌmftəbəl/'},{w:'Necessary',t:'Necessário',ph:'/ˈnɛsəˌsɛri/'},{w:'Technology',t:'Tecnologia',ph:'/tɛkˈnɒlədʒi/'},{w:'Thorough',t:'Minucioso',ph:'/ˈθʌrəʊ/'},{w:'Vocabulary',t:'Vocabulário',ph:'/vəˈkæbjʊlɛri/'},{w:'Wednesday',t:'Quarta-feira',ph:'/ˈwɛnzdeɪ/'}],
     espanhol:[{w:'Hola',t:'Olá',ph:'/ˈola/'},{w:'Gracias',t:'Obrigado',ph:'/ˈɡɾaθjas/'},{w:'Desarrollar',t:'Desenvolver',ph:'/desaˈrroʎar/'},{w:'Murciélago',t:'Morcego',ph:'/murˈθjelaɡo/'},{w:'Excelente',t:'Excelente',ph:'/exθeˈlente/'},{w:'Comunicación',t:'Comunicação',ph:'/komuniˈkaθjon/'}],
@@ -12489,7 +12469,7 @@ function setLivreNivel(el){
 // ══════════════════════════════════════════════════════════
 (function(){
   let _sLang='inglês',_sScore=0,_sCurrentPhrase=null,_sHistory=[],_sRecording=false,_sMediaRec=null,_sChunks=[],_sHeard=false;
-  const LANGS=[{key:'inglês',flag:'🇺🇸',label:'Inglês'},{key:'espanhol',flag:'🇪🇸',label:'Espanhol'},{key:'francês',flag:'🇫🇷',label:'Francês'},{key:'alemão',flag:'🇩🇪',label:'Alemão'},{key:'italiano',flag:'🇮🇹',label:'Italiano'},{key:'japonês',flag:'🇯🇵',label:'Japonês'}];
+  const LANGS=[{key:'inglês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">',label:'Inglês'},{key:'espanhol',flag:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">',label:'Espanhol'},{key:'francês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">',label:'Francês'},{key:'alemão',flag:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">',label:'Alemão'},{key:'italiano',flag:'<img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">',label:'Italiano'},{key:'japonês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">',label:'Japonês'}];
   const PHRASES={
     inglês:[{p:'How are you doing today?',t:'Como você está hoje?'},{p:'Nice to meet you, my name is...',t:'Prazer em conhecê-lo, meu nome é...'},{p:'Could you please speak more slowly?',t:'Você poderia falar mais devagar?'},{p:'I would like to order a coffee, please.',t:'Eu gostaria de pedir um café, por favor.'},{p:'What time does the next train leave?',t:'A que horas parte o próximo trem?'},{p:'Thank you so much for your help.',t:'Muito obrigado pela sua ajuda.'},{p:'I have been learning English for two years.',t:'Estou aprendendo inglês há dois anos.'}],
     espanhol:[{p:'¿Cómo estás hoy?',t:'Como você está hoje?'},{p:'Mucho gusto, me llamo...',t:'Prazer, meu nome é...'},{p:'¿Puedes hablar más despacio, por favor?',t:'Você pode falar mais devagar?'},{p:'¿A qué hora sale el próximo tren?',t:'A que horas sai o próximo trem?'}],
@@ -12520,7 +12500,7 @@ function setLivreNivel(el){
 // ══════════════════════════════════════════════════════════
 (function(){
   let _dLang='inglês';
-  const LANGS=[{key:'inglês',flag:'🇺🇸',label:'Inglês'},{key:'espanhol',flag:'🇪🇸',label:'Espanhol'},{key:'francês',flag:'🇫🇷',label:'Francês'},{key:'alemão',flag:'🇩🇪',label:'Alemão'},{key:'italiano',flag:'🇮🇹',label:'Italiano'},{key:'japonês',flag:'🇯🇵',label:'Japonês'}];
+  const LANGS=[{key:'inglês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">',label:'Inglês'},{key:'espanhol',flag:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">',label:'Espanhol'},{key:'francês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">',label:'Francês'},{key:'alemão',flag:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">',label:'Alemão'},{key:'italiano',flag:'<img class="flag-img" src="https://flagcdn.com/w20/it.png" alt="it">',label:'Italiano'},{key:'japonês',flag:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">',label:'Japonês'}];
   let _dHistory=[];
   window._diarioInit=function(){_buildLangBar();_renderDiarioHistory();};
   function _buildLangBar(){const b=document.getElementById('diario-lang-bar');if(!b)return;b.innerHTML=LANGS.map(l=>`<div class="learn-lang-btn${l.key===_dLang?' active':''}" onclick="_diarioSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');}

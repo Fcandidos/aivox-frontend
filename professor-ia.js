@@ -566,6 +566,7 @@ function profIA_onTabOpen() {
 
 // ── Enter classroom ───────────────────────────────────────────
 function profIA_enter() {
+  profIA_unlockAudio(); // iOS: botão "Iniciar aula" é toque do usuário — desbloqueia aqui
   const overlay = document.getElementById('profIA-overlay');
   if (!overlay) return;
   overlay.style.display = 'flex';
@@ -1013,36 +1014,179 @@ function profIA_toast(msg, type = 'info') {
 // ── Speech synthesis ──────────────────────────────────────────
 let _profIA_voiceOn = true;
 function profIA_toggleVoice() {
+  profIA_unlockAudio();
   _profIA_voiceOn = !_profIA_voiceOn;
   const btn = document.getElementById('profIA-voice-btn');
   if (btn) btn.textContent = _profIA_voiceOn ? '🔊' : '🔇';
   profIA_toast(_profIA_voiceOn ? 'Voz ativada' : 'Voz desativada', 'info');
 }
 
+// ── iOS/Mobile audio unlock (deve ser chamado dentro de um gesto do usuário) ──
+let _profIA_audioUnlocked = false;
+function profIA_unlockAudio() {
+  if (_profIA_audioUnlocked) return;
+  _profIA_audioUnlocked = true;
+
+  if (!window.speechSynthesis) return;
+
+  // 1. Carrega lista de vozes imediatamente
+  const v = window.speechSynthesis.getVoices();
+  if (v.length) PISPEECH.voices = v;
+
+  // 2. Dispara utterance silencioso para desbloquear o contexto de áudio no iOS/Android
+  try {
+    const u = new SpeechSynthesisUtterance('\u200B'); // zero-width space — inaudível
+    u.volume = 0;
+    u.rate = 2; // rápido para não atrasar
+    u.onend = () => {
+      // Após unlock, recarrega vozes (iOS só disponibiliza depois do primeiro speak)
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length) PISPEECH.voices = voices;
+    };
+    window.speechSynthesis.speak(u);
+    // Cancela após 100ms para não vazar som
+    setTimeout(() => {
+      try { window.speechSynthesis.cancel(); } catch(_) {}
+    }, 100);
+  } catch(e) {
+    console.warn('[profIA] unlock audio failed:', e);
+  }
+
+  // 3. Listener para quando as vozes ficarem disponíveis
+  window.speechSynthesis.onvoiceschanged = () => {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) PISPEECH.voices = voices;
+  };
+}
+
 function profIA_speak(text) {
   return new Promise(resolve => {
-    if (!_profIA_voiceOn || !window.speechSynthesis) { resolve(); return; }
+    if (!_profIA_voiceOn || !window.speechSynthesis || !text?.trim()) { resolve(); return; }
+
+    // ── Garantir unlock de áudio (iOS/mobile exige gesto do usuário) ──
+    if (!_profIA_audioUnlocked) {
+      profIA_unlockAudio();
+      // Aguarda um tick para o unlock propagar antes de falar
+      return setTimeout(() => profIA_speak(text).then(resolve), 300);
+    }
+
+    // ── iOS: resume se o synth estava pausado em background ──
+    try {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    } catch(_) {}
+
     window.speechSynthesis.cancel();
+
     const utter = new SpeechSynthesisUtterance(text);
     const langMap = { English: 'en-US', Spanish: 'es-ES', French: 'fr-FR' };
-    utter.lang = langMap[PISTATE.lang] || 'en-US';
-    utter.rate  = PISTATE.level === 'Básico' ? 0.84 : PISTATE.level === 'Intermediário' ? 0.95 : 1.05;
-    utter.pitch = 1.12;
-    const voices = PISPEECH.voices.length ? PISPEECH.voices : window.speechSynthesis.getVoices();
-    const preferred = voices.find(v =>
-      v.lang.startsWith(utter.lang.split('-')[0]) &&
-      (v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google UK English Female') || v.name.includes('Alice') || v.name.includes('Paulina'))
-    ) || voices.find(v => v.lang.startsWith(utter.lang.split('-')[0])) || voices[0];
-    if (preferred) utter.voice = preferred;
-    utter.onstart = () => { PISPEECH.speaking = true; profIA_startTalking(); };
-    utter.onend   = () => { PISPEECH.speaking = false; profIA_stopTalking(); profIA_setExpression('aguardando'); resolve(); };
-    utter.onerror = () => { PISPEECH.speaking = false; profIA_stopTalking(); resolve(); };
-    window.speechSynthesis.speak(utter);
+    utter.lang   = langMap[PISTATE.lang] || 'en-US';
+    utter.rate   = PISTATE.level === 'Básico' ? 0.84 : PISTATE.level === 'Intermediário' ? 0.95 : 1.05;
+    utter.pitch  = 1.12;
+    utter.volume = 1;
+
+    // ── Seleciona melhor voz feminina disponível ──
+    const _pickVoice = (voices) => {
+      if (!voices?.length) return null;
+      const lang = utter.lang.split('-')[0];
+      const femaleNames = ['Samantha','Victoria','Karen','Moira','Fiona','Veena','Alice','Paulina',
+                           'Google UK English Female','Google US English','Microsoft Zira',
+                           'Microsoft Hazel','Nicky','Siri'];
+      return voices.find(v => v.lang.startsWith(lang) && femaleNames.some(n => v.name.includes(n)))
+          || voices.find(v => v.lang === utter.lang)
+          || voices.find(v => v.lang.startsWith(lang))
+          || voices[0];
+    };
+
+    // ── Executa o speak após ter as vozes ──
+    const _doSpeak = (voices) => {
+      const preferred = _pickVoice(voices);
+      if (preferred) utter.voice = preferred;
+
+      let resolved = false;
+      const _done = () => {
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(watchdog);
+        clearInterval(chromeWatchdog);
+        PISPEECH.speaking = false;
+        profIA_stopTalking();
+        // Remove indicador visual de áudio
+        const ind = document.getElementById('profIA-speaking-indicator');
+        if (ind) ind.remove();
+        resolve();
+      };
+
+      utter.onstart = () => {
+        clearTimeout(watchdog);
+        PISPEECH.speaking = true;
+        profIA_startTalking();
+        // Indicador visual "🔊 Falando..." para o usuário saber que tem áudio
+        const vp = document.getElementById('profIA-voice-preview');
+        if (vp && !document.getElementById('profIA-speaking-indicator')) {
+          const ind = document.createElement('div');
+          ind.id = 'profIA-speaking-indicator';
+          ind.style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,229,255,.15);border:1px solid rgba(0,229,255,.35);border-radius:20px;padding:4px 14px;font-size:11px;color:#00e5ff;font-family:Space Mono,monospace;z-index:40;pointer-events:none;';
+          ind.textContent = '🔊 Professor Alex falando...';
+          document.getElementById('profIA-overlay')?.appendChild(ind);
+        }
+      };
+      utter.onend   = _done;
+      utter.onerror = (e) => {
+        if (e.error !== 'interrupted') console.warn('[profIA] TTS error:', e.error);
+        _done();
+      };
+
+      // ── Watchdog 1: se onstart não disparar em 3s, é iOS bloqueado ──
+      const watchdog = setTimeout(() => {
+        if (!PISPEECH.speaking) {
+          console.warn('[profIA] TTS watchdog — áudio bloqueado. Toque na tela para ativar.');
+          profIA_toast('🔇 Toque em qualquer lugar para ativar o áudio', 'warn');
+          _done();
+        }
+      }, 3000);
+
+      // ── Watchdog 2: bug do Chrome onde speechSynthesis para no meio ──
+      // Chrome tem um bug que para de falar após ~15s — keepalive com resume()
+      const chromeWatchdog = setInterval(() => {
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+          try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch(_) {}
+        }
+      }, 10000);
+
+      try {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        window.speechSynthesis.speak(utter);
+      } catch(e) {
+        console.warn('[profIA] TTS speak() threw:', e);
+        _done();
+      }
+    };
+
+    // ── Carrega vozes (pode ser assíncrono no primeiro carregamento) ──
+    const cached = PISPEECH.voices.length ? PISPEECH.voices : window.speechSynthesis.getVoices();
+    if (cached.length) {
+      PISPEECH.voices = cached;
+      _doSpeak(cached);
+    } else {
+      // Vozes ainda carregando — aguarda onvoiceschanged com timeout de segurança
+      let voiceReady = false;
+      const _onVoices = () => {
+        if (voiceReady) return;
+        voiceReady = true;
+        const v = window.speechSynthesis.getVoices();
+        PISPEECH.voices = v;
+        _doSpeak(v.length ? v : []);
+      };
+      window.speechSynthesis.onvoiceschanged = _onVoices;
+      // Fallback: se em 1.5s as vozes não chegarem, fala com voz padrão do sistema
+      setTimeout(() => { if (!voiceReady) _onVoices(); }, 1500);
+    }
   });
 }
 
 // ── Speech recognition ────────────────────────────────────────
 function profIA_toggleMic() {
+  profIA_unlockAudio(); // iOS: desbloqueia áudio no primeiro toque
   if (PISPEECH.recording) {
     profIA_stopMic();
   } else {
@@ -1109,6 +1253,7 @@ function profIA_toggleTextInput(forceOpen) {
 }
 
 function profIA_sendText() {
+  profIA_unlockAudio(); // iOS: desbloqueia áudio no primeiro toque
   const inp = document.getElementById('profIA-text-input');
   if (!inp || !inp.value.trim()) return;
   const text = inp.value.trim();

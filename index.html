@@ -8152,7 +8152,15 @@ function adTab(id,btn){
   // Sempre vai para o topo ao trocar aba (comportamento esperado)
   if(_cont) _cont.scrollTop=0;
   // Scroll horizontal para mostrar o botão da aba selecionada
-  btn.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  // Scroll só dentro do container .atabs, sem mover a página
+  (function(){
+    const tabsEl=document.querySelector('.atabs');
+    if(!tabsEl)return;
+    const btnRect=btn.getBoundingClientRect();
+    const tabsRect=tabsEl.getBoundingClientRect();
+    const offset=btnRect.left - tabsRect.left - (tabsRect.width/2) + (btnRect.width/2);
+    tabsEl.scrollLeft+=offset;
+  })();
   if(id==='usuarios')renderUsers('todos');
   if(id==='sistema')renderAdminLog();
   if(id==='chats')renderAdminChats();

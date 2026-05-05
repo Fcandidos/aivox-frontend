@@ -868,7 +868,9 @@ function profIA_setGesture(g) {
   const chalk = document.getElementById('profIA-chalk');
   const ptr   = document.getElementById('profIA-pointer');
   if (!arm) return;
-  arm.className = '';
+  // BUGFIX: arm é SVGGElement — .className é SVGAnimatedString (somente leitura)
+  // Usar setAttribute('class') em vez de .className =
+  arm.setAttribute('class', '');
   if (chalk) chalk.setAttribute('opacity', '0');
   if (ptr)   { ptr.setAttribute('opacity','0'); ptr.nextElementSibling?.setAttribute('opacity','0'); }
   if (g === 'escrever' || g === 'writing') {
@@ -1206,7 +1208,8 @@ async function profIA_orchestrate(data) {
 
   PISTATE.turns++;
   // Phase progression
-  if (PISTATE.turns === 4 && PISTATE.phase === 'warmup') PISTATE.phase = 'core';
+  if (PISTATE.turns === 4  && PISTATE.phase === 'warmup')  PISTATE.phase = 'core';
+  if (PISTATE.turns === 18 && PISTATE.phase === 'core')    PISTATE.phase = 'consolidation';
 
   // Score update based on response
   if (correcao) {

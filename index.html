@@ -538,7 +538,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-lang-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
 /* ── Bandeiras como imagem (compatível Windows/Linux/Mac) ── */
-.flag-img{width:18px;height:13px;object-fit:cover;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px;flex-shrink:0;}
+.flag-img{width:18px;height:13px;object-fit:cover;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px;flex-shrink:0;} .lfl .flag-img{width:32px;height:22px;border-radius:3px;margin:0;} .si-from-flag .flag-img,.si-to-flag .flag-img{width:28px;height:20px;border-radius:3px;margin:0;} #aff .flag-img,#atf .flag-img{width:22px;height:16px;border-radius:2px;margin:0;}
 .learn-lang-btn .flag-img{width:16px;height:11px;}
 
 /* PROFESSOR CHAT */
@@ -6972,7 +6972,7 @@ function toggleKeyVisibility(inputId,btn){const inp=document.getElementById(inpu
 // ====== LANGUAGES ======
 const LO=[{flag:'<img class="flag-img" src="https://flagcdn.com/w20/br.png" alt="br">',name:'Português',code:'PT-BR',s:'PT'},{flag:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">',name:'Inglês',code:'EN-US',s:'EN'}];
 let lfi=0,lti=1;
-function appLang(){const f=LO[lfi],t=LO[lti];const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};s('lfrom',f.flag);s('lnfrom',f.name);s('lcfrom',f.code);s('lto',t.flag);s('lnto',t.name);s('lcto',t.code);s('aff',f.flag);s('afs',f.s);s('atf',t.flag);s('ats',t.s);s('sl1','VOCÊ ('+f.code+')');s('sl2','OUVINTE ('+t.code+')');s('mic-lang-hint',f.code);}
+function appLang(){const f=LO[lfi],t=LO[lti];const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};const sh=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};sh('lfrom',f.flag);s('lnfrom',f.name);s('lcfrom',f.code);sh('lto',t.flag);s('lnto',t.name);s('lcto',t.code);sh('aff',f.flag);s('afs',f.s);sh('atf',t.flag);s('ats',t.s);s('sl1','VOCÊ ('+f.code+')');s('sl2','OUVINTE ('+t.code+')');s('mic-lang-hint',f.code);}
 function swapActiveSession(){
   const btn=document.getElementById('active-swbtn');
   if(btn){btn.style.transform='rotate(180deg)';setTimeout(()=>btn.style.transform='',300);}
@@ -7010,7 +7010,7 @@ const allLangs=[{flag:'<img class="flag-img" src="https://flagcdn.com/w20/br.png
 let siChoosingFrom=true;
 function openIdiomaSelector(from){idiomaFrom=from||currentPage;siChoosingFrom=true;updateSiPreview();renderSiList();navApp('langsel');}
 function siChoose(side){siChoosingFrom=(side==='from');document.getElementById('si-from-tab').classList.toggle('active',siChoosingFrom);document.getElementById('si-to-tab').classList.toggle('active',!siChoosingFrom);updateSiPreview();renderSiList();}
-function updateSiPreview(){const f=LO[lfi],t=LO[lti];const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};s('si-from-flag',f.flag);s('si-from-name',f.name);s('si-from-code',f.code);s('si-to-flag',t.flag);s('si-to-name',t.name);s('si-to-code',t.code);const lbl=document.getElementById('si-choosing-label');if(lbl)lbl.textContent=siChoosingFrom?'Toque no idioma de ORIGEM ↓':'Toque no idioma de DESTINO ↓';}
+function updateSiPreview(){const f=LO[lfi],t=LO[lti];const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};const sh=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};sh('si-from-flag',f.flag);s('si-from-name',f.name);s('si-from-code',f.code);sh('si-to-flag',t.flag);s('si-to-name',t.name);s('si-to-code',t.code);const lbl=document.getElementById('si-choosing-label');if(lbl)lbl.textContent=siChoosingFrom?'Toque no idioma de ORIGEM ↓':'Toque no idioma de DESTINO ↓';}
 function renderSiList(){const list=document.getElementById('si-lang-list');if(!list)return;list.innerHTML='';allLangs.forEach(lang=>{const isSel=siChoosingFrom?(lang.code===LO[lfi].code):(lang.code===LO[lti].code);const el=document.createElement('div');el.style.cssText='display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid '+(isSel?'rgba(0,229,255,.38)':'var(--border)')+';border-radius:13px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:all .18s;';el.innerHTML='<div style="font-size:28px;flex-shrink:0;">'+lang.flag+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;'+(isSel?'color:var(--accent);':'')+'">'+lang.name+'</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono);">'+lang.code+'</div></div>'+(isSel?'<div style="width:22px;height:22px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:800;">✓</div>':'<div style="width:22px;height:22px;border-radius:50%;border:2px solid var(--border);"></div>');el.addEventListener('click',()=>selectIdiomaLang(lang));list.appendChild(el);});}
 function selectIdiomaLang(lang){
   if(siChoosingFrom){
@@ -11663,7 +11663,7 @@ function _buildLangBar(containerId, langVar, setter){
   Object.keys(flags).forEach((l,i)=>{
     const btn=document.createElement('div');
     btn.className='learn-lang-btn'+(i===0?' active':''); btn.dataset.lang=l;
-    btn.textContent=flags[l]+' '+l[0].toUpperCase()+l.slice(1);
+    btn.innerHTML=flags[l]+' '+l[0].toUpperCase()+l.slice(1);
     btn.onclick=()=>{document.querySelectorAll('#'+containerId+' .learn-lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');setter(l);};
     bar.appendChild(btn);
   });

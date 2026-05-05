@@ -135,7 +135,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .auth-box::before{content:'';position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.55),rgba(124,58,237,.4),transparent);border-radius:1px;}
 /* brilho sutil canto inferior direito */
 .auth-box::after{content:'';position:absolute;bottom:-1px;right:20px;left:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,.2),transparent);border-radius:1px;}
-.landing-page{min-height:100vh;background:var(--bg);display:none;flex-direction:column;width:100%;position:fixed;inset:0;z-index:150;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.landing-page{min-height:100vh;background:var(--bg);display:none;flex-direction:column;width:100%;position:relative;z-index:1;}
 /* ── LANDING NAVBAR ── */
 .landing-nav{position:fixed;top:0;left:0;right:0;z-index:600;
   background:rgba(6,8,15,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
@@ -1085,6 +1085,14 @@ input, textarea, select {
 }
 /* ====== BOTTOM NAV ====== */
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:90;}
+/* Garante que o bnav nunca apareça fora do app autenticado */
+body[data-page="landing"] .bnav,
+body[data-page="login"] .bnav,
+body[data-page="register"] .bnav,
+body[data-page="reset"] .bnav,
+body[data-page="2fa"] .bnav{display:none!important;}
+/* Landing cobre tudo quando ativa */
+.landing-page.active{z-index:150!important;}
 
 /* ====== AMIGOS — ESTRUTURA GERAL ====== */
 #page-amigos { position: relative; overflow: hidden; padding: 0; }
@@ -1727,7 +1735,7 @@ input, textarea, select {
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <!-- ====== LANDING ====== -->
-<div class="landing-page active" id="page-landing">
+<div class="landing-page active" id="page-landing" data-init-landing="1">
   <!-- ── Navbar fixa ── -->
   <nav class="landing-nav">
     <div class="landing-nav-inner">
@@ -5752,6 +5760,7 @@ console.log('✅ AIVOX Módulo Amigos + Grupos carregado');
 </div>
 
 <!-- Socket.io para salas colaborativas -->
+<script>document.body.dataset.page='landing';</script>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -5836,8 +5845,9 @@ auth.onAuthStateChanged(async(user)=>{
   }else{
     window._userRequestedLogin=false;
     window._fbUser=null;
-    // Garante que o app-shell some independente do currentPage
+    // Garante app-shell oculto e body marcado, independente do currentPage
     const _as=document.getElementById('app-shell');if(_as)_as.style.display='none';
+    document.body.dataset.page='landing';
     if(currentPage!=='landing'&&typeof showLanding==='function')showLanding();
   }
 });
@@ -6136,9 +6146,10 @@ window.fbToast=showToast;
 
 // ====== NAVIGATION ======
 function hideAllAuth(){['page-landing','page-login','page-register','page-reset','page-2fa'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('active');});}
-function showLanding(){hideAllAuth();document.getElementById('app-shell').style.display='none';document.getElementById('page-landing').classList.add('active');currentPage='landing';}
-function showAuth(mode){hideAllAuth();document.getElementById('app-shell').style.display='none';const m={login:'page-login',register:'page-register',reset:'page-reset','2fa':'page-2fa'};if(m[mode])document.getElementById(m[mode]).classList.add('active');currentPage=mode;}
+function showLanding(){hideAllAuth();document.getElementById('app-shell').style.display='none';document.getElementById('page-landing').classList.add('active');currentPage='landing';document.body.dataset.page='landing';}
+function showAuth(mode){hideAllAuth();document.getElementById('app-shell').style.display='none';const m={login:'page-login',register:'page-register',reset:'page-reset','2fa':'page-2fa'};if(m[mode])document.getElementById(m[mode]).classList.add('active');currentPage=mode;document.body.dataset.page=mode;}
 function enterApp(data){
+  document.body.dataset.page='app';
   hideAllAuth();document.getElementById('app-shell').style.display='flex';
   updateSidebarUser(data);
   loadUserLanguages(data);
@@ -6353,6 +6364,7 @@ function doLogout(){
   // Restaura menu-btn (hamburger)
   const _mb=document.getElementById('menu-btn');if(_mb)_mb.style.display=window.innerWidth<1100?'flex':'none';
   document.getElementById('app-shell').style.display='none';
+  document.body.dataset.page='landing';
   document.querySelectorAll('.auth-page.active,.landing-page.active').forEach(el=>el.classList.remove('active'));
   document.getElementById('page-landing').classList.add('active');
   showToast('Até logo! 👋','info');
@@ -13341,6 +13353,75 @@ function _salaMostrarUIVideo(show){
     log('elementos em overflow: '+offenders.length,offenders.length>0?'err':'ok');
     offenders.slice(0,8).forEach(o=>log(o,'err'));
     if(offenders.length>8)log('...+'+(offenders.length-8)+' mais','warn');
+
+    sep('BNAV / LANDING');
+    // Estado atual das páginas
+    const landingEl=document.getElementById('page-landing');
+    const appShellEl=document.getElementById('app-shell');
+    const bnavEl=document.getElementById('bnav');
+
+    // Landing
+    if(!landingEl){log('page-landing: não encontrado','warn');}
+    else{
+      const lActive=landingEl.classList.contains('active');
+      const lDisp=getComputedStyle(landingEl).display;
+      const lPos=getComputedStyle(landingEl).position;
+      const lZ=getComputedStyle(landingEl).zIndex;
+      const lInl=landingEl.style.cssText||'(nenhum)';
+      log('landing .active: '+(lActive?'SIM':'não'),lActive?'ok':'info');
+      log('landing computed display: '+lDisp,'info');
+      log('landing position: '+lPos,'info');
+      log('landing z-index: '+lZ,'info');
+      log('landing inline style: '+lInl,'info');
+    }
+
+    // App-shell
+    if(!appShellEl){log('app-shell: não encontrado','warn');}
+    else{
+      const aDisp=getComputedStyle(appShellEl).display;
+      const aInl=appShellEl.style.display||'(nenhum)';
+      const aZ=getComputedStyle(appShellEl).zIndex;
+      const landingActive=landingEl&&landingEl.classList.contains('active');
+      log('app-shell computed display: '+aDisp,(landingActive&&aDisp!=='none')?'err':'ok');
+      log('app-shell inline display: '+aInl,'info');
+      log('app-shell z-index: '+aZ,'info');
+      if(landingActive&&aDisp!=='none') log('⚠ ERRO: app-shell VISÍVEL enquanto landing está ativa!','err');
+    }
+
+    // Bnav
+    if(!bnavEl){log('bnav: não encontrado','warn');}
+    else{
+      const bDisp=getComputedStyle(bnavEl).display;
+      const bInl=bnavEl.style.display||'(nenhum)';
+      const bRect=bnavEl.getBoundingClientRect();
+      const bZ=getComputedStyle(bnavEl).zIndex;
+      const bVisible=bDisp!=='none'&&bRect.height>0;
+      const landingActive=landingEl&&landingEl.classList.contains('active');
+      log('bnav computed display: '+bDisp,'info');
+      log('bnav inline display: '+bInl,'info');
+      log('bnav z-index: '+bZ,'info');
+      log('bnav rect: '+Math.round(bRect.width)+'×'+Math.round(bRect.height)+' top:'+Math.round(bRect.top),'info');
+      log('bnav visível na tela: '+(bVisible?'SIM':'não'),bVisible?'warn':'ok');
+      if(landingActive&&bVisible) log('⚠ ERRO: bnav aparecendo sobre a landing!','err');
+      else if(!landingActive&&bVisible) log('bnav visível dentro do app ✓','ok');
+      else log('bnav oculto ✓','ok');
+    }
+
+    // currentPage var
+    try{
+      const cp=window.currentPage||'(indefinido)';
+      log('currentPage JS: '+cp,'info');
+    }catch(e){log('currentPage: erro ao ler','warn');}
+
+    // Stacking context — quem está por cima?
+    if(bnavEl&&landingEl){
+      const bRect=bnavEl.getBoundingClientRect();
+      const lRect=landingEl.getBoundingClientRect();
+      const bZ=parseInt(getComputedStyle(bnavEl).zIndex)||0;
+      const lZ=parseInt(getComputedStyle(landingEl).zIndex)||0;
+      if(bZ>lZ) log('⚠ bnav z-index ('+bZ+') > landing z-index ('+lZ+') — bnav fica acima!','err');
+      else log('landing z-index ('+lZ+') >= bnav z-index ('+bZ+') ✓','ok');
+    }
 
     log('── FIM ──','sep');
   };

@@ -5741,7 +5741,7 @@ console.log('✅ AIVOX Módulo Amigos + Grupos carregado');
 </script>
 
     <!-- BOTTOM NAV -->
-    <div class="bnav" id="bnav">
+    <div class="bnav" id="bnav" style="display:none;">
       <div class="ni active" id="bn-home" onclick="navApp('home')"><span>🏠</span><span class="nl">Início</span></div>
       <div class="ni" id="bn-history" onclick="navApp('history')"><span>💬</span><span class="nl">Histórico</span></div>
       <div class="ni" id="bn-amigos" onclick="navApp('amigos')"><span>👫</span><span class="nl">Amigos</span></div>
@@ -5779,6 +5779,9 @@ window.FB={
 window._userRequestedLogin=false;
 
 auth.onAuthStateChanged(async(user)=>{
+  // Se o logout foi pedido pelo usuário, não re-entra no app
+  if(!user&&window._userRequestedLogout){window._userRequestedLogout=false;return;}
+  if(user&&window._userRequestedLogout){auth.signOut().catch(()=>{});return;}
   if(user){
     try{
       let data=await window.FB.getUser(user.uid);
@@ -6204,9 +6207,9 @@ function navApp(name){
     if(name==='admin') _mb.style.display='none';
     else _mb.style.display=window.innerWidth<1100?'flex':'none';
   }
-  // Botão voltar (‹) no header admin: só no mobile
+  // Botão voltar (‹) no header admin: aparece em mobile e tablet (qualquer tela abaixo de 1100px onde o hamburger fica oculto)
   const _ab=document.getElementById('admin-back-btn');
-  if(_ab) _ab.style.display=(name==='admin'&&window.innerWidth<768)?'flex':'none';
+  if(_ab) _ab.style.display=(name==='admin'&&window.innerWidth<1100)?'flex':'none';
   // Remove position:fixed do admin quando sair dele
   if(name!=='admin'){
     const _pa=document.getElementById('page-admin');
@@ -6313,6 +6316,9 @@ async function resendVerifyEmail(email){
 }
 function regThenPay(pl){pendingPayPlan=pl;showAuth('register');}
 function doLogout(){
+  // 0. Marca que o logout foi solicitado — impede onAuthStateChanged de re-entrar no app
+  window._userRequestedLogout=true;
+  window._userRequestedLogin=false;
   // 1. Parar todos os timers
   try{clearInterval(trialT);trialT=null;}catch(e){}
   try{clearInterval(sessT);sessT=null;}catch(e){}
@@ -6342,6 +6348,8 @@ function doLogout(){
   // Restaura topbar
   const _tb=document.querySelector('.main-area > .topbar');
   if(_tb){_tb.style.display='';_tb.classList.remove('admin-hidden');}
+  // Restaura menu-btn (hamburger)
+  const _mb=document.getElementById('menu-btn');if(_mb)_mb.style.display=window.innerWidth<1100?'flex':'none';
   document.getElementById('app-shell').style.display='none';
   document.querySelectorAll('.auth-page.active,.landing-page.active').forEach(el=>el.classList.remove('active'));
   document.getElementById('page-landing').classList.add('active');

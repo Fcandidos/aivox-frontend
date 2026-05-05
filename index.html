@@ -231,15 +231,7 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
   #page-chat .chat-msgs{flex:1 !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;min-height:0 !important;}
   #page-chat .chat-input-bar{flex-shrink:0 !important;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
 
-  /* ── ADMIN PAGE MOBILE — FIX COMPLETO ── */
-
-  /* 1. Esconde o topbar do shell quando admin está ativo — admin tem seu próprio header */
-  #page-admin.active ~ * .topbar,
-  .main-area:has(#page-admin.active) > .topbar{
-    display:none !important;
-  }
-
-  /* 2. Admin page ocupa 100% do main-area */
+  /* ── ADMIN PAGE MOBILE ── */
   #page-admin.active{
     height:100% !important;
     display:flex !important;
@@ -249,20 +241,17 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     max-width:100vw !important;
     position:relative !important;
   }
-
-  /* 3. Header do admin: contido, sem overflow horizontal */
   #page-admin .adh{
     flex-shrink:0 !important;
     background:var(--bg) !important;
     border-bottom:1px solid var(--border) !important;
     width:100% !important;
-    max-width:100vw !important;
     overflow:hidden !important;
-    box-sizing:border-box !important;
+    max-width:100vw !important;
     padding-top:env(safe-area-inset-top,0px) !important;
   }
 
-  /* 4. Linha do título do admin: compacta, sem extravasar */
+  /* Header admin compacto no mobile */
   #page-admin .adtop{
     display:flex !important;
     align-items:center !important;
@@ -273,42 +262,32 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     box-sizing:border-box !important;
     overflow:hidden !important;
   }
+  /* Título não empurra os botões para fora */
   #page-admin .adtitle{
     font-size:15px !important;
-    font-weight:900 !important;
     flex:1 !important;
     min-width:0 !important;
     white-space:nowrap !important;
     overflow:hidden !important;
     text-overflow:ellipsis !important;
   }
-  #page-admin .adba{
-    font-size:10px !important;
-    padding:5px 10px !important;
-    border-radius:8px !important;
-    flex-shrink:0 !important;
-    white-space:nowrap !important;
-  }
-  #page-admin .adtop .btn-danger{
-    font-size:11px !important;
-    padding:7px 12px !important;
-    flex-shrink:0 !important;
-    white-space:nowrap !important;
-  }
+  #page-admin .adba{font-size:10px !important;padding:5px 10px !important;border-radius:8px !important;flex-shrink:0 !important;}
+  #page-admin .adtop .btn-danger{font-size:11px !important;padding:7px 12px !important;flex-shrink:0 !important;}
 
-  /* 5. Abas: scroll horizontal interno, SEM deixar a página inteira scrollar horizontalmente */
+  /* Abas: scroll horizontal só nas abas */
   #page-admin .atabs{
     display:flex !important;
     flex-wrap:nowrap !important;
     overflow-x:auto !important;
     overflow-y:hidden !important;
     -webkit-overflow-scrolling:touch !important;
-    width:100% !important;
     max-width:100vw !important;
+    width:100% !important;
     box-sizing:border-box !important;
-    padding:4px 12px 10px !important;
-    gap:4px !important;
+    scroll-snap-type:none !important;
     scrollbar-width:none !important;
+    padding:4px 14px 10px !important;
+    gap:4px !important;
   }
   #page-admin .atabs::-webkit-scrollbar{display:none !important;}
   #page-admin .atab{
@@ -318,107 +297,54 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
     white-space:nowrap !important;
   }
 
-  /* 6. Área de conteúdo das abas: flex:1, scroll vertical, sem overflow horizontal */
+  /* Conteúdo das abas: ocupa resto, rola verticalmente */
   #page-admin .atcont{
     flex:1 !important;
     overflow-y:auto !important;
     overflow-x:hidden !important;
     -webkit-overflow-scrolling:touch !important;
     min-height:0 !important;
-    width:100% !important;
-    max-width:100vw !important;
-    box-sizing:border-box !important;
     padding:12px 14px !important;
-    padding-bottom:calc(40px + env(safe-area-inset-bottom,0px)) !important;
-  }
-
-  /* 7. Todos os atpanel: largura contida */
-  #page-admin .atpanel{
+    padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;
     width:100% !important;
-    max-width:100% !important;
     box-sizing:border-box !important;
-    overflow-x:hidden !important;
   }
 
-  /* 8. Sistema tab — trow: label à esquerda (flex:1), toggle à direita (flex-shrink:0) */
+  /* Sistema tab: label ocupa flex:1, toggle fica à direita fixo */
   #tab-sistema .trow{
     display:flex !important;
     align-items:center !important;
     justify-content:space-between !important;
+    padding:12px 14px !important;
+    gap:12px !important;
+    min-height:52px !important;
     width:100% !important;
     box-sizing:border-box !important;
     overflow:hidden !important;
-    padding:12px 14px !important;
-    gap:12px !important;
-    margin-bottom:7px !important;
   }
-  /* O div-filho que contém tnm+tds DEVE ter flex:1 e min-width:0 para não empurrar o toggle */
-  #tab-sistema .trow > *:first-child{
+  #tab-sistema .trow > div:first-child{
     flex:1 !important;
     min-width:0 !important;
     overflow:hidden !important;
   }
-  #tab-sistema .tnm{
-    font-size:13px !important;
-    font-weight:600 !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-    display:block !important;
-  }
-  #tab-sistema .tds{
-    font-size:11px !important;
-    white-space:nowrap !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-    display:block !important;
-    color:var(--muted) !important;
-    margin-top:2px !important;
-  }
-  #tab-sistema .tog{
-    flex-shrink:0 !important;
-    width:42px !important;
-    height:22px !important;
-  }
+  #tab-sistema .tnm{font-size:13px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+  #tab-sistema .tds{font-size:11px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+  #tab-sistema .tog{flex-shrink:0 !important;}
+  #tab-sistema{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)) !important;}
 
-  /* 9. Chats tab — itens de chat contidos */
-  #tab-chats{
-    width:100% !important;
-    box-sizing:border-box !important;
-  }
-  #admin-chat-list{
-    width:100% !important;
-    box-sizing:border-box !important;
-  }
-  #admin-chat-list > div{
-    width:100% !important;
-    box-sizing:border-box !important;
-    overflow:hidden !important;
-    max-width:100% !important;
-  }
-  .achat-name{
-    max-width:calc(100vw - 170px) !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-    white-space:nowrap !important;
-  }
+  /* Chats tab: itens de chat contidos */
+  #admin-chat-list > div{width:100% !important;box-sizing:border-box !important;overflow:hidden !important;}
+  .achat-name{max-width:calc(100vw - 170px) !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
 
-  /* 10. achat-modal (chat individual) */
-  .achat-modal .chat-input-bar{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)) !important;}
-  #page-admin .achat-modal{
-    top:0 !important;
-    bottom:0 !important;
-    left:0 !important;
-    right:0 !important;
-    position:absolute !important;
-    height:100% !important;
-    z-index:80 !important;
-  }
+  /* achat-modal */
+  .achat-modal .chat-input-bar{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)) !important;}
+  #page-admin .achat-modal{top:auto !important;bottom:0 !important;left:0 !important;right:0 !important;position:absolute !important;height:calc(100% - var(--adh-height, 98px)) !important;}
 
-  /* 11. udov e udsc */
-  #page-admin .udov{position:absolute !important;inset:0 !important;z-index:75 !important;}
-  #page-admin .udsc{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px)) !important;}
-  /* Mostra o botão de tema no header do admin mobile */
+  /* udov */
+  #page-admin .udov{position:absolute !important;inset:0 !important;}
+  #page-admin .udsc{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)) !important;}
+
+  /* Botão de tema do admin header: visível só no mobile */
   .admin-theme-toggle{display:flex !important;}
 }
 .empty-state.sh{display:flex;}

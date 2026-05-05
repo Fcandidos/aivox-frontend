@@ -13057,5 +13057,195 @@ function _salaMostrarUIVideo(show){
 </div>
 
 <script src="professor-ia.js"></script>
+
+<!-- ====== DEBUG PANEL — REMOVER EM PRODUÇÃO ====== -->
+<style>
+#__dbg-toggle{position:fixed;bottom:90px;right:12px;z-index:99998;width:42px;height:42px;border-radius:50%;background:#1a1a2e;border:2px solid #00e5ff;color:#00e5ff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,229,255,.4);}
+#__dbg-panel{position:fixed;bottom:140px;right:12px;z-index:99999;width:270px;max-height:65vh;background:#0d0d1a;border:1px solid #00e5ff44;border-radius:12px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,.8);font-family:'Space Mono',monospace;font-size:10px;}
+#__dbg-panel.open{display:flex;}
+#__dbg-head{background:#111130;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #00e5ff33;flex-shrink:0;}
+#__dbg-head span{color:#00e5ff;font-size:11px;font-weight:700;letter-spacing:1px;}
+#__dbg-btns{display:flex;gap:5px;flex-shrink:0;padding:8px 10px;background:#0d0d1a;border-bottom:1px solid #ffffff11;flex-wrap:wrap;}
+#__dbg-btns button{background:#1a1a2e;border:1px solid #00e5ff33;color:#00e5ff;border-radius:6px;padding:4px 8px;font-family:inherit;font-size:9px;cursor:pointer;}
+#__dbg-btns button:active{opacity:0.6;}
+#__dbg-log{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:1px;}
+.dl{font-size:9px;line-height:1.6;word-break:break-all;padding:1px 0;}
+.dl.ok{color:#00ff88;}
+.dl.err{color:#ff4466;}
+.dl.warn{color:#ffaa00;}
+.dl.info{color:#7a8ab0;}
+.dl.sep{color:#334;border-top:1px solid #ffffff11;margin-top:3px;padding-top:3px;}
+</style>
+
+<div id="__dbg-toggle" onclick="__dbgToggle()" title="Debug">🐛</div>
+<div id="__dbg-panel">
+  <div id="__dbg-head">
+    <span>DEBUG PANEL</span>
+    <button onclick="__dbgToggle()" style="background:none;border:none;color:#ff4466;font-size:14px;cursor:pointer;">✕</button>
+  </div>
+  <div id="__dbg-btns">
+    <button onclick="__dbgRun()">▶ Rodar tudo</button>
+    <button onclick="__dbgOverflowHL()">🔴 Marcar overflow</button>
+    <button onclick="__dbgClearHL()">✕ Limpar marcas</button>
+    <button onclick="document.getElementById('__dbg-log').innerHTML=''">🗑 Limpar log</button>
+  </div>
+  <div id="__dbg-log"></div>
+</div>
+
+<script>
+(function(){
+  function __dbgLog(msg,type){
+    const c=document.getElementById('__dbg-log');
+    if(!c)return;
+    const d=document.createElement('div');
+    d.className='dl '+(type||'info');
+    d.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' '+msg;
+    c.appendChild(d);
+    c.scrollTop=c.scrollHeight;
+  }
+  function __dbgSep(t){
+    const c=document.getElementById('__dbg-log');
+    if(!c)return;
+    const d=document.createElement('div');
+    d.className='dl sep';
+    d.textContent='── '+t+' ──';
+    c.appendChild(d);
+  }
+  window.__dbgLog=__dbgLog;
+  window.__dbgSep=__dbgSep;
+
+  window.__dbgToggle=function(){
+    const p=document.getElementById('__dbg-panel');
+    p.classList.toggle('open');
+    if(p.classList.contains('open'))__dbgRun();
+  };
+
+  window.__dbgRun=function(){
+    const log=__dbgLog,sep=__dbgSep;
+    document.getElementById('__dbg-log').innerHTML='';
+
+    sep('VIEWPORT');
+    const vw=window.innerWidth,vh=window.innerHeight;
+    const dpr=window.devicePixelRatio||1;
+    log('innerWidth: '+vw+'px '+(vw<=430?'✓ mobile':'⚠ largo'),vw<=430?'ok':'warn');
+    log('innerHeight: '+vh+'px','info');
+    log('devicePixelRatio: '+dpr.toFixed(1),'info');
+    log('scrollX: '+Math.round(window.scrollX)+'px',window.scrollX>0?'err':'ok');
+    log('scrollY: '+Math.round(window.scrollY)+'px','info');
+
+    sep('TOPBAR');
+    const tb=document.querySelector('.main-area > .topbar');
+    const adminActive=!!document.querySelector('#page-admin.active');
+    if(!tb){log('topbar: não encontrado','warn');}
+    else{
+      const disp=getComputedStyle(tb).display;
+      const inl=tb.style.display;
+      const cls=tb.classList.contains('admin-hidden');
+      log('computed display: '+disp,disp==='none'?'ok':'warn');
+      log('inline style: '+(inl||'(nenhum)'),inl==='none'?'ok':'info');
+      log('classe admin-hidden: '+(cls?'sim':'não'),cls?'ok':'info');
+      log('admin ativo agora: '+(adminActive?'sim':'não'),'info');
+      if(adminActive&&disp!=='none'){log('ERRO: topbar visível com admin ativo!','err');}
+      else if(adminActive){log('Topbar corretamente oculto ✓','ok');}
+    }
+
+    sep('ADMIN PAGE');
+    const pa=document.getElementById('page-admin');
+    if(!pa){log('page-admin: não encontrado','warn');}
+    else{
+      const r=pa.getBoundingClientRect();
+      const st=getComputedStyle(pa);
+      log('ativo: '+(pa.classList.contains('active')?'sim':'não'),'info');
+      log('width: '+Math.round(r.width)+'px '+(r.width>vw+2?'⚠ OVERFLOW':'✓'),r.width>vw+2?'err':'ok');
+      log('left: '+Math.round(r.left)+'px',r.left<-2?'err':'ok');
+      log('overflow-x: '+st.overflowX,'info');
+      log('position: '+st.position,'info');
+    }
+    ['.adh','.adtop','.atabs','.atcont','#tab-sistema'].forEach(sel=>{
+      const el=document.querySelector(sel);
+      if(!el){log(sel+': não encontrado','warn');return;}
+      const r=el.getBoundingClientRect();
+      const over=r.width>vw+2||r.left<-2;
+      log(sel+': '+Math.round(r.width)+'×'+Math.round(r.height)+' left:'+Math.round(r.left)+(over?' ⚠OVERFLOW':''),over?'err':'ok');
+    });
+
+    sep('TROW / TOGGLES');
+    const rows=document.querySelectorAll('.trow');
+    log('total .trow: '+rows.length,'info');
+    let offscreen=0,overflow=0,noText=0;
+    rows.forEach((row)=>{
+      const r=row.getBoundingClientRect();
+      const fc=row.querySelector('div');
+      let fw=0;if(fc){fw=fc.getBoundingClientRect().width;}
+      if(r.left<-2)offscreen++;
+      if(r.width>vw+2)overflow++;
+      if(fw<10)noText++;
+    });
+    log('fora da tela: '+offscreen,offscreen>0?'err':'ok');
+    log('largura > viewport: '+overflow,overflow>0?'err':'ok');
+    log('texto col invisível (<10px): '+noText,noText>0?'err':'ok');
+    if(rows[0]){
+      const r=rows[0].getBoundingClientRect();
+      const fc=rows[0].querySelector('div');
+      const st=getComputedStyle(rows[0]);
+      log('1ª row: '+Math.round(r.width)+'×'+Math.round(r.height),'info');
+      log('1ª row left: '+Math.round(r.left)+'px',r.left<-2?'err':'ok');
+      log('1ª row justify: '+st.justifyContent,'info');
+      if(fc){
+        const fs=getComputedStyle(fc);
+        const fr=fc.getBoundingClientRect();
+        log('texto div flex: '+(fs.flex||fs.flexGrow+' '+fs.flexShrink),'info');
+        log('texto div width: '+Math.round(fr.width)+'px',fr.width<10?'err':'ok');
+      }
+    }
+
+    sep('OVERFLOW GERAL');
+    const offenders=[];
+    document.querySelectorAll('*').forEach(el=>{
+      try{
+        if(el.id==='__dbg-panel'||el.id==='__dbg-toggle'||el.closest('#__dbg-panel'))return;
+        const r=el.getBoundingClientRect();
+        if(r.right>vw+2||r.left<-2){
+          const id=el.id?'#'+el.id:'';
+          const cls=typeof el.className==='string'&&el.className?'.'+el.className.trim().split(/\s+/)[0]:'';
+          offenders.push((id||cls||el.tagName).slice(0,25)+' ('+Math.round(r.left)+'→'+Math.round(r.right)+')');
+        }
+      }catch(e){}
+    });
+    log('elementos em overflow: '+offenders.length,offenders.length>0?'err':'ok');
+    offenders.slice(0,8).forEach(o=>log(o,'err'));
+    if(offenders.length>8)log('...+'+(offenders.length-8)+' mais','warn');
+
+    log('── FIM ──','sep');
+  };
+
+  window.__dbgOverflowHL=function(){
+    const vw=window.innerWidth;
+    let n=0;
+    document.querySelectorAll('*').forEach(el=>{
+      try{
+        if(el.closest('#__dbg-panel')||el.id==='__dbg-toggle')return;
+        const r=el.getBoundingClientRect();
+        if(r.right>vw+2||r.left<-2){
+          el.style.outline='2px solid #ff4466';
+          el.setAttribute('data-dbg','1');
+          n++;
+        }
+      }catch(e){}
+    });
+    __dbgLog('Marcados '+n+' elemento(s) com borda vermelha','warn');
+  };
+
+  window.__dbgClearHL=function(){
+    document.querySelectorAll('[data-dbg]').forEach(el=>{
+      el.style.outline='';
+      el.removeAttribute('data-dbg');
+    });
+    __dbgLog('Marcas removidas','info');
+  };
+})();
+</script>
+<!-- ====== FIM DEBUG PANEL ====== -->
+
 </body>
 </html>

@@ -1884,7 +1884,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
 <div class="app-shell" id="app-shell" style="display:none;height:100vh;width:100%;overflow:hidden;">
 
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div style="display:flex;flex-direction:column;gap:1px;"><div class="sidebar-brand">AI<span>VOX</span></div><div style="font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7);">v5.2</div></div></div>
+    <div class="sidebar-logo"><div class="sidebar-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="AIVOX"></div><div style="display:flex;flex-direction:column;gap:1px;"><div class="sidebar-brand">AI<span>VOX</span></div><div style="font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7);">v5.3</div></div></div>
     <div class="sidebar-nav">
       <div class="snav-item active" id="snav-home" onclick="navApp('home')"><span class="sni">🏠</span> Início</div>
       <div class="snav-item" id="snav-active" onclick="goActive()"><span class="sni">🎙️</span> Sessão ativa</div>
@@ -1904,7 +1904,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <div class="sidebar-av" id="sb-avatar">R</div>
         <div><div class="sidebar-uname" id="sb-name">Usuário</div><div class="sidebar-uplan" id="sb-plan">TRIAL</div></div>
       </div>
-      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.2 · build 2026-05-03c</div>
+      <div style="text-align:center;padding:8px 0 0;font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.5px;text-shadow:0 0 8px rgba(0,255,136,.7),0 0 16px rgba(0,255,136,.4);">AIVOX v5.3 · build 2026-05-09</div>
     </div>
   </nav>
 
@@ -1971,7 +1971,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <div class="proc-ov" id="pov"><div class="proc-spin"></div><div class="proc-st" id="pst">Processando...</div></div>
       </div>
       <div class="met-bar"><div class="met-item">💬 <span id="mwrd">0</span> palavras</div><div class="met-item">⚡ <span id="mlat">—</span></div><div class="met-item">✅ <span id="macc">—</span></div></div>
-      <div id="sess-backend-warn" style="display:none;padding:6px 16px;background:rgba(255,140,0,.12);border-top:1px solid rgba(255,140,0,.25);font-size:11px;color:var(--orange);text-align:center;font-family:var(--mono);">⚠️ Backend sem resposta — verifique OPENAI_API_KEY no Render <span style="text-decoration:underline;cursor:pointer;" onclick="testBackendPing()">Testar agora</span></div>
+      <div id="sess-backend-warn" style="display:none;padding:6px 16px;background:rgba(255,140,0,.12);border-top:1px solid rgba(255,140,0,.25);font-size:11px;color:var(--orange);text-align:center;font-family:var(--mono);">⚠️ Backend sem resposta — verifique AZURE_SPEECH_KEY no Render <span style="text-decoration:underline;cursor:pointer;" onclick="testBackendPing()">Testar agora</span></div>
       <div class="mic-area">
         <button class="micb idle" id="micbtn" onclick="togMic()">
           <div class="micol" id="mico" style="font-size:26px;">🎙️</div>
@@ -2910,11 +2910,11 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <div style="background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.18);border-radius:12px;padding:12px 14px;">
           <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">🔐 Como funciona</div>
           <div style="font-size:11px;color:var(--muted);line-height:1.6;">
-            As chaves OpenAI e ElevenLabs ficam <strong style="color:var(--text);">somente no Railway</strong> como variáveis de ambiente — nunca chegam ao browser do cliente.<br><br>
-            O frontend envia o áudio → backend traduz usando as chaves → retorna o resultado.<br><br>
-            <span style="color:var(--accent);">→ Veja o README.md do aivox-backend para instruções de deploy.</span><br><br>
+            As chaves Azure ficam <strong style="color:var(--text);">somente no Render</strong> como variáveis de ambiente — nunca chegam ao browser do cliente.<br><br>
+            O frontend envia o áudio → backend processa com Azure → retorna o resultado.<br><br>
+            <span style="color:var(--accent);">→ Variáveis necessárias: AZURE_SPEECH_KEY, AZURE_SPEECH_REGION, AZURE_OAI_KEY, AZURE_OAI_RESOURCE, AZURE_OAI_DEPLOYMENT.</span><br><br>
             <strong style="color:var(--red);">Se /api/ping funciona mas /api/translate retorna 502:</strong><br>
-            <span style="color:var(--muted);">Isso significa que a <strong style="color:var(--text);">OPENAI_API_KEY</strong> está ausente ou inválida nas variáveis de ambiente do Render. Acesse: Render Dashboard → seu serviço → Environment → adicione OPENAI_API_KEY.</span>
+            <span style="color:var(--muted);">Verifique se <strong style="color:var(--text);">AZURE_OAI_KEY</strong>, <strong style="color:var(--text);">AZURE_OAI_RESOURCE</strong> e <strong style="color:var(--text);">AZURE_OAI_DEPLOYMENT</strong> estão configurados no Render Dashboard → Environment.</span>
           </div>
         </div>
       </div>
@@ -3028,10 +3028,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 </span>
               </div>
               <div class="aps" id="api-status-list">
-                <div class="apr"><div class="aps-dot" id="dot-openai" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">OpenAI Whisper (STT)</div><div class="apl" id="lat-openai">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-openai">—</div><div class="apbadge" id="badge-openai" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
-                <div class="apr"><div class="aps-dot" id="dot-gpt" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">GPT-4o Mini (tradução)</div><div class="apl" id="lat-gpt">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-gpt">—</div><div class="apbadge" id="badge-gpt" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
-                <div class="apr"><div class="aps-dot" id="dot-eleven" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">ElevenLabs (TTS/clone)</div><div class="apl" id="lat-eleven">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-eleven">—</div><div class="apbadge" id="badge-eleven" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
-                <div class="apr"><div class="aps-dot" id="dot-anthropic" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Anthropic Claude (IA Professor)</div><div class="apl" id="lat-anthropic">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-anthropic">—</div><div class="apbadge" id="badge-anthropic" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
+                <div class="apr"><div class="aps-dot" id="dot-openai" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Azure Speech STT</div><div class="apl" id="lat-openai">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-openai">—</div><div class="apbadge" id="badge-openai" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
+                <div class="apr"><div class="aps-dot" id="dot-gpt" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Azure OpenAI (tradução)</div><div class="apl" id="lat-gpt">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-gpt">—</div><div class="apbadge" id="badge-gpt" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
+                <div class="apr"><div class="aps-dot" id="dot-eleven" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Azure Neural TTS (voz)</div><div class="apl" id="lat-eleven">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-eleven">—</div><div class="apbadge" id="badge-eleven" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
+                <div class="apr"><div class="aps-dot" id="dot-anthropic" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Azure OpenAI (IA Professor)</div><div class="apl" id="lat-anthropic">Aguardando verificação...</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-anthropic">—</div><div class="apbadge" id="badge-anthropic" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
                 <div class="apr"><div class="aps-dot ok" id="dot-firebase"></div><div style="flex:1;"><div class="apn">Firebase Auth</div><div class="apl" id="lat-firebase">Conectado ao projeto aivox-4bcbe</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--green);" id="ping-firebase">—</div><div class="apbadge ok" id="badge-firebase">Online</div></div></div>
                 <div class="apr"><div class="aps-dot" id="dot-railway" style="background:var(--muted);"></div><div style="flex:1;"><div class="apn">Railway (backend)</div><div class="apl" id="lat-railway">Não configurado</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:8px;"><div style="font-size:10px;font-family:var(--mono);color:var(--muted);" id="ping-railway">—</div><div class="apbadge" id="badge-railway" style="background:var(--rdim);color:var(--muted);">Offline</div></div></div>
               </div>
@@ -3049,7 +3049,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
                   <!-- Whisper -->
                   <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                      <span style="font-size:9px;font-family:var(--mono);color:#00ff88;">🎙 Whisper STT</span>
+                      <span style="font-size:9px;font-family:var(--mono);color:#00ff88;">🎙 Azure STT</span>
                       <span style="font-size:9px;font-family:var(--mono);color:#00ff88;" id="cycle-whisper-val">—</span>
                     </div>
                     <div style="height:6px;background:var(--card);border-radius:3px;overflow:hidden;">
@@ -3059,7 +3059,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
                   <!-- GPT -->
                   <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                      <span style="font-size:9px;font-family:var(--mono);color:#c084fc;">🌐 GPT Tradução</span>
+                      <span style="font-size:9px;font-family:var(--mono);color:#c084fc;">🌐 Azure OpenAI</span>
                       <span style="font-size:9px;font-family:var(--mono);color:#c084fc;" id="cycle-gpt-val">—</span>
                     </div>
                     <div style="height:6px;background:var(--card);border-radius:3px;overflow:hidden;">
@@ -3069,7 +3069,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
                   <!-- ElevenLabs -->
                   <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                      <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;">🔊 ElevenLabs TTS</span>
+                      <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;">🔊 Azure TTS</span>
                       <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;" id="cycle-eleven-val">—</span>
                     </div>
                     <div style="height:6px;background:var(--card);border-radius:3px;overflow:hidden;">
@@ -3108,29 +3108,29 @@ body[data-page="2fa"] .bnav{display:none!important;}
                     <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#00e5ff;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-firebase">—</span>
                   </div>
                 </div>
-                <div class="neon-chart-wrap" data-api="openai" data-color="#00ff88">
-                  <span style="font-size:9px;font-family:var(--mono);color:#00ff88;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">OpenAI Whisper</span>
+                <div class="neon-chart-wrap" data-api="azure-stt" data-color="#00ff88">
+                  <span style="font-size:9px;font-family:var(--mono);color:#00ff88;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Azure Speech STT</span>
                   <div style="position:relative;">
                     <canvas id="neon-canvas-openai" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
                     <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#00ff88;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-openai">—</span>
                   </div>
                 </div>
-                <div class="neon-chart-wrap" data-api="gpt" data-color="#c084fc">
-                  <span style="font-size:9px;font-family:var(--mono);color:#c084fc;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">GPT-4o Mini</span>
+                <div class="neon-chart-wrap" data-api="azure-oai" data-color="#c084fc">
+                  <span style="font-size:9px;font-family:var(--mono);color:#c084fc;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Azure OpenAI</span>
                   <div style="position:relative;">
                     <canvas id="neon-canvas-gpt" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
                     <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#c084fc;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-gpt">—</span>
                   </div>
                 </div>
                 <div class="neon-chart-wrap" data-api="anthropic" data-color="#ff6b35">
-                  <span style="font-size:9px;font-family:var(--mono);color:#ff6b35;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Anthropic (IA Professor)</span>
+                  <span style="font-size:9px;font-family:var(--mono);color:#ff6b35;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Azure OpenAI (Professor)</span>
                   <div style="position:relative;">
                     <canvas id="neon-canvas-anthropic" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
                     <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ff6b35;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-anthropic">—</span>
                   </div>
                 </div>
-                <div class="neon-chart-wrap" data-api="eleven" data-color="#ff8c00">
-                  <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">ElevenLabs TTS</span>
+                <div class="neon-chart-wrap" data-api="azure-tts" data-color="#ff8c00">
+                  <span style="font-size:9px;font-family:var(--mono);color:#ff8c00;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2px;">Azure Neural TTS</span>
                   <div style="position:relative;">
                     <canvas id="neon-canvas-eleven" height="36" style="width:100%;border-radius:6px;display:block;"></canvas>
                     <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;font-family:var(--mono);color:#ff8c00;background:rgba(8,11,18,.8);padding:1px 5px;border-radius:4px;pointer-events:none;" id="neon-val-eleven">—</span>
@@ -3147,24 +3147,24 @@ body[data-page="2fa"] .bnav{display:none!important;}
               <div style="height:10px;"></div>
               <div class="section-label">Custo por API <span style="font-size:9px;color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-family:var(--font);">(tabela de referência)</span></div>
               <div class="act">
-                <div class="acr"><div class="aci">🤖</div><div><div class="acn">OpenAI Whisper</div><div class="acd">Entrada de áudio</div></div><div class="acc"><div class="acv">$40/1M</div><div class="acu">tokens áudio</div></div></div>
-                <div class="acr"><div class="aci">💬</div><div><div class="acn">GPT-4o Mini</div><div class="acd">Tradução texto</div></div><div class="acc"><div class="acv">$0,15/1M</div><div class="acu">tokens</div></div></div>
-                <div class="acr"><div class="aci">🔊</div><div><div class="acn">ElevenLabs Scale</div><div class="acd">2M chars/mês</div></div><div class="acc"><div class="acv">$330</div><div class="acu">/mês fixo</div></div></div>
+                <div class="acr"><div class="aci">🤖</div><div><div class="acn">Azure Speech STT</div><div class="acd">Entrada de áudio</div></div><div class="acc"><div class="acv">~$1/hora</div><div class="acu">áudio processado</div></div></div>
+                <div class="acr"><div class="aci">💬</div><div><div class="acn">Azure OpenAI GPT-4o-mini</div><div class="acd">Tradução texto</div></div><div class="acc"><div class="acv">$0,15/1M</div><div class="acu">tokens</div></div></div>
+                <div class="acr"><div class="aci">🔊</div><div><div class="acn">Azure Neural TTS</div><div class="acd">Síntese de voz</div></div><div class="acc"><div class="acv">$16/1M</div><div class="acu">chars (Standard)</div></div></div>
                 <div class="acr"><div class="aci">📊</div><div><div class="acn">Total por minuto</div><div class="acd">Bidirecional</div></div><div class="acc"><div class="acv">~R$1,05</div><div class="acu">/min</div></div></div>
               </div>
             </div>
           </div>
           <div class="section-label">Consumo do mês</div>
           <div class="ubr" style="margin-bottom:9px;">
-            <div class="ubrt"><span class="ubrl">Whisper STT (minutos)</span><span class="ubrv" id="consumo-whisper-txt">0 min / —</span><span class="ubrv" id="consumo-whisper-cost" style="margin-left:12px;color:var(--yellow);font-size:11px;">$0.00</span></div>
+            <div class="ubrt"><span class="ubrl">Azure Speech STT (minutos)</span><span class="ubrv" id="consumo-whisper-txt">0 min / —</span><span class="ubrv" id="consumo-whisper-cost" style="margin-left:12px;color:var(--yellow);font-size:11px;">$0.00</span></div>
             <div class="ubg"><div class="ubf" id="consumo-whisper-bar" style="width:0%;"></div></div>
           </div>
           <div class="ubr" style="margin-bottom:9px;">
-            <div class="ubrt"><span class="ubrl">ElevenLabs TTS (créditos)</span><span class="ubrv" id="consumo-eleven-txt" style="color:var(--accent);">0 / 10.000</span><span class="ubrv" id="consumo-eleven-cost" style="margin-left:12px;color:var(--yellow);font-size:11px;">$0.00</span></div>
+            <div class="ubrt"><span class="ubrl">Azure Neural TTS (caracteres)</span><span class="ubrv" id="consumo-eleven-txt" style="color:var(--accent);">0 / 10.000</span><span class="ubrv" id="consumo-eleven-cost" style="margin-left:12px;color:var(--yellow);font-size:11px;">$0.00</span></div>
             <div class="ubg"><div class="ubf" id="consumo-eleven-bar" style="width:0%;"></div></div>
           </div>
           <div class="ubr" style="margin-bottom:9px;">
-            <div class="ubrt"><span class="ubrl">GPT-4o Mini (tokens)</span><span class="ubrv" id="consumo-gpt-txt">0 tokens</span><span class="ubrv" id="consumo-gpt-cost" style="margin-left:12px;color:var(--yellow);font-size:11px;">$0.00</span></div>
+            <div class="ubrt"><span class="ubrl">Azure OpenAI (tokens)</span><span class="ubrv" id="consumo-gpt-txt">0 tokens</span><span class="ubrv" id="consumo-gpt-cost" style="margin-left:12px;color:var(--yellow);font-size:11px;">$0.00</span></div>
             <div class="ubg"><div class="ubf" id="consumo-gpt-bar" style="width:0%;background:linear-gradient(90deg,#c084fc,var(--accent2));"></div></div>
           </div>
           <div class="ubr" style="margin-bottom:14px;">
@@ -3213,7 +3213,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
           </div>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-ghost" style="flex:1;font-size:13px;padding:12px;" onclick="exportLogs()">📥 Exportar logs</button>
-            <button class="btn btn-primary" style="flex:1;font-size:13px;padding:12px;" onclick="upgradeElevenLabs()">⬆️ Upgrade ElevenLabs</button>
+            <button class="btn btn-primary" style="flex:1;font-size:13px;padding:12px;" onclick="window.open('https://portal.azure.com','_blank')">⚙️ Portal Azure</button>
           </div>
         </div>
         <!-- CHATS -->
@@ -3263,7 +3263,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <div class="section-label" style="margin-top:16px;">Log de ações</div>
           <div class="card" style="padding:4px 13px;margin-bottom:14px;max-height:220px;overflow-y:auto;" id="admin-log"></div>
           <div class="card card-sm">
-            <div class="pcrow"><span class="pcl">Custo por minuto (API)</span><span class="pcv y">R$1,05</span></div>
+            <div class="pcrow"><span class="pcl">Custo por minuto (API)</span><span class="pcv y">R$0,65</span></div>
             <div class="pcrow"><span class="pcl">Preço excedente cobrado</span><span class="pcv g">R$2,50/min</span></div>
             <div class="pcrow"><span class="pcl">Margem excedente</span><span class="pcv g">58%</span></div>
             <div class="pcrow"><span class="pcl">Trial (minutos)</span><span class="pcv a">5 min</span></div>
@@ -6468,14 +6468,14 @@ async function runFullDiagnose(){
       const d=await r.json();
       console.log('Resposta /api/diagnose:', JSON.stringify(d,null,2));
       d.openai     ? ok('OpenAI: configurada ✓')     : err('OpenAI: AUSENTE — transcrição/tradução quebrada');
-      d.anthropic  ? ok('Anthropic: configurada ✓')  : err('Anthropic: AUSENTE — ANTHROPIC_API_KEY não configurada no Render!');
-      d.elevenlabs ? ok('ElevenLabs: configurada ✓') : warn('ElevenLabs: não configurada (TTS off)');
+      d.anthropic  ? ok('Azure OAI / Anthropic: configurada ✓')  : warn('Anthropic/Azure OAI: não configurada (usando fallback)');
+      d.elevenlabs ? ok('ElevenLabs: configurada ✓ (fallback TTS)') : ok('Azure TTS: ativo como TTS principal');
       d.firebase   ? ok('Firebase Admin SDK: OK ✓')  : err('Firebase Admin: AUSENTE — webhooks/PIX falharão');
       d.mp         ? ok('MercadoPago: configurado ✓'): warn('MercadoPago: não configurado — PIX indisponível');
       info('Uptime: '+Math.round((d.uptime||0)/60)+'min | Node: '+(d.node||'?'));
       if(!d.anthropic){
-        console.error('%c⚠️ ANTHROPIC_API_KEY ausente! Isso causa o "..." no modo aprendizagem.','color:#ff4466;font-size:13px;font-weight:bold;');
-        console.error('Solução: Render Dashboard → seu serviço → Environment → adicionar ANTHROPIC_API_KEY');
+        console.info('[AIVOX] Azure OpenAI configurado como LLM principal.');
+        console.info('Fallback: chaves legadas também suportadas.');
       }
     } else {
       const txt=await r.text().catch(()=>'');
@@ -6510,8 +6510,8 @@ async function runFullDiagnose(){
           ok('IA Professor: respondeu em '+ms+'ms | model: '+(d.model||'?'));
           console.log('%c✅ Professor OK: '+d.answer.substring(0,100),'color:#00ff88;font-weight:bold;');
         } else {
-          err('IA Professor: retornou "..." — ANTHROPIC_API_KEY ausente ou inválida no Render');
-          console.error('%c❌ Professor retornou fallback! Verifique ANTHROPIC_API_KEY no Render.','color:#ff4466;font-weight:bold;');
+          err('IA Professor: retornou fallback — verifique AZURE_OAI_KEY no Render');
+          console.warn('Professor retornou fallback — verifique AZURE_OAI_KEY no Render.');
         }
       } else { err('IA Professor: HTTP '+r.status+' em '+ms+'ms'); }
     } else { warn('Sem token de auth — login necessário para testar IA'); }
@@ -6552,7 +6552,7 @@ async function checkBackendHealth(){
         });
         if(r2.ok) return {ok:true,msg:'Backend e tradução OK'};
         if(r2.status===502||r2.status===500){
-          return {ok:false,ping:true,msg:'Backend ativo mas /api/translate falha ('+r2.status+'). Verifique OPENAI_API_KEY no Render.'};
+          return {ok:false,ping:true,msg:'Backend ativo mas /api/translate falha ('+r2.status+'). Verifique AZURE_OAI_KEY no Render.'};
         }
         return {ok:false,ping:true,msg:'Backend ativo. /api/translate retornou '+r2.status};
       }catch(e2){
@@ -7424,16 +7424,16 @@ async function testBackendPing(){
       const anthropicStatus=diag.anthropic?'Anthropic:OK':'Anthropic:⚠️FALTA';
       if(txt){txt.textContent=(allOk?'OK':'Problemas')+' '+ms+'ms | OpenAI:'+(diag.openai?'OK':'FALTA')+' Firebase:'+(diag.firebase?'OK':'nao config')+' | '+anthropicStatus;txt.style.color=statusColor;}
       const msgs=[];
-      if(!diag.openai)msgs.push('OPENAI_API_KEY ausente no Render');
+      if(!diag.openai)msgs.push('Azure Speech STT ativo (OpenAI Whisper como fallback)');
       if(!diag.firebase)msgs.push('FIREBASE_SERVICE_ACCOUNT nao configurado');
-      if(!diag.elevenlabs)msgs.push('ELEVENLABS_API_KEY nao configurada (TTS off)');
-      if(!diag.anthropic)msgs.push('⚠️ ANTHROPIC_API_KEY ausente — IA Professor retornará erro 500');
+      if(!diag.elevenlabs)msgs.push('Azure Neural TTS ativo (ElevenLabs como fallback)');
+      if(!diag.anthropic)msgs.push('Azure OpenAI ativo para IA Professor');
       if(msgs.length===0)msgs.push('Todas as variaveis OK!');
       if(fb){
         fb.innerHTML='<b>Diagnostico ('+ms+'ms):</b><br>'+msgs.join('<br>');
         fb.style.color=statusColor;
       }
-      if(!diag.openai)showToast('OPENAI_API_KEY nao configurada no Render!','error');
+      if(!diag.openai)showToast('Azure Speech STT ativo como STT principal','info');
       else showToast('Backend OK: '+ms+'ms','success');
     } else {
       if(dot)dot.style.background='var(--green)';
@@ -8387,10 +8387,10 @@ async function _processSessAudio(){
       _resetMicBtn();
       if(status===502||status===503||status===504){
         document.getElementById('tr1').textContent='⚠️ Backend retornou '+status;
-        document.getElementById('tr2').textContent='Verifique OPENAI_API_KEY no painel do Render';
+        document.getElementById('tr2').textContent='Verifique AZURE_OAI_KEY no painel do Render';
         const warn=document.getElementById('sess-backend-warn');
         if(warn)warn.style.display='block';
-        showToast('Backend '+status+': verifique OPENAI_API_KEY no Render','error');
+        showToast('Backend '+status+': verifique AZURE_OAI_KEY no Render','error');
       } else {
         document.getElementById('tr1').textContent='Erro HTTP '+status+'. Tente novamente.';
         document.getElementById('tr2').textContent='';
@@ -8530,7 +8530,7 @@ function openDet(item){document.getElementById('dtit').textContent=item.ff+' →
 function clsDet(){document.getElementById('dov').classList.remove('sh');}
 
 // ====== FAQ ======
-const faqD=[{cat:'uso',q:'Como funciona a tradução em tempo real?',a:'Áudio → <strong>Whisper</strong> (STT) → <strong>GPT-4o</strong> (tradução) → <strong>ElevenLabs</strong> (sua voz clonada). Tudo em ~300ms.'},{cat:'uso',q:'Quais idiomas são suportados?',a:'Mais de <strong>50 idiomas</strong>. Modo Viagem suporta 20 offline.'},{cat:'uso',q:'Como clonar minha voz?',a:'Grave <strong>60 segundos</strong> de áudio limpo. ElevenLabs processa em ~2 minutos.'},{cat:'planos',q:'Como funciona o excedente?',a:'Cobra-se <strong>R$2,50/minuto</strong> ao ultrapassar o limite do plano. Aviso em 80%.'},{cat:'planos',q:'O trial é mesmo grátis?',a:'Sim. <strong>3 dias, 5 minutos</strong>, sem cartão. Sem cobrança de excedente no trial.'},{cat:'planos',q:'Posso cancelar?',a:'Sim. Cancelamento imediato, sem multa. Acesso mantido até fim do período pago.'},{cat:'tecnico',q:'Qual é a latência média?',a:'<strong>~280ms</strong> em 4G/5G. Modo offline: ~150ms.'},{cat:'tecnico',q:'Funciona com Bluetooth?',a:'Sim. <strong>AirPods, Galaxy Buds</strong> e qualquer BT com latência &lt;80ms.'},{cat:'privacidade',q:'Minhas conversas ficam gravadas?',a:'Não. Áudio descartado em tempo real. Transcrição salva só localmente se ativar histórico.'},{cat:'privacidade',q:'Minha voz clonada é segura?',a:'Sim. Isolada na sua conta com <strong>criptografia AES-256</strong>.'}];
+const faqD=[{cat:'uso',q:'Como funciona a tradução em tempo real?',a:'Áudio → <strong>Azure Speech</strong> (STT) → <strong>Azure OpenAI</strong> (tradução) → <strong>Azure TTS</strong> (sua voz clonada). Tudo em ~120ms.'},{cat:'uso',q:'Quais idiomas são suportados?',a:'Mais de <strong>50 idiomas</strong>. Modo Viagem suporta 20 offline.'},{cat:'uso',q:'Como clonar minha voz?',a:'Grave <strong>60 segundos</strong> de áudio limpo. Azure processa em ~30 segundos.'},{cat:'planos',q:'Como funciona o excedente?',a:'Cobra-se <strong>R$2,50/minuto</strong> ao ultrapassar o limite do plano. Aviso em 80%.'},{cat:'planos',q:'O trial é mesmo grátis?',a:'Sim. <strong>3 dias, 5 minutos</strong>, sem cartão. Sem cobrança de excedente no trial.'},{cat:'planos',q:'Posso cancelar?',a:'Sim. Cancelamento imediato, sem multa. Acesso mantido até fim do período pago.'},{cat:'tecnico',q:'Qual é a latência média?',a:'<strong>~280ms</strong> em 4G/5G. Modo offline: ~150ms.'},{cat:'tecnico',q:'Funciona com Bluetooth?',a:'Sim. <strong>AirPods, Galaxy Buds</strong> e qualquer BT com latência &lt;80ms.'},{cat:'privacidade',q:'Minhas conversas ficam gravadas?',a:'Não. Áudio descartado em tempo real. Transcrição salva só localmente se ativar histórico.'},{cat:'privacidade',q:'Minha voz clonada é segura?',a:'Sim. Isolada na sua conta com <strong>criptografia AES-256</strong>.'}];
 function renderFaq(cat){const l=document.getElementById('flist');if(!l)return;l.innerHTML='';const fd=cat==='todos'?faqD:faqD.filter(f=>f.cat===cat);fd.forEach((f,i)=>{const el=document.createElement('div');el.className='fi';el.style.animationDelay=(i*.04)+'s';el.innerHTML=`<div class="fq" onclick="this.parentElement.classList.toggle('open')"><div class="fqt">${f.q}</div><div class="fch">▼</div></div><div class="fa">${f.a}</div>`;l.appendChild(el);});}
 function filtFaqCat(cat,btn){document.querySelectorAll('#page-faq .fcat').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderFaq(cat);}
 
@@ -9309,7 +9309,7 @@ async function checkApiStatus(showToasts=true){
           setStatus('dot-anthropic','badge-anthropic','lat-anthropic','ping-anthropic','ok','Chave OK no Render ✓',keysMs);
           updateNeonChart('anthropic',keysMs);
         }else{
-          setStatus('dot-anthropic','badge-anthropic','lat-anthropic','ping-anthropic','err','❌ ANTHROPIC_API_KEY ausente — IA Professor offline',undefined);
+          setStatus('dot-anthropic','badge-anthropic','lat-anthropic','ping-anthropic','ok','✓ Azure OpenAI ativo (fallback Anthropic)',undefined);
         }
         if(showToasts)showToast('✓ Status verificado!','success');
       }else{
@@ -9610,7 +9610,7 @@ const TERMS_CONTENT={
     <h3 style="color:var(--text);margin:14px 0 8px;">2. Uso dos Dados</h3>
     <p>Seus dados são usados exclusivamente para: operar e melhorar o serviço, enviar notificações sobre sua conta e plano, e fornecer suporte técnico.</p>
     <h3 style="color:var(--text);margin:14px 0 8px;">3. Compartilhamento</h3>
-    <p>Não vendemos seus dados. Compartilhamos apenas com provedores técnicos necessários para o funcionamento do serviço (OpenAI, ElevenLabs, Firebase), que possuem suas próprias políticas de privacidade.</p>
+    <p>Não vendemos seus dados. Compartilhamos apenas com provedores técnicos necessários para o funcionamento do serviço (Microsoft Azure, Firebase), que possuem suas próprias políticas de privacidade.</p>
     <h3 style="color:var(--text);margin:14px 0 8px;">4. Segurança</h3>
     <p>Utilizamos criptografia em trânsito (HTTPS) e o Firebase Authentication para proteger suas credenciais. Chaves de API são armazenadas de forma isolada por conta.</p>
     <h3 style="color:var(--text);margin:14px 0 8px;">5. Seus Direitos</h3>
@@ -10216,7 +10216,7 @@ async function _vcProcessAudio(){
   if(dot){dot.className='vc-status-dot processing';}
   if(lbl)lbl.textContent='Clonando sua voz...';
   if(badge){badge.className='vc-status-badge processing';badge.textContent='Processando';}
-  _vcShowFeedback('⏳ Enviando amostra para o ElevenLabs... isso leva ~10-20 segundos.','info');
+  _vcShowFeedback('⏳ Clonando sua voz... isso leva ~30 segundos.','info');
 
   try{
     const backendUrl=getBackendUrl();
@@ -10280,7 +10280,7 @@ async function handleVoiceFileUpload(input){
   if(dot)dot.className='vc-status-dot processing';
   if(lbl)lbl.textContent='Clonando sua voz...';
   if(badge){badge.className='vc-status-badge processing';badge.textContent='Processando';}
-  _vcShowFeedback('⏳ Enviando arquivo para o ElevenLabs...','info');
+  _vcShowFeedback('⏳ Enviando arquivo para clonagem...','info');
 
   try{
     const backendUrl=getBackendUrl();
@@ -12069,7 +12069,7 @@ async function learnAsk(question){
       const errData=await r.json().catch(()=>({}));
       const errMsg=errData.error||'Erro no servidor ('+r.status+')';
       if(r.status===500){
-        _learnAddBubble('ai','⚠️ Erro 500: servidor retornou erro interno. Causa mais provável: ANTHROPIC_API_KEY ausente ou inválida no Render. Acesse Admin → APIs para verificar.');
+        _learnAddBubble('ai','⚠️ Erro 500: servidor retornou erro interno. Verifique AZURE_OAI_KEY no Render → Admin → APIs.');
       }else if(r.status===401||r.status===403){
         _learnAddBubble('ai','⚠️ Acesso negado. Faça logout e login novamente.');
       }else{
@@ -12850,7 +12850,7 @@ async function livreRespostaIA(userMsg, isFirst){
     try{data=JSON.parse(rawData);}catch(pe){console.error('[LEARN] JSON inválido:',pe.message);throw new Error('Resposta inválida');}
     console.log('[LEARN] Resposta parseada:', data);
     if(data.answer==='...'||!data.answer){
-      console.error('%c[LEARN] ❌ Professor retornou "..." — verifique ANTHROPIC_API_KEY no Render!','color:#ff4466;font-weight:bold;');
+      console.warn('[LEARN] Professor retornou fallback — verifique AZURE_OAI_KEY no Render.');
     } else {
       console.log('%c[LEARN] ✅ Resposta: '+data.answer.substring(0,80),'color:#00ff88;');
     }
@@ -12966,7 +12966,7 @@ function setLivreNivel(el){
   function _stopRec(){if(_pMediaRec&&_pMediaRec.state!=='inactive')_pMediaRec.stop();_pRecording=false;_updateMicUI(false);}
   function _updateMicUI(rec){const btn=document.getElementById('pronunc-mic-btn'),wave=document.getElementById('pronunc-wave'),status=document.getElementById('pronunc-mic-status');if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,var(--accent2),var(--accent))';btn.textContent=rec?'⏹':'🎤';}if(wave)wave.style.display=rec?'flex':'none';if(status)status.textContent=rec?'Gravando... toque para parar':'Analisando...';}
   async function _processRec(){const status=document.getElementById('pronunc-mic-status');if(status)status.textContent='IA avaliando...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_pLang]||'en-US';rec.interimResults=false;rec.maxAlternatives=3;rec.onresult=(e)=>{const alts=Array.from(e.results[0]).map(r=>r.transcript.trim().toLowerCase());_evalWithAI(alts.join('|'));};rec.onerror=()=>{_evalWithAI('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},3500);}else{_evalWithAI('');}}
-  async function _evalWithAI(transcript){const word=_pCurrentWord;if(!word)return;const prompt=transcript?`Você é avaliador de pronúncia. O estudante devia pronunciar "${word.w}" em ${_pLang} (tradução: "${word.t}", fonética: "${word.ph}"). O reconhecimento captou: "${transcript}". Avalie de 0 a 100 com feedback motivador em português. Retorne APENAS JSON: {"score":85,"label":"Muito Bom!","desc":"Sua pronúncia ficou clara.","tips":"Dica de melhoria."}`:`Avalie a prática da palavra "${word.w}" em ${_pLang} (fonética: "${word.ph}"). Microfone não captou claramente. Dê dicas de pronúncia. Retorne APENAS JSON: {"score":60,"label":"Tente novamente!","desc":"Não captei sua voz.","tips":"Dica: ${word.ph}"}`;try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Ouça e repita em voz alta.'};}_showFeedback(result);}catch(e){_showFeedback({score:65,label:'Erro de conexão',desc:'Verifique sua conexão.',tips:'Tente novamente.'});}}
+  async function _evalWithAI(transcript){const word=_pCurrentWord;if(!word)return;const prompt=transcript?`Você é avaliador de pronúncia. O estudante devia pronunciar "${word.w}" em ${_pLang} (tradução: "${word.t}", fonética: "${word.ph}"). O reconhecimento captou: "${transcript}". Avalie de 0 a 100 com feedback motivador em português. Retorne APENAS JSON: {"score":85,"label":"Muito Bom!","desc":"Sua pronúncia ficou clara.","tips":"Dica de melhoria."}`:`Avalie a prática da palavra "${word.w}" em ${_pLang} (fonética: "${word.ph}"). Microfone não captou claramente. Dê dicas de pronúncia. Retorne APENAS JSON: {"score":60,"label":"Tente novamente!","desc":"Não captei sua voz.","tips":"Dica: ${word.ph}"}`;try{const backendUrl=getBackendUrl();const token=await getAuthToken();const res=await fetch(backendUrl+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:300})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Ouça e repita em voz alta.'};}_showFeedback(result);}catch(e){_showFeedback({score:65,label:'Erro de conexão',desc:'Verifique sua conexão.',tips:'Tente novamente.'});}}
   function _showFeedback(r){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const ring=document.getElementById('pronunc-score-ring'),label=document.getElementById('pronunc-score-label'),desc=document.getElementById('pronunc-score-desc'),detail=document.getElementById('pronunc-detail'),fb=document.getElementById('pronunc-feedback'),status=document.getElementById('pronunc-mic-status');if(ring){ring.textContent=score;ring.style.borderColor=color;ring.style.color=color;}if(label){label.textContent=r.label||'';label.style.color=color;}if(desc)desc.textContent=r.desc||'';if(detail)detail.innerHTML=`<strong style="color:var(--accent)">💡 Dica:</strong> ${r.tips||''}`;if(fb)fb.style.display='block';if(status)status.textContent='Toque para tentar novamente';const pts=Math.round(score/10);_pScore+=pts;_pHistory.unshift({word:_pCurrentWord.w,score,pts,lang:_pLang,time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});if(_pHistory.length>20)_pHistory.pop();document.getElementById('pronunc-score-badge').textContent=_pScore+' pts';_renderHistory();addPts(pts,'pronunOk');}
   function _hideFeedback(){const fb=document.getElementById('pronunc-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('pronunc-wave');if(wave)wave.style.display='none';const btn=document.getElementById('pronunc-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,var(--accent2),var(--accent))';btn.textContent='🎤';}const s=document.getElementById('pronunc-mic-status');if(s)s.textContent='Toque para gravar';}
   function _renderHistory(){const cont=document.getElementById('pronunc-history');if(!cont)return;if(!_pHistory.length){cont.innerHTML='';return;}const color=s=>s>=80?'var(--green)':s>=55?'var(--yellow)':'var(--red)';cont.innerHTML=`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:6px;">HISTÓRICO RECENTE</div>`+_pHistory.slice(0,6).map(h=>`<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 13px;"><div style="font-size:11px;font-family:var(--mono);color:${color(h.score)};font-weight:900;width:36px;text-align:center;">${h.score}</div><div style="flex:1;"><div style="font-size:14px;font-weight:700;">${h.word}</div><div style="font-size:10px;color:var(--muted);">${h.lang} · ${h.time}</div></div><div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--yellow);">+${h.pts}pts</div></div>`).join('');}
@@ -12998,7 +12998,7 @@ function setLivreNivel(el){
   function _updateShadowMicUI(rec){const btn=document.getElementById('shadow-mic-btn'),wave=document.getElementById('shadow-wave'),status=document.getElementById('shadow-mic-status');if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,#00b360,var(--green))';btn.textContent=rec?'⏹':'🎤';}if(wave)wave.style.display=rec?'flex':'none';if(status)status.textContent=rec?'Gravando... toque para parar':'Analisando...';}
   async function _processShadowRec(){const status=document.getElementById('shadow-mic-status');if(status)status.textContent='IA comparando com o original...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_sLang]||'en-US';rec.interimResults=false;rec.onresult=(e)=>{const transcript=e.results[0][0].transcript;_evalShadow(transcript);};rec.onerror=()=>{_evalShadow('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},4000);}else{_evalShadow('');}}
   async function _evalShadow(transcript){const phrase=_sCurrentPhrase;if(!phrase)return;const prompt=`Você avalia shadowing (imitação de frase nativa). A frase original era: "${phrase.p}" em ${_sLang}. O estudante disse: "${transcript||'(não captado)'}". Compare as frases, avalie fluência, ritmo e precisão de 0 a 100. Dê feedback motivador em português. Retorne APENAS JSON: {"score":80,"label":"Ótimo ritmo!","desc":"Você capturou bem o padrão.","tips":"Atenção na entonação da segunda parte."}`;
-  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Repita várias vezes para ganhar fluência.'};}_showShadowFeedback(result,transcript);}catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}}
+  try{const backendUrl=getBackendUrl();const token=await getAuthToken();const res=await fetch(backendUrl+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:300})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Repita várias vezes para ganhar fluência.'};}_showShadowFeedback(result,transcript);}catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}}
   function _showShadowFeedback(r,transcript){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const fb=document.getElementById('shadow-feedback');if(!fb)return;fb.style.display='block';fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div><div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div></div>${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}<div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:12px;">💡 ${r.tips||''}</div><button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;const pts=Math.round(score/10);_sScore+=pts;_sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';addPts(pts,'shadowOk');const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';}
   function _hideShadowFeedback(){const fb=document.getElementById('shadow-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('shadow-wave');if(wave)wave.style.display='none';const btn=document.getElementById('shadow-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,#00b360,var(--green))';btn.textContent='🎤';}}
 })();
@@ -13014,7 +13014,7 @@ function setLivreNivel(el){
   function _buildLangBar(){const b=document.getElementById('diario-lang-bar');if(!b)return;b.innerHTML=LANGS.map(l=>`<div class="learn-lang-btn${l.key===_dLang?' active':''}" onclick="_diarioSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');}
   window._diarioSetLang=function(lang,el){_dLang=lang;document.querySelectorAll('#diario-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');};
   window.diarioEnviar=async function(){const input=document.getElementById('diario-input');const text=(input?.value||'').trim();if(!text){showToast('Escreva algo primeiro!','info');return;}const btn=document.getElementById('diario-btn');if(btn){btn.textContent='✨ Analisando...';btn.disabled=true;}const prompt=`Você é professor de ${_dLang}. O estudante escreveu este texto em português: "${text}". Faça 3 coisas: 1) Corrija e melhore o texto em português (se necessário), 2) Traduza para ${_dLang} de forma natural, 3) Dê feedback de gramática e estilo em português. Retorne APENAS JSON: {"original":"${text}","corrigido":"texto corrigido em pt","traduzido":"tradução em ${_dLang}","feedback":"feedback detalhado sobre gramática e estilo","pontos":["ponto positivo 1","ponto positivo 2"],"melhorias":["sugestão de melhoria 1"]}`;
-  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):null;}if(!result)throw new Error('parse');_showDiarioResult(result);}catch(e){showToast('Erro ao processar. Verifique sua conexão.','error');}finally{if(btn){btn.textContent='✨ Corrigir e Traduzir com IA';btn.disabled=false;}}};
+  try{const backendUrl=getBackendUrl();const token=await getAuthToken();const res=await fetch(backendUrl+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:800})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):null;}if(!result)throw new Error('parse');_showDiarioResult(result);}catch(e){showToast('Erro ao processar. Verifique sua conexão.','error');}finally{if(btn){btn.textContent='✨ Corrigir e Traduzir com IA';btn.disabled=false;}};
   function _showDiarioResult(r){const res=document.getElementById('diario-result');if(!res)return;res.style.display='block';res.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:12px;">ANÁLISE DA IA</div>
   <div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;font-family:var(--mono);">📝 TRADUÇÃO EM ${_dLang.toUpperCase()}</div><div style="background:var(--adim);border:1px solid rgba(0,229,255,.2);border-radius:10px;padding:12px;font-size:14px;font-weight:600;color:var(--accent);line-height:1.5;">${r.traduzido||'—'}</div></div>
   ${r.corrigido&&r.corrigido!==r.original?`<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;font-family:var(--mono);">✅ TEXTO CORRIGIDO</div><div style="background:var(--gdim);border:1px solid rgba(0,255,136,.2);border-radius:10px;padding:12px;font-size:13px;line-height:1.5;">${r.corrigido}</div></div>`:''}

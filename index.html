@@ -4115,8 +4115,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const fnsOk = found.length === fns.length;
             _val('dbg-val-session-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções encontradas: '+(found.join(', ')||'nenhuma'),'i');
-            if(!fnsOk && found.length===0) hasErr=true;
-            else if(!fnsOk) hasWarn=true;
+            if(!fnsOk && found.length===0) hasErr=true; else if(!fnsOk) hasWarn=true;
 
             // Sessões Firestore
             try {
@@ -4129,7 +4128,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
               }
             } catch(e){ _val('dbg-val-sessions-fs','❌ '+e.message,'err'); log('✗ sessions: '+e.message,'e'); hasErr=true; }
 
-            // /api/transcribe e /api/listen (HEAD-only sem áudio real)
+            // /api/transcribe e /api/listen
             const backend=_backend(); const tok=await _getToken();
             if(backend && tok){
               for(const ep of ['transcribe','listen']){
@@ -4236,7 +4235,6 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const db=firebase.firestore();
             let hasErr=false, hasWarn=false;
 
-            // friends
             try {
               const snap=await db.collection('friends').doc(user.uid).collection('list').limit(5).get();
               _val('dbg-val-friends-read','✅ '+snap.size+' amigos','ok');
@@ -4248,42 +4246,36 @@ body[data-page="2fa"] .bnav{display:none!important;}
               } catch(e2){ _val('dbg-val-friends-read','❌ '+e2.message,'err'); log('✗ friends: '+e2.message,'e'); hasErr=true; }
             }
 
-            // friend_requests
             try {
               const snap=await db.collection('friend_requests').where('to','==',user.uid).limit(5).get();
               _val('dbg-val-freq-read','✅ '+snap.size+' pendentes','ok');
               log('✓ friend_requests: '+snap.size+' docs','s');
             } catch(e){ _val('dbg-val-freq-read','❌ '+e.message,'err'); log('✗ friend_requests: '+e.message,'e'); hasErr=true; }
 
-            // online
             try {
               const snap=await db.collection('online').limit(10).get();
               _val('dbg-val-online-read','✅ '+snap.size+' online','ok');
               log('✓ online: '+snap.size+' docs','s');
             } catch(e){ _val('dbg-val-online-read','⚠️ '+e.message,'warn'); log('⚠ online: '+e.message,'w'); hasWarn=true; }
 
-            // conversation_groups
             try {
               const snap=await db.collection('conversation_groups').limit(5).get();
               _val('dbg-val-groups','✅ '+snap.size+' grupos','ok');
               log('✓ conversation_groups: '+snap.size+' docs','s');
             } catch(e){ _val('dbg-val-groups','⚠️ '+e.message,'warn'); log('⚠ groups: '+e.message,'w'); hasWarn=true; }
 
-            // group_messages
             try {
               const snap=await db.collection('group_messages').limit(5).get();
               _val('dbg-val-group-msgs','✅ '+snap.size+' msgs','ok');
               log('✓ group_messages: '+snap.size+' docs','s');
             } catch(e){ _val('dbg-val-group-msgs','⚠️ '+e.message,'warn'); hasWarn=true; }
 
-            // Funções amigos
             const fns=['initAmigoModule','amiSwitchTab','openFriendChat','startFriendCall','hangupFriendCall'];
             const found=fns.filter(fn=>typeof window[fn]==='function');
-            const fnsOk = found.length===fns.length;
+            const fnsOk=found.length===fns.length;
             _val('dbg-val-amigos-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções amigos: '+(found.join(', ')||'nenhuma'),'i');
-            if(!fnsOk && found.length===0) hasErr=true;
-            else if(!fnsOk) hasWarn=true;
+            if(!fnsOk && found.length===0) hasErr=true; else if(!fnsOk) hasWarn=true;
 
             _dot('dbg-dot-amigos', hasErr?'err':hasWarn?'warn':'ok');
           };
@@ -4296,22 +4288,18 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const backend=_backend();
             let hasErr=false, hasWarn=false;
 
-            // Página payment
             const pgOk=!!document.getElementById('page-payment');
             _val('dbg-val-pay-page', pgOk?'✅ Encontrada':'❌ Não encontrada', pgOk?'ok':'err');
             if(!pgOk) hasErr=true;
 
-            // Funções pagamento
             const fns=['openTopup','closeTopup','selectTopup','initPix','openPayment'];
             const found=fns.filter(fn=>typeof window[fn]==='function');
             const fnsOk=found.length===fns.length;
             _val('dbg-val-pay-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções pay: '+(found.join(', ')||'nenhuma'),'i');
-            if(!fnsOk && found.length===0) hasErr=true;
-            else if(!fnsOk) hasWarn=true;
+            if(!fnsOk && found.length===0) hasErr=true; else if(!fnsOk) hasWarn=true;
 
             if(backend){
-              // cambio
               try {
                 const r=await fetch(backend+'/api/cambio');
                 const d=await r.json().catch(()=>({}));
@@ -4320,17 +4308,18 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 if(!r.ok) hasErr=true;
               } catch(e){ _val('dbg-val-cambio-pay','❌ '+e.message,'err'); hasErr=true; }
 
-              // diagnose para checar MP
               try {
                 const r=await fetch(backend+'/api/diagnose');
                 const d=await r.json().catch(()=>({}));
                 _val('dbg-val-mp-token', d.mp?'✅ Configurado':'⚠️ Não configurado', d.mp?'ok':'warn');
-                log((d.mp?'✓':'⚠')+' MercadoPago token no backend', d.mp?'s':'w');
+                log((d.mp?'✓':'⚠')+' MercadoPago: '+(d.mp?'ok':'não configurado'), d.mp?'s':'w');
                 if(!d.mp) hasWarn=true;
               } catch(e){ _val('dbg-val-mp-token','⚠️ '+e.message,'warn'); hasWarn=true; }
             }
             _dot('dbg-dot-pay', hasErr?'err':hasWarn?'warn':'ok');
           };
+
+          // ── NOTIFICAÇÕES PUSH ─────────────────────────────────────
           window.dbgTestNotif = async function(){
             const log = (m,t) => _log('dbg-log-notif', m, t);
             log('Testando notificações push...','i');
@@ -4338,14 +4327,11 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const backend=_backend(); const tok=await _getToken();
             let hasErr=false, hasWarn=false;
 
-            // Permission
             const perm = Notification?.permission || 'indisponível';
             _val('dbg-val-notif-perm', perm==='granted'?'✅ granted':perm==='denied'?'❌ denied':'⚠️ '+perm, perm==='granted'?'ok':perm==='denied'?'err':'warn');
             log('Notification.permission: '+perm, perm==='granted'?'s':perm==='denied'?'e':'w');
-            if(perm==='denied') hasErr=true;
-            else if(perm!=='granted') hasWarn=true;
+            if(perm==='denied') hasErr=true; else if(perm!=='granted') hasWarn=true;
 
-            // Service Worker
             if('serviceWorker' in navigator){
               try {
                 const regs=await navigator.serviceWorker.getRegistrations();
@@ -4358,13 +4344,11 @@ body[data-page="2fa"] .bnav{display:none!important;}
               _val('dbg-val-sw','❌ SW não suportado','err'); hasErr=true;
             }
 
-            // PushManager
             const pmOk = 'PushManager' in window;
             _val('dbg-val-push-mgr', pmOk?'✅ Disponível':'❌ Não disponível', pmOk?'ok':'err');
             log((pmOk?'✓':'✗')+' PushManager', pmOk?'s':'e');
             if(!pmOk) hasErr=true;
 
-            // register endpoint
             if(backend && tok){
               try {
                 const r=await fetch(backend+'/api/notifications/register',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({token:'debug-test-token',platform:'web'})});
@@ -4387,6 +4371,8 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const container=document.getElementById('dbg-collections-rows');
             if(container) container.innerHTML='';
             let colHasErr = false;
+
+            const collections=[
               {name:'users', query:()=>db.collection('users').doc(user.uid).get(), desc:'doc do usuário'},
               {name:'leaderboard', query:()=>db.collection('leaderboard').orderBy('xp','desc').limit(5).get(), desc:'top 5 xp'},
               {name:'presence', query:()=>db.collection('presence').doc(user.uid).get(), desc:'presença própria'},
@@ -4422,10 +4408,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
                   row.innerHTML='<span class="dbg-label">'+col.name+'</span><span class="dbg-val err">❌ '+e.message.slice(0,40)+'</span>';
                   container.appendChild(row);
                 }
-                colHasErr=true;
+                colHasErr = true;
               }
             }
-            _dot('dbg-dot-collections', colHasErr?'err':'ok');
+            _dot('dbg-dot-collections', colHasErr ? 'err' : 'ok');
           };
 
           // ── DIAGNOSE COMPLETO ─────────────────────────────────────
@@ -4437,7 +4423,6 @@ body[data-page="2fa"] .bnav{display:none!important;}
             if(!backend){ log('✗ Backend não detectado','e'); _dot('dbg-dot-diagnose','err'); return; }
             let hasErr=false, hasWarn=false;
 
-            // /api/diagnose
             try {
               const r=await fetch(backend+'/api/diagnose');
               const d=await r.json().catch(()=>({}));
@@ -4459,19 +4444,17 @@ body[data-page="2fa"] .bnav{display:none!important;}
               log('✗ /api/diagnose: '+e.message,'e'); hasErr=true;
             }
 
-            // /api/azure-config — 401 = rota existe mas precisa de token (warn, não err fatal)
+            // /api/azure-config — 401/403 = rota existe mas precisa token (warn)
             try {
-              const headers = tok ? {'Authorization':'Bearer '+tok} : {};
-              const r=await fetch(backend+'/api/azure-config',{headers});
+              const hdrs = tok ? {'Authorization':'Bearer '+tok} : {};
+              const r=await fetch(backend+'/api/azure-config',{headers:hdrs});
               const d=await r.json().catch(()=>({}));
-              const azOk = r.ok;
-              const azWarn = r.status===401||r.status===403;
+              const azOk=r.ok, azWarn=(r.status===401||r.status===403);
               _val('dbg-val-azure-cfg',
-                azOk ? '✅ '+JSON.stringify(d) : azWarn ? '⚠️ HTTP '+r.status+' ('+( d.error||'sem token' )+')' : '❌ HTTP '+r.status,
-                azOk ? 'ok' : azWarn ? 'warn' : 'err');
-              log((azOk?'✓':azWarn?'⚠':'✗')+' /api/azure-config: HTTP '+r.status, azOk?'s':azWarn?'w':'e');
-              if(azWarn) hasWarn=true;
-              else if(!azOk) hasErr=true;
+                azOk ? '✅ '+JSON.stringify(d) : azWarn ? '⚠️ HTTP '+r.status+' ('+(d.error||'sem token')+')' : '❌ HTTP '+r.status,
+                azOk?'ok':azWarn?'warn':'err');
+              log((azOk?'✓':azWarn?'⚠':'✗')+' /api/azure-config → '+r.status, azOk?'s':azWarn?'w':'e');
+              if(azWarn) hasWarn=true; else if(!azOk) hasErr=true;
             } catch(e){ _val('dbg-val-azure-cfg','❌ '+e.message,'err'); hasErr=true; }
 
             _dot('dbg-dot-diagnose', hasErr?'err':hasWarn?'warn':'ok');
@@ -4543,8 +4526,8 @@ body[data-page="2fa"] .bnav{display:none!important;}
               else if(cl.contains('ok'))   okRows.push(s.label);
             });
 
-            const totalOk   = okRows.length;
-            const totalUnk  = steps.length - errRows.length - warnRows.length - okRows.length;
+            const totalOk  = okRows.length;
+            const totalUnk = steps.length - errRows.length - warnRows.length - okRows.length;
             let html = '';
 
             // Card de resultado geral
@@ -7273,16 +7256,7 @@ let _grpPresenceListener = null;  // listener de presença Firestore
 let _grpPresenceRef = null;       // ref do doc de presença do usuário atual
 let _grpBC = null;          // BroadcastChannel para sincronizar abas
 let _grpMsgsLocal = {};     // cache em memória por groupId
-const _langEmoji = {
-  inglês:   '<img src="https://flagcdn.com/w40/us.png" alt="us" style="width:28px;height:auto;border-radius:4px;">',
-  espanhol: '<img src="https://flagcdn.com/w40/es.png" alt="es" style="width:28px;height:auto;border-radius:4px;">',
-  francês:  '<img src="https://flagcdn.com/w40/fr.png" alt="fr" style="width:28px;height:auto;border-radius:4px;">',
-  alemão:   '<img src="https://flagcdn.com/w40/de.png" alt="de" style="width:28px;height:auto;border-radius:4px;">',
-  japonês:  '<img src="https://flagcdn.com/w40/jp.png" alt="jp" style="width:28px;height:auto;border-radius:4px;">',
-  italiano: '<img src="https://flagcdn.com/w40/it.png" alt="it" style="width:28px;height:auto;border-radius:4px;">',
-  chinês:   '<img src="https://flagcdn.com/w40/cn.png" alt="cn" style="width:28px;height:auto;border-radius:4px;">',
-  russo:    '<img src="https://flagcdn.com/w40/ru.png" alt="ru" style="width:28px;height:auto;border-radius:4px;">',
-};
+const _langEmoji = { inglês:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">', espanhol:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">', francês:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">', alemão:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">', japonês:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">' };
 
 // ── Carrega msgs do localStorage ────────────────────────────────
 function _grpLoadLocal(groupId) {

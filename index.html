@@ -3404,6 +3404,130 @@ body[data-page="2fa"] .bnav{display:none!important;}
           </div>
 
           <div style="height:20px;"></div>
+          <!-- ── PÁGINAS & DOM ─────────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-dom"></span>Páginas & Navegação (DOM)</div>
+            <div id="dbg-dom-rows"></div>
+            <div class="dbg-log" id="dbg-log-dom"></div>
+            <button class="dbg-btn" onclick="dbgTestDOM()">🔄 Testar Páginas</button>
+          </div>
+
+          <!-- ── APRENDIZAGEM ──────────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-learn"></span>Módulo de Aprendizagem</div>
+            <div class="dbg-row"><span class="dbg-label">Professor IA (/api/professor)</span><span class="dbg-val" id="dbg-val-professor">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Lições (/api/learn/licoes)</span><span class="dbg-val" id="dbg-val-learn-licoes">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Exercícios (/api/learn/exercises)</span><span class="dbg-val" id="dbg-val-exercises">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Conversa IA (/api/learn/conversa)</span><span class="dbg-val" id="dbg-val-conversa">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Situação (/api/learn/situacao)</span><span class="dbg-val" id="dbg-val-situacao">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Progresso GET</span><span class="dbg-val" id="dbg-val-progress-get">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Progresso POST</span><span class="dbg-val" id="dbg-val-progress-post">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Streak GET/POST</span><span class="dbg-val" id="dbg-val-streak">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Histórico (/api/learn/history)</span><span class="dbg-val" id="dbg-val-learn-history">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">SRS GET (/api/learn/srs)</span><span class="dbg-val" id="dbg-val-srs">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Vocabulário GET (/api/learn/vocab)</span><span class="dbg-val" id="dbg-val-vocab">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Gamificação (Firestore gamif)</span><span class="dbg-val" id="dbg-val-gamif">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Funções frontend learn</span><span class="dbg-val" id="dbg-val-learn-fns">—</span></div>
+            <div class="dbg-log" id="dbg-log-learn"></div>
+            <button class="dbg-btn" onclick="dbgTestLearn()">🔄 Testar Aprendizagem</button>
+          </div>
+
+          <!-- ── SESSÃO ATIVA / STT ────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-session"></span>Sessão Ativa & STT</div>
+            <div class="dbg-row"><span class="dbg-label">Microfone (getUserMedia)</span><span class="dbg-val" id="dbg-val-mic">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">MediaRecorder API</span><span class="dbg-val" id="dbg-val-mediarecorder">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Azure SpeechSDK (STT)</span><span class="dbg-val" id="dbg-val-speechsdk">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/transcribe (POST)</span><span class="dbg-val" id="dbg-val-transcribe">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/listen (POST)</span><span class="dbg-val" id="dbg-val-listen">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Sessões (Firestore sessions)</span><span class="dbg-val" id="dbg-val-sessions-fs">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Funções frontend sessão</span><span class="dbg-val" id="dbg-val-session-fns">—</span></div>
+            <div class="dbg-log" id="dbg-log-session"></div>
+            <button class="dbg-btn" onclick="dbgTestSession()">🔄 Testar Sessão</button>
+          </div>
+
+          <!-- ── ESCUTA AO VIVO ────────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-escuta"></span>Escuta ao Vivo</div>
+            <div class="dbg-row"><span class="dbg-label">Página #page-escuta</span><span class="dbg-val" id="dbg-val-escuta-page">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/listen-stream (POST)</span><span class="dbg-val" id="dbg-val-listen-stream">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/translate (POST)</span><span class="dbg-val" id="dbg-val-translate-api">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/cambio (GET)</span><span class="dbg-val" id="dbg-val-cambio">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Funções frontend escuta</span><span class="dbg-val" id="dbg-val-escuta-fns">—</span></div>
+            <div class="dbg-log" id="dbg-log-escuta"></div>
+            <button class="dbg-btn" onclick="dbgTestEscuta()">🔄 Testar Escuta</button>
+          </div>
+
+          <!-- ── SALAS COLABORATIVAS ───────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-sala"></span>Salas Colaborativas</div>
+            <div class="dbg-row"><span class="dbg-label">Socket.IO conectado</span><span class="dbg-val" id="dbg-val-socket">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/rooms/create (POST)</span><span class="dbg-val" id="dbg-val-rooms-create">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/fase4a/status (GET)</span><span class="dbg-val" id="dbg-val-fase4a">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Funções frontend sala</span><span class="dbg-val" id="dbg-val-sala-fns">—</span></div>
+            <div class="dbg-log" id="dbg-log-sala"></div>
+            <button class="dbg-btn" onclick="dbgTestSala()">🔄 Testar Salas</button>
+          </div>
+
+          <!-- ── AMIGOS ────────────────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-amigos"></span>Amigos & Grupos</div>
+            <div class="dbg-row"><span class="dbg-label">Firestore friends (READ)</span><span class="dbg-val" id="dbg-val-friends-read">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Firestore friend_requests (READ)</span><span class="dbg-val" id="dbg-val-freq-read">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Firestore online (READ)</span><span class="dbg-val" id="dbg-val-online-read">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Grupos (conversation_groups)</span><span class="dbg-val" id="dbg-val-groups">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Group messages (READ)</span><span class="dbg-val" id="dbg-val-group-msgs">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Funções frontend amigos</span><span class="dbg-val" id="dbg-val-amigos-fns">—</span></div>
+            <div class="dbg-log" id="dbg-log-amigos"></div>
+            <button class="dbg-btn" onclick="dbgTestAmigos()">🔄 Testar Amigos</button>
+          </div>
+
+          <!-- ── PAGAMENTOS ────────────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-pay"></span>Pagamentos & PIX</div>
+            <div class="dbg-row"><span class="dbg-label">/api/cambio (cotação USD)</span><span class="dbg-val" id="dbg-val-cambio-pay">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Página #page-payment</span><span class="dbg-val" id="dbg-val-pay-page">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Funções pagamento</span><span class="dbg-val" id="dbg-val-pay-fns">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">MP_ACCESS_TOKEN (via /api/diagnose)</span><span class="dbg-val" id="dbg-val-mp-token">—</span></div>
+            <div class="dbg-log" id="dbg-log-pay"></div>
+            <button class="dbg-btn" onclick="dbgTestPay()">🔄 Testar Pagamentos</button>
+          </div>
+
+          <!-- ── NOTIFICAÇÕES PUSH ─────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-notif"></span>Notificações Push</div>
+            <div class="dbg-row"><span class="dbg-label">Notification.permission</span><span class="dbg-val" id="dbg-val-notif-perm">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Service Worker registrado</span><span class="dbg-val" id="dbg-val-sw">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Push Manager disponível</span><span class="dbg-val" id="dbg-val-push-mgr">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/notifications/register</span><span class="dbg-val" id="dbg-val-notif-reg">—</span></div>
+            <div class="dbg-log" id="dbg-log-notif"></div>
+            <button class="dbg-btn" onclick="dbgTestNotif()">🔄 Testar Notificações</button>
+          </div>
+
+          <!-- ── FIRESTORE COLEÇÕES ────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-collections"></span>Firestore — Todas as Coleções</div>
+            <div id="dbg-collections-rows"></div>
+            <div class="dbg-log" id="dbg-log-collections"></div>
+            <button class="dbg-btn" onclick="dbgTestCollections()">🔄 Testar Coleções</button>
+          </div>
+
+          <!-- ── DIAGNOSE GERAL ─────────────────────────────── -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-diagnose"></span>Diagnóstico Geral do Backend</div>
+            <div class="dbg-row"><span class="dbg-label">/api/diagnose</span><span class="dbg-val" id="dbg-val-diagnose">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/azure-config</span><span class="dbg-val" id="dbg-val-azure-cfg">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Firebase (backend)</span><span class="dbg-val" id="dbg-val-diag-firebase">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">OpenAI / Azure LLM</span><span class="dbg-val" id="dbg-val-diag-llm">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">ElevenLabs / Azure TTS</span><span class="dbg-val" id="dbg-val-diag-tts">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">MercadoPago</span><span class="dbg-val" id="dbg-val-diag-mp">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Node.js version</span><span class="dbg-val" id="dbg-val-diag-node">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Uptime (s)</span><span class="dbg-val" id="dbg-val-diag-uptime">—</span></div>
+            <div class="dbg-log" id="dbg-log-diagnose"></div>
+            <button class="dbg-btn green" onclick="dbgTestDiagnose()">🔄 Diagnóstico Completo</button>
+          </div>
+
+          <div style="height:20px;"></div>
         </div><!-- /tab-debug -->
 
         <script>
@@ -3788,6 +3912,509 @@ body[data-page="2fa"] .bnav{display:none!important;}
             _dot('dbg-dot-mig', 'ok');
           };
 
+          // ── PÁGINAS & DOM ─────────────────────────────────────────
+          window.dbgTestDOM = function(){
+            const log = (m,t) => _log('dbg-log-dom', m, t);
+            log('Verificando páginas do DOM...','i');
+            _dot('dbg-dot-dom','run');
+            const pages = [
+              'page-home','page-active','page-history','page-faq','page-escuta',
+              'page-learn','page-profile','page-settings','page-chat','page-admin',
+              'page-sala','page-sala-ativa','page-payment','page-langsel',
+              'page-amigos','page-liveTrans','page-novidades',
+              'page-landing','page-login','page-register','page-reset','page-2fa'
+            ];
+            const container = document.getElementById('dbg-dom-rows');
+            if(container) container.innerHTML = '';
+            let allOk = true;
+            pages.forEach(id => {
+              const el = document.getElementById(id);
+              const ok = !!el;
+              if(!ok) allOk = false;
+              log((ok?'✓':'✗')+' #'+id, ok?'s':'e');
+              if(container){
+                const row = document.createElement('div');
+                row.className = 'dbg-row';
+                row.innerHTML = '<span class="dbg-label">#'+id+'</span><span class="dbg-val '+(ok?'ok':'err')+'">'+(ok?'✅ OK':'❌ Não encontrado')+'</span>';
+                container.appendChild(row);
+              }
+            });
+            _dot('dbg-dot-dom', allOk ? 'ok' : 'err');
+
+            // Sidebar nav items
+            ['snav-home','snav-active','snav-escuta','snav-learn','snav-history',
+             'snav-chat','snav-faq','snav-sala','snav-amigos','snav-novidades','snav-admin'].forEach(id=>{
+              const el = document.getElementById(id);
+              log((el?'✓':'✗')+' sidebar #'+id, el?'s':'w');
+            });
+          };
+
+          // ── APRENDIZAGEM ──────────────────────────────────────────
+          window.dbgTestLearn = async function(){
+            const log = (m,t) => _log('dbg-log-learn', m, t);
+            log('Testando módulo de aprendizagem...','i');
+            _dot('dbg-dot-learn','run');
+            const backend = _backend();
+            const tok = await _getToken();
+
+            // Funções frontend
+            const learnFns = ['learnTab','renderLicoes','_carregarLicoesIA','profIA_enter','renderFlash','renderExer'];
+            const fnOk = learnFns.filter(fn=>typeof window[fn]==='function');
+            _val('dbg-val-learn-fns', fnOk.length+'/'+learnFns.length+' funções', fnOk.length===learnFns.length?'ok':'warn');
+            log('Funções: '+fnOk.join(', '),'i');
+
+            if(!backend || !tok){ _val('dbg-val-professor','⚠️ sem backend/token','warn'); _dot('dbg-dot-learn','warn'); return; }
+
+            // Professor IA
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/professor',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({messages:[{role:'user',content:'oi'}],lang:'inglês',level:'iniciante'})});
+              _val('dbg-val-professor', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/professor → '+r.status+' ('+(Date.now()-t0)+'ms)', r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-professor','❌ '+e.message,'err'); log('✗ /api/professor: '+e.message,'e'); }
+
+            // Lições
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/licoes',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({lang:'inglês'})});
+              _val('dbg-val-learn-licoes', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/learn/licoes → '+r.status, r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-learn-licoes','❌ '+e.message,'err'); }
+
+            // Exercícios
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/exercises',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({topic:'numbers',lang:'inglês',level:'iniciante'})});
+              _val('dbg-val-exercises', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/learn/exercises → '+r.status, r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-exercises','❌ '+e.message,'err'); }
+
+            // Conversa
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/conversa',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({messages:[{role:'user',content:'hello'}],lang:'inglês',level:'iniciante'})});
+              _val('dbg-val-conversa', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/learn/conversa → '+r.status, r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-conversa','❌ '+e.message,'err'); }
+
+            // Situação
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/situacao',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({situacao:'restaurante',lang:'inglês',level:'iniciante'})});
+              _val('dbg-val-situacao', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/learn/situacao → '+r.status, r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-situacao','❌ '+e.message,'err'); }
+
+            // Progresso GET
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/progress',{headers:{'Authorization':'Bearer '+tok}});
+              _val('dbg-val-progress-get', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' GET /api/learn/progress → '+r.status, r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-progress-get','❌ '+e.message,'err'); }
+
+            // Progresso POST
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/progress',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({lessonId:'en-cumprimentos',completed:true,score:80})});
+              _val('dbg-val-progress-post', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' POST /api/learn/progress → '+r.status, r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-progress-post','❌ '+e.message,'err'); }
+
+            // Streak
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/streak',{headers:{'Authorization':'Bearer '+tok}});
+              const r2=await fetch(backend+'/api/learn/streak',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({})});
+              _val('dbg-val-streak', (r.ok&&r2.ok)?'✅ GET+POST OK':'⚠️ GET='+r.status+' POST='+r2.status, (r.ok&&r2.ok)?'ok':'warn');
+              log((r.ok?'✓':'✗')+' GET streak='+r.status+' POST='+r2.status, (r.ok&&r2.ok)?'s':'w');
+            } catch(e){ _val('dbg-val-streak','❌ '+e.message,'err'); }
+
+            // Histórico
+            try {
+              const t0=Date.now(), r=await fetch(backend+'/api/learn/history',{headers:{'Authorization':'Bearer '+tok}});
+              _val('dbg-val-learn-history', r.ok?'✅ '+(Date.now()-t0)+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
+            } catch(e){ _val('dbg-val-learn-history','❌ '+e.message,'err'); }
+
+            // SRS
+            try {
+              const r=await fetch(backend+'/api/learn/srs',{headers:{'Authorization':'Bearer '+tok}});
+              _val('dbg-val-srs', r.ok?'✅ HTTP '+r.status:'❌ '+r.status, r.ok?'ok':'err');
+            } catch(e){ _val('dbg-val-srs','❌ '+e.message,'err'); }
+
+            // Vocab
+            try {
+              const r=await fetch(backend+'/api/learn/vocab',{headers:{'Authorization':'Bearer '+tok}});
+              _val('dbg-val-vocab', r.ok?'✅ HTTP '+r.status:'❌ '+r.status, r.ok?'ok':'err');
+            } catch(e){ _val('dbg-val-vocab','❌ '+e.message,'err'); }
+
+            // Gamif Firestore
+            try {
+              const user=firebase?.auth?.()?.currentUser;
+              if(user){
+                const db=firebase.firestore();
+                const snap=await db.collection('gamif').doc(user.uid).get();
+                _val('dbg-val-gamif', snap.exists?'✅ Doc existe':'⚠️ Sem doc (normal se novo)', snap.exists?'ok':'warn');
+              }
+            } catch(e){ _val('dbg-val-gamif','❌ '+e.message,'err'); }
+
+            _dot('dbg-dot-learn','ok');
+          };
+
+          // ── SESSÃO ATIVA & STT ────────────────────────────────────
+          window.dbgTestSession = async function(){
+            const log = (m,t) => _log('dbg-log-session', m, t);
+            log('Testando sessão ativa e STT...','i');
+            _dot('dbg-dot-session','run');
+
+            // Microfone
+            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+              _val('dbg-val-mic','✅ API disponível','ok');
+              log('✓ getUserMedia API presente','s');
+            } else {
+              _val('dbg-val-mic','❌ Não disponível','err');
+              log('✗ getUserMedia não disponível','e');
+            }
+
+            // MediaRecorder
+            const mrOk = typeof MediaRecorder !== 'undefined';
+            _val('dbg-val-mediarecorder', mrOk?'✅ Disponível':'❌ Não disponível', mrOk?'ok':'err');
+            log((mrOk?'✓':'✗')+' MediaRecorder', mrOk?'s':'e');
+
+            // SpeechSDK
+            const sdkOk = typeof SpeechSDK !== 'undefined';
+            _val('dbg-val-speechsdk', sdkOk?'✅ SpeechSDK carregado':'⚠️ Não carregado', sdkOk?'ok':'warn');
+            log((sdkOk?'✓':'⚠')+' SpeechSDK', sdkOk?'s':'w');
+
+            // Funções sessão
+            const fns = ['startRecording','stopRecording','startSession','stopSession','submitAudio'];
+            const found = fns.filter(fn=>typeof window[fn]==='function');
+            _val('dbg-val-session-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            log('Funções encontradas: '+(found.join(', ')||'nenhuma'),'i');
+
+            // Sessões Firestore
+            try {
+              const user=firebase?.auth?.()?.currentUser;
+              if(user){
+                const db=firebase.firestore();
+                const snap=await db.collection('sessions').where('uid','==',user.uid).limit(3).get();
+                _val('dbg-val-sessions-fs','✅ '+snap.size+' sessões encontradas','ok');
+                log('✓ Firestore sessions: '+snap.size+' docs','s');
+              }
+            } catch(e){ _val('dbg-val-sessions-fs','❌ '+e.message,'err'); log('✗ sessions: '+e.message,'e'); }
+
+            // /api/transcribe e /api/listen (HEAD-only sem áudio real)
+            const backend=_backend(); const tok=await _getToken();
+            if(backend && tok){
+              ['transcribe','listen'].forEach(async ep=>{
+                try {
+                  const r=await fetch(backend+'/api/'+ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({})});
+                  const id='dbg-val-'+ep;
+                  // 400 é ok — significa que chegou mas faltou o arquivo de áudio
+                  _val(id, (r.ok||r.status===400)?'✅ Rota ativa ('+r.status+')':'❌ HTTP '+r.status, (r.ok||r.status===400)?'ok':'err');
+                  log((r.status<500?'✓':'✗')+' /api/'+ep+' → '+r.status, r.status<500?'s':'e');
+                } catch(e){ _val('dbg-val-'+ep,'❌ '+e.message,'err'); }
+              });
+            }
+
+            _dot('dbg-dot-session','ok');
+          };
+
+          // ── ESCUTA AO VIVO ────────────────────────────────────────
+          window.dbgTestEscuta = async function(){
+            const log = (m,t) => _log('dbg-log-escuta', m, t);
+            log('Testando Escuta ao Vivo...','i');
+            _dot('dbg-dot-escuta','run');
+            const backend=_backend(); const tok=await _getToken();
+
+            const pgOk=!!document.getElementById('page-escuta');
+            _val('dbg-val-escuta-page', pgOk?'✅ Encontrada':'❌ Não encontrada', pgOk?'ok':'err');
+
+            const fns=['liveTransInit','liveTransToggle','liveTransStop','liveTransStart'];
+            const found=fns.filter(fn=>typeof window[fn]==='function');
+            _val('dbg-val-escuta-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            log('Funções escuta: '+(found.join(', ')||'nenhuma'),'i');
+
+            if(backend){
+              // translate-free
+              try {
+                const r=await fetch(backend+'/api/translate-free',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'hello',from:'en',to:'pt'})});
+                _val('dbg-val-translate-api', r.ok?'✅ OK':'❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/translate-free → '+r.status, r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-translate-api','❌ '+e.message,'err'); }
+
+              // cambio
+              try {
+                const r=await fetch(backend+'/api/cambio');
+                const d=await r.json().catch(()=>({}));
+                _val('dbg-val-cambio', r.ok?'✅ USD='+(d.usd||d.BRL||'?'):'❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/cambio → '+r.status+' usd='+JSON.stringify(d), r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-cambio','❌ '+e.message,'err'); }
+
+              // listen-stream (só verifica se rota existe, 400 = ok)
+              if(tok){
+                try {
+                  const r=await fetch(backend+'/api/listen-stream',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({})});
+                  _val('dbg-val-listen-stream', r.status<500?'✅ Rota ativa ('+r.status+')':'❌ HTTP '+r.status, r.status<500?'ok':'err');
+                  log((r.status<500?'✓':'✗')+' /api/listen-stream → '+r.status, r.status<500?'s':'e');
+                } catch(e){ _val('dbg-val-listen-stream','❌ '+e.message,'err'); }
+              }
+            }
+            _dot('dbg-dot-escuta','ok');
+          };
+
+          // ── SALAS COLABORATIVAS ───────────────────────────────────
+          window.dbgTestSala = async function(){
+            const log = (m,t) => _log('dbg-log-sala', m, t);
+            log('Testando salas colaborativas...','i');
+            _dot('dbg-dot-sala','run');
+            const backend=_backend(); const tok=await _getToken();
+
+            // Socket.IO
+            const sockOk = typeof io !== 'undefined' && (window._salaSocket?.connected === true);
+            _val('dbg-val-socket', typeof io==='undefined'?'⚠️ io não carregado': sockOk?'✅ Conectado':'⚠️ Desconectado (normal fora da sala)', typeof io==='undefined'?'err':sockOk?'ok':'warn');
+            log((typeof io!=='undefined'?'✓':'✗')+' Socket.IO lib, conectado='+sockOk,'i');
+
+            // Funções frontend sala
+            const fns=['criarSala','entrarSala','_salaEntrar','toggleSalaTranslation'];
+            const found=fns.filter(fn=>typeof window[fn]==='function');
+            _val('dbg-val-sala-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            log('Funções sala: '+(found.join(', ')||'nenhuma'),'i');
+
+            if(backend && tok){
+              // fase4a/status
+              try {
+                const r=await fetch(backend+'/api/fase4a/status');
+                const d=await r.json().catch(()=>({}));
+                _val('dbg-val-fase4a', r.ok?'✅ SDK='+d.hasSdk+' Key='+d.hasAzureKey:'❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/fase4a/status: '+JSON.stringify(d), r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-fase4a','❌ '+e.message,'err'); }
+
+              // rooms/create (apenas checa rota, não cria de verdade em prod)
+              try {
+                const r=await fetch(backend+'/api/rooms/create',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({lang:'en',targetLang:'pt',test:true})});
+                _val('dbg-val-rooms-create', r.status<500?'✅ Rota ativa ('+r.status+')':'❌ HTTP '+r.status, r.status<500?'ok':'err');
+                log((r.status<500?'✓':'✗')+' /api/rooms/create → '+r.status, r.status<500?'s':'e');
+              } catch(e){ _val('dbg-val-rooms-create','❌ '+e.message,'err'); }
+            }
+            _dot('dbg-dot-sala','ok');
+          };
+
+          // ── AMIGOS & GRUPOS ───────────────────────────────────────
+          window.dbgTestAmigos = async function(){
+            const log = (m,t) => _log('dbg-log-amigos', m, t);
+            log('Testando módulo de amigos e grupos...','i');
+            _dot('dbg-dot-amigos','run');
+            const user=firebase?.auth?.()?.currentUser;
+            if(!user){ log('✗ Não logado','e'); _dot('dbg-dot-amigos','err'); return; }
+            const db=firebase.firestore();
+
+            // friends
+            try {
+              const snap=await db.collection('friends').doc(user.uid).collection('list').limit(5).get();
+              _val('dbg-val-friends-read','✅ '+snap.size+' amigos','ok');
+              log('✓ friends/list: '+snap.size+' docs','s');
+            } catch(e){
+              try {
+                const snap=await db.collection('friends').where('uid','==',user.uid).limit(5).get();
+                _val('dbg-val-friends-read','✅ '+snap.size+' docs (flat)','ok');
+              } catch(e2){ _val('dbg-val-friends-read','❌ '+e2.message,'err'); log('✗ friends: '+e2.message,'e'); }
+            }
+
+            // friend_requests
+            try {
+              const snap=await db.collection('friend_requests').where('to','==',user.uid).limit(5).get();
+              _val('dbg-val-freq-read','✅ '+snap.size+' pendentes','ok');
+              log('✓ friend_requests: '+snap.size+' docs','s');
+            } catch(e){ _val('dbg-val-freq-read','❌ '+e.message,'err'); log('✗ friend_requests: '+e.message,'e'); }
+
+            // online
+            try {
+              const snap=await db.collection('online').limit(10).get();
+              _val('dbg-val-online-read','✅ '+snap.size+' online','ok');
+              log('✓ online: '+snap.size+' docs','s');
+            } catch(e){ _val('dbg-val-online-read','⚠️ '+e.message,'warn'); log('⚠ online: '+e.message,'w'); }
+
+            // conversation_groups
+            try {
+              const snap=await db.collection('conversation_groups').limit(5).get();
+              _val('dbg-val-groups','✅ '+snap.size+' grupos','ok');
+              log('✓ conversation_groups: '+snap.size+' docs','s');
+            } catch(e){ _val('dbg-val-groups','⚠️ '+e.message,'warn'); log('⚠ groups: '+e.message,'w'); }
+
+            // group_messages
+            try {
+              const snap=await db.collection('group_messages').limit(5).get();
+              _val('dbg-val-group-msgs','✅ '+snap.size+' msgs','ok');
+              log('✓ group_messages: '+snap.size+' docs','s');
+            } catch(e){ _val('dbg-val-group-msgs','⚠️ '+e.message,'warn'); }
+
+            // Funções amigos
+            const fns=['initAmigoModule','amiSwitchTab','openFriendChat','startFriendCall','hangupFriendCall'];
+            const found=fns.filter(fn=>typeof window[fn]==='function');
+            _val('dbg-val-amigos-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            log('Funções amigos: '+(found.join(', ')||'nenhuma'),'i');
+
+            _dot('dbg-dot-amigos','ok');
+          };
+
+          // ── PAGAMENTOS ────────────────────────────────────────────
+          window.dbgTestPay = async function(){
+            const log = (m,t) => _log('dbg-log-pay', m, t);
+            log('Testando pagamentos...','i');
+            _dot('dbg-dot-pay','run');
+            const backend=_backend();
+
+            // Página payment
+            const pgOk=!!document.getElementById('page-payment');
+            _val('dbg-val-pay-page', pgOk?'✅ Encontrada':'❌ Não encontrada', pgOk?'ok':'err');
+
+            // Funções pagamento
+            const fns=['openTopup','closeTopup','selectTopup','initPix','openPayment'];
+            const found=fns.filter(fn=>typeof window[fn]==='function');
+            _val('dbg-val-pay-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            log('Funções pay: '+(found.join(', ')||'nenhuma'),'i');
+
+            if(backend){
+              // cambio
+              try {
+                const r=await fetch(backend+'/api/cambio');
+                const d=await r.json().catch(()=>({}));
+                _val('dbg-val-cambio-pay', r.ok?'✅ USD/BRL='+JSON.stringify(d):'❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/cambio → '+JSON.stringify(d), r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-cambio-pay','❌ '+e.message,'err'); }
+
+              // diagnose para checar MP
+              try {
+                const r=await fetch(backend+'/api/diagnose');
+                const d=await r.json().catch(()=>({}));
+                _val('dbg-val-mp-token', d.mp?'✅ Configurado':'❌ Não configurado', d.mp?'ok':'err');
+                log((d.mp?'✓':'✗')+' MercadoPago token no backend', d.mp?'s':'e');
+              } catch(e){ _val('dbg-val-mp-token','⚠️ '+e.message,'warn'); }
+            }
+            _dot('dbg-dot-pay','ok');
+          };
+
+          // ── NOTIFICAÇÕES PUSH ─────────────────────────────────────
+          window.dbgTestNotif = async function(){
+            const log = (m,t) => _log('dbg-log-notif', m, t);
+            log('Testando notificações push...','i');
+            _dot('dbg-dot-notif','run');
+            const backend=_backend(); const tok=await _getToken();
+
+            // Permission
+            const perm = Notification?.permission || 'indisponível';
+            _val('dbg-val-notif-perm', perm==='granted'?'✅ granted':perm==='denied'?'❌ denied':'⚠️ '+perm, perm==='granted'?'ok':perm==='denied'?'err':'warn');
+            log('Notification.permission: '+perm, perm==='granted'?'s':perm==='denied'?'e':'w');
+
+            // Service Worker
+            if('serviceWorker' in navigator){
+              try {
+                const regs=await navigator.serviceWorker.getRegistrations();
+                const sw = regs.length>0;
+                _val('dbg-val-sw', sw?'✅ '+regs.length+' SW(s) registrado(s)':'⚠️ Nenhum SW', sw?'ok':'warn');
+                log((sw?'✓':'⚠')+' Service Workers: '+regs.length, sw?'s':'w');
+              } catch(e){ _val('dbg-val-sw','❌ '+e.message,'err'); }
+            } else {
+              _val('dbg-val-sw','❌ SW não suportado','err');
+            }
+
+            // PushManager
+            const pmOk = 'PushManager' in window;
+            _val('dbg-val-push-mgr', pmOk?'✅ Disponível':'❌ Não disponível', pmOk?'ok':'err');
+            log((pmOk?'✓':'✗')+' PushManager', pmOk?'s':'e');
+
+            // register endpoint
+            if(backend && tok){
+              try {
+                const r=await fetch(backend+'/api/notifications/register',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({token:'debug-test-token',platform:'web'})});
+                _val('dbg-val-notif-reg', r.status<500?'✅ Rota ativa ('+r.status+')':'❌ HTTP '+r.status, r.status<500?'ok':'err');
+                log((r.status<500?'✓':'✗')+' /api/notifications/register → '+r.status, r.status<500?'s':'e');
+              } catch(e){ _val('dbg-val-notif-reg','❌ '+e.message,'err'); }
+            }
+            _dot('dbg-dot-notif','ok');
+          };
+
+          // ── FIRESTORE COLEÇÕES ────────────────────────────────────
+          window.dbgTestCollections = async function(){
+            const log = (m,t) => _log('dbg-log-collections', m, t);
+            log('Testando coleções Firestore...','i');
+            _dot('dbg-dot-collections','run');
+            const user=firebase?.auth?.()?.currentUser;
+            if(!user){ log('✗ Não logado','e'); _dot('dbg-dot-collections','err'); return; }
+            const db=firebase.firestore();
+            const container=document.getElementById('dbg-collections-rows');
+            if(container) container.innerHTML='';
+
+            const collections=[
+              {name:'users', query:()=>db.collection('users').doc(user.uid).get(), desc:'doc do usuário'},
+              {name:'leaderboard', query:()=>db.collection('leaderboard').orderBy('xp','desc').limit(5).get(), desc:'top 5 xp'},
+              {name:'presence', query:()=>db.collection('presence').doc(user.uid).get(), desc:'presença própria'},
+              {name:'sessions', query:()=>db.collection('sessions').where('uid','==',user.uid).limit(3).get(), desc:'sessões'},
+              {name:'progress', query:()=>db.collection('progress').where('uid','==',user.uid).limit(3).get(), desc:'progresso'},
+              {name:'vocabulary', query:()=>db.collection('vocabulary').where('uid','==',user.uid).limit(5).get(), desc:'vocab'},
+              {name:'gamif', query:()=>db.collection('gamif').doc(user.uid).get(), desc:'gamificação'},
+              {name:'friend_messages', query:()=>db.collection('friend_messages').where('receiverId','==',user.uid).limit(5).get(), desc:'msgs recebidas'},
+              {name:'friends', query:()=>db.collection('friends').doc(user.uid).get(), desc:'lista amigos'},
+              {name:'friend_requests', query:()=>db.collection('friend_requests').where('to','==',user.uid).limit(5).get(), desc:'pedidos'},
+              {name:'chats', query:()=>db.collection('chats').limit(3).get(), desc:'suporte'},
+              {name:'conversation_groups', query:()=>db.collection('conversation_groups').limit(5).get(), desc:'grupos'},
+              {name:'settings', query:()=>db.collection('settings').doc('global').get(), desc:'settings globais'},
+              {name:'admin_settings', query:()=>db.collection('admin_settings').doc('main').get(), desc:'admin config'},
+              {name:'logs', query:()=>db.collection('logs').where('uid','==',user.uid).limit(3).get(), desc:'logs uso'},
+            ];
+
+            for(const col of collections){
+              try {
+                const result=await col.query();
+                const count = result.docs ? result.docs.length : (result.exists?1:0);
+                const label = result.docs ? count+' docs' : (result.exists?'existe':'sem doc');
+                log('✓ '+col.name+' ('+col.desc+'): '+label,'s');
+                if(container){
+                  const row=document.createElement('div'); row.className='dbg-row';
+                  row.innerHTML='<span class="dbg-label">'+col.name+'</span><span class="dbg-val ok">✅ '+label+'</span>';
+                  container.appendChild(row);
+                }
+              } catch(e){
+                log('✗ '+col.name+': '+e.message,'e');
+                if(container){
+                  const row=document.createElement('div'); row.className='dbg-row';
+                  row.innerHTML='<span class="dbg-label">'+col.name+'</span><span class="dbg-val err">❌ '+e.message.slice(0,40)+'</span>';
+                  container.appendChild(row);
+                }
+              }
+            }
+            _dot('dbg-dot-collections','ok');
+          };
+
+          // ── DIAGNOSE COMPLETO ─────────────────────────────────────
+          window.dbgTestDiagnose = async function(){
+            const log = (m,t) => _log('dbg-log-diagnose', m, t);
+            log('Rodando diagnóstico do backend...','i');
+            _dot('dbg-dot-diagnose','run');
+            const backend=_backend(); const tok=await _getToken();
+            if(!backend){ log('✗ Backend não detectado','e'); _dot('dbg-dot-diagnose','err'); return; }
+
+            // /api/diagnose
+            try {
+              const r=await fetch(backend+'/api/diagnose');
+              const d=await r.json().catch(()=>({}));
+              _val('dbg-val-diagnose', r.ok?'✅ OK':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              _val('dbg-val-diag-firebase', d.firebase?'✅ OK':'❌ Não configurado', d.firebase?'ok':'err');
+              _val('dbg-val-diag-llm', (d.openai||d.azure_oai)?'✅ OK':'❌ Sem LLM', (d.openai||d.azure_oai)?'ok':'err');
+              _val('dbg-val-diag-tts', (d.elevenlabs||d.azure_speech)?'✅ OK':'❌ Sem TTS', (d.elevenlabs||d.azure_speech)?'ok':'err');
+              _val('dbg-val-diag-mp', d.mp?'✅ OK':'❌ Não configurado', d.mp?'ok':'err');
+              _val('dbg-val-diag-node', d.node||'—','info');
+              _val('dbg-val-diag-uptime', d.uptime!=null?Math.round(d.uptime)+'s':'—','info');
+              log('Resposta: '+JSON.stringify(d),'i');
+            } catch(e){
+              _val('dbg-val-diagnose','❌ '+e.message,'err');
+              log('✗ /api/diagnose: '+e.message,'e');
+            }
+
+            // /api/azure-config
+            try {
+              const r=await fetch(backend+'/api/azure-config');
+              const d=await r.json().catch(()=>({}));
+              _val('dbg-val-azure-cfg', r.ok?'✅ '+JSON.stringify(d):'❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/azure-config: '+JSON.stringify(d), r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-azure-cfg','❌ '+e.message,'err'); }
+
+            _dot('dbg-dot-diagnose','ok');
+          };
+
           // ── RODAR TUDO ────────────────────────────────────────────
           window.dbgRunAll = async function(){
             await dbgTestFirebase();
@@ -3796,12 +4423,27 @@ body[data-page="2fa"] .bnav{display:none!important;}
             await dbgTestAPIs();
             await dbgTestChat();
             await dbgTestMig();
+            dbgTestDOM();
+            await dbgTestLearn();
+            await dbgTestSession();
+            await dbgTestEscuta();
+            await dbgTestSala();
+            await dbgTestAmigos();
+            await dbgTestPay();
+            await dbgTestNotif();
+            await dbgTestCollections();
+            await dbgTestDiagnose();
           };
 
           window.dbgClearAll = function(){
-            ['dbg-log-firebase','dbg-log-ranking','dbg-log-presence','dbg-log-api','dbg-log-chat','dbg-log-mig'].forEach(id=>{
+            ['dbg-log-firebase','dbg-log-ranking','dbg-log-presence','dbg-log-api',
+             'dbg-log-chat','dbg-log-mig','dbg-log-dom','dbg-log-learn','dbg-log-session',
+             'dbg-log-escuta','dbg-log-sala','dbg-log-amigos','dbg-log-pay',
+             'dbg-log-notif','dbg-log-collections','dbg-log-diagnose'].forEach(id=>{
               const el=document.getElementById(id); if(el) el.innerHTML='';
             });
+            document.getElementById('dbg-dom-rows') && (document.getElementById('dbg-dom-rows').innerHTML='');
+            document.getElementById('dbg-collections-rows') && (document.getElementById('dbg-collections-rows').innerHTML='');
           };
 
         })();

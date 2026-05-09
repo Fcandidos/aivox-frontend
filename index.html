@@ -12619,8 +12619,11 @@ async function _salaProcessAudio(){
     return;
   }
 
-  const from=LO[lfi]?.code?.split('-')[0].toLowerCase()||'pt';
-  const to  =LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
+  // Usa idiomas da sala (não os idiomas globais da sessão ativa)
+  // _salaMyLang = meu idioma (origem) | _salaTheirLang = idioma do outro (destino)
+  const from = (_salaMyLang || LO[lfi]?.code || 'PT-BR').split('-')[0].toLowerCase();
+  const to   = (_salaTheirLang || LO[lti]?.code || 'EN-US').split('-')[0].toLowerCase();
+  console.log('[SALA] from:', _salaMyLang, '→ to:', _salaTheirLang);
 
   try{
     const token=await getAuthToken();
@@ -12691,11 +12694,10 @@ async function _salaProcessAudio(){
 }
 
 function _salaReceberTraducao(data){
-  // Atualiza painel do outro
+  // Atualiza painel do outro — mostra a TRADUÇÃO (no idioma do receptor), não o original
   const outroTr=document.getElementById('sala-tr-outro');
   if(outroTr){
-    outroTr.textContent=data.original;
-    // Adiciona animação de destaque
+    outroTr.textContent=data.translation||data.original;
     outroTr.classList.add('translate-flash');
     setTimeout(()=>outroTr.classList.remove('translate-flash'),600);
   }
@@ -13065,8 +13067,9 @@ async function _salaVADProcessAudio(){
   if(blob.size<1500)return; // tamanho mínimo realista
   const lbl=document.getElementById('sala-micl');
   if(lbl)lbl.textContent='⏳ Traduzindo...';
-  const from=LO[lfi]?.code?.split('-')[0].toLowerCase()||'pt';
-  const to  =LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
+  // Usa idiomas da sala, não os globais
+  const from = (_salaMyLang || LO[lfi]?.code || 'PT-BR').split('-')[0].toLowerCase();
+  const to   = (_salaTheirLang || LO[lti]?.code || 'EN-US').split('-')[0].toLowerCase();
   try{
     const token=await getAuthToken();
     const headers=token?{Authorization:'Bearer '+token}:{};

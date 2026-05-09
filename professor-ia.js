@@ -526,12 +526,12 @@ const PIAVATAR = {
 };
 
 const PISPEECH = {
-  rec: null,
-  synth: window.speechSynthesis,
-  voices: [],
+  rec:       null,   // SpeechRecognizer (Azure) ou SpeechRecognition (fallback WebSpeech)
+  synth:     null,   // reservado para compatibilidade
+  voices:    [],     // vozes WebSpeech (fallback)
   recording: false,
-  speaking: false,
-  textOpen: false,
+  speaking:  false,
+  textOpen:  false,
 };
 
 // ── Setup panel helpers ───────────────────────────────────────
@@ -593,7 +593,10 @@ function profIA_enter() {
   profIA_startTimer();
   profIA_startBlink();
   // Detect no speech API → open text input automatically
-  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+  // Fase 1A: Azure SDK é preferido, WebSpeech é fallback
+  const hasAzureSDK = typeof SpeechSDK !== 'undefined' && window.AZURE_SPEECH_KEY && window.AZURE_SPEECH_KEY !== '{{AZURE_SPEECH_KEY}}';
+  const hasWebSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  if (!hasAzureSDK && !hasWebSpeech) {
     profIA_toggleTextInput(true);
     document.getElementById('profIA-mic-btn').style.opacity = '.3';
     document.getElementById('profIA-mic-btn').style.pointerEvents = 'none';
@@ -1026,161 +1029,124 @@ let _profIA_audioUnlocked = false;
 function profIA_unlockAudio() {
   if (_profIA_audioUnlocked) return;
   _profIA_audioUnlocked = true;
-
-  if (!window.speechSynthesis) return;
-
-  // 1. Carrega lista de vozes imediatamente
-  const v = window.speechSynthesis.getVoices();
-  if (v.length) PISPEECH.voices = v;
-
-  // 2. Dispara utterance silencioso para desbloquear o contexto de áudio no iOS/Android
-  try {
-    const u = new SpeechSynthesisUtterance('\u200B'); // zero-width space — inaudível
-    u.volume = 0;
-    u.rate = 2; // rápido para não atrasar
-    u.onend = () => {
-      // Após unlock, recarrega vozes (iOS só disponibiliza depois do primeiro speak)
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length) PISPEECH.voices = voices;
-    };
-    window.speechSynthesis.speak(u);
-    // Cancela após 100ms para não vazar som
-    setTimeout(() => {
-      try { window.speechSynthesis.cancel(); } catch(_) {}
-    }, 100);
-  } catch(e) {
-    console.warn('[profIA] unlock audio failed:', e);
-  }
-
-  // 3. Listener para quando as vozes ficarem disponíveis
-  window.speechSynthesis.onvoiceschanged = () => {
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length) PISPEECH.voices = voices;
-  };
+  // Fase 1A: Azure TTS não precisa de unlock de AudioContext como WebSpeech
+  // Mantemos o flag para compatibilidade com o resto do código
+  console.log('[profIA] audio unlocked (Azure mode)');
 }
 
 function profIA_speak(text) {
   return new Promise(resolve => {
-    if (!_profIA_voiceOn || !window.speechSynthesis || !text?.trim()) { resolve(); return; }
+    if (!_profIA_voiceOn || !text?.trim()) { resolve(); return; }
 
-    // ── Garantir unlock de áudio (iOS/mobile exige gesto do usuário) ──
-    if (!_profIA_audioUnlocked) {
-      profIA_unlockAudio();
-      // Aguarda um tick para o unlock propagar antes de falar
-      return setTimeout(() => profIA_speak(text).then(resolve), 300);
-    }
+    // Fase 1A: Azure Neural TTS
+    if (typeof SpeechSDK !== 'undefined' && window.AZURE_SPEECH_KEY &&
+        window.AZURE_SPEECH_KEY !== '{{AZURE_SPEECH_KEY}}') {
+      try {
+        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+          window.AZURE_SPEECH_KEY, window.AZURE_SPEECH_REGION || 'eastus'
+        );
+        const langMap = { English: 'en-US', Spanish: 'es-ES', French: 'fr-FR' };
+        const lang = langMap[PISTATE.lang] || 'en-US';
 
-    // ── iOS: resume se o synth estava pausado em background ──
-    try {
-      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-    } catch(_) {}
+        // Vozes por idioma e nível
+        const voiceMap = {
+          'English-Básico':        'en-US-JennyNeural',
+          'English-Intermediário': 'en-US-JennyNeural',
+          'English-Avançado':      'en-US-AriaNeural',
+          'Spanish-Básico':        'es-ES-ElviraNeural',
+          'Spanish-Intermediário': 'es-ES-ElviraNeural',
+          'Spanish-Avançado':      'es-ES-ElviraNeural',
+          'French-Básico':         'fr-FR-DeniseNeural',
+          'French-Intermediário':  'fr-FR-DeniseNeural',
+          'French-Avançado':       'fr-FR-DeniseNeural',
+        };
+        speechConfig.speechSynthesisVoiceName = voiceMap[`${PISTATE.lang}-${PISTATE.level}`] || 'en-US-JennyNeural';
 
-    window.speechSynthesis.cancel();
+        // Velocidade via SSML
+        const rateMap = { 'Básico': '-15%', 'Intermediário': '0%', 'Avançado': '+10%' };
+        const rate    = rateMap[PISTATE.level] || '0%';
+        const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+        const ssml    = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}"><voice name="${speechConfig.speechSynthesisVoiceName}"><prosody rate="${rate}">${escaped}</prosody></voice></speak>`;
 
-    const utter = new SpeechSynthesisUtterance(text);
-    const langMap = { English: 'en-US', Spanish: 'es-ES', French: 'fr-FR' };
-    utter.lang   = langMap[PISTATE.lang] || 'en-US';
-    utter.rate   = PISTATE.level === 'Básico' ? 0.84 : PISTATE.level === 'Intermediário' ? 0.95 : 1.05;
-    utter.pitch  = 1.12;
-    utter.volume = 1;
+        const player = new SpeechSDK.SpeakerAudioDestination();
+        player.onAudioEnd = () => {
+          PISPEECH.speaking = false;
+          profIA_stopTalking();
+          const ind = document.getElementById('profIA-speaking-indicator');
+          if (ind) ind.remove();
+          resolve();
+        };
 
-    // ── Seleciona melhor voz feminina disponível ──
-    const _pickVoice = (voices) => {
-      if (!voices?.length) return null;
-      const lang = utter.lang.split('-')[0];
-      const femaleNames = ['Samantha','Victoria','Karen','Moira','Fiona','Veena','Alice','Paulina',
-                           'Google UK English Female','Google US English','Microsoft Zira',
-                           'Microsoft Hazel','Nicky','Siri'];
-      return voices.find(v => v.lang.startsWith(lang) && femaleNames.some(n => v.name.includes(n)))
-          || voices.find(v => v.lang === utter.lang)
-          || voices.find(v => v.lang.startsWith(lang))
-          || voices[0];
-    };
+        const audioConfig = SpeechSDK.AudioConfig.fromSpeakerOutput(player);
+        const synth = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 
-    // ── Executa o speak após ter as vozes ──
-    const _doSpeak = (voices) => {
-      const preferred = _pickVoice(voices);
-      if (preferred) utter.voice = preferred;
-
-      let resolved = false;
-      const _done = () => {
-        if (resolved) return;
-        resolved = true;
-        clearTimeout(watchdog);
-        clearInterval(chromeWatchdog);
-        PISPEECH.speaking = false;
-        profIA_stopTalking();
-        // Remove indicador visual de áudio
-        const ind = document.getElementById('profIA-speaking-indicator');
-        if (ind) ind.remove();
-        resolve();
-      };
-
-      utter.onstart = () => {
-        clearTimeout(watchdog);
         PISPEECH.speaking = true;
         profIA_startTalking();
-        // Indicador visual "🔊 Falando..." para o usuário saber que tem áudio
+
+        // Indicador visual
         const vp = document.getElementById('profIA-voice-preview');
         if (vp && !document.getElementById('profIA-speaking-indicator')) {
           const ind = document.createElement('div');
           ind.id = 'profIA-speaking-indicator';
           ind.style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,229,255,.15);border:1px solid rgba(0,229,255,.35);border-radius:20px;padding:4px 14px;font-size:11px;color:#00e5ff;font-family:Space Mono,monospace;z-index:40;pointer-events:none;';
-          ind.textContent = '🔊 Professor Alex falando...';
+          ind.textContent = '🔊 Professor falando...';
           document.getElementById('profIA-overlay')?.appendChild(ind);
         }
-      };
-      utter.onend   = _done;
-      utter.onerror = (e) => {
-        if (e.error !== 'interrupted') console.warn('[profIA] TTS error:', e.error);
-        _done();
-      };
 
-      // ── Watchdog 1: se onstart não disparar em 3s, é iOS bloqueado ──
-      const watchdog = setTimeout(() => {
-        if (!PISPEECH.speaking) {
-          console.warn('[profIA] TTS watchdog — áudio bloqueado. Toque na tela para ativar.');
-          profIA_toast('🔇 Toque em qualquer lugar para ativar o áudio', 'warn');
-          _done();
-        }
-      }, 3000);
+        synth.speakSsmlAsync(ssml,
+          result => {
+            synth.close();
+            if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+              // onAudioEnd vai resolver a promise
+            } else {
+              PISPEECH.speaking = false;
+              profIA_stopTalking();
+              resolve();
+            }
+          },
+          err => {
+            console.warn('[profIA] Azure TTS error:', err);
+            synth.close();
+            PISPEECH.speaking = false;
+            profIA_stopTalking();
+            resolve();
+          }
+        );
 
-      // ── Watchdog 2: bug do Chrome onde speechSynthesis para no meio ──
-      // Chrome tem um bug que para de falar após ~15s — keepalive com resume()
-      const chromeWatchdog = setInterval(() => {
-        if (window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-          try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch(_) {}
-        }
-      }, 10000);
+        // Watchdog 3s — se Azure travar
+        setTimeout(() => {
+          if (PISPEECH.speaking) {
+            profIA_toast('🔇 Toque em qualquer lugar para ativar o áudio', 'warn');
+          }
+        }, 3000);
 
-      try {
-        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-        window.speechSynthesis.speak(utter);
+        return; // Azure path — não cai no fallback
       } catch(e) {
-        console.warn('[profIA] TTS speak() threw:', e);
-        _done();
+        console.warn('[profIA] Azure TTS exception, usando fallback:', e);
+        // cai no fallback abaixo
       }
-    };
-
-    // ── Carrega vozes (pode ser assíncrono no primeiro carregamento) ──
-    const cached = PISPEECH.voices.length ? PISPEECH.voices : window.speechSynthesis.getVoices();
-    if (cached.length) {
-      PISPEECH.voices = cached;
-      _doSpeak(cached);
-    } else {
-      // Vozes ainda carregando — aguarda onvoiceschanged com timeout de segurança
-      let voiceReady = false;
-      const _onVoices = () => {
-        if (voiceReady) return;
-        voiceReady = true;
-        const v = window.speechSynthesis.getVoices();
-        PISPEECH.voices = v;
-        _doSpeak(v.length ? v : []);
-      };
-      window.speechSynthesis.onvoiceschanged = _onVoices;
-      // Fallback: se em 1.5s as vozes não chegarem, fala com voz padrão do sistema
-      setTimeout(() => { if (!voiceReady) _onVoices(); }, 1500);
     }
+
+    // Fallback: Web Speech API (se Azure não disponível)
+    if (!window.speechSynthesis) { resolve(); return; }
+    if (!_profIA_audioUnlocked) {
+      _profIA_audioUnlocked = true;
+    }
+    try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(_) {}
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const langMap2 = { English: 'en-US', Spanish: 'es-ES', French: 'fr-FR' };
+    utter.lang   = langMap2[PISTATE.lang] || 'en-US';
+    utter.rate   = PISTATE.level === 'Básico' ? 0.84 : PISTATE.level === 'Intermediário' ? 0.95 : 1.05;
+    utter.pitch  = 1.12;
+    utter.volume = 1;
+    let resolved = false;
+    const _done = () => { if (resolved) return; resolved = true; PISPEECH.speaking = false; profIA_stopTalking(); resolve(); };
+    utter.onstart = () => { PISPEECH.speaking = true; profIA_startTalking(); };
+    utter.onend   = _done;
+    utter.onerror = _done;
+    setTimeout(() => { if (!PISPEECH.speaking) _done(); }, 3000);
+    try { window.speechSynthesis.speak(utter); } catch(e) { _done(); }
   });
 }
 
@@ -1195,9 +1161,79 @@ function profIA_toggleMic() {
 }
 
 function profIA_startMic() {
+  // Fase 1A: Azure Speech Recognizer com fallback WebSpeech
+  if (PISPEECH.speaking) {
+    // Cancela TTS Azure se estiver falando
+    PISPEECH.speaking = false;
+    profIA_stopTalking();
+  }
+
+  // Tentar Azure primeiro
+  if (typeof SpeechSDK !== 'undefined' && window.AZURE_SPEECH_KEY &&
+      window.AZURE_SPEECH_KEY !== '{{AZURE_SPEECH_KEY}}') {
+    try {
+      let _azureSpeechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+        window.AZURE_SPEECH_KEY, window.AZURE_SPEECH_REGION || 'eastus'
+      );
+      if (window.AZURE_CUSTOM_ENDPOINT_ID) {
+        _azureSpeechConfig.endpointId = window.AZURE_CUSTOM_ENDPOINT_ID;
+      }
+      const langMap = { English: 'en-US', Spanish: 'es-ES', French: 'fr-FR' };
+      _azureSpeechConfig.speechRecognitionLanguage = langMap[PISTATE.lang] || 'en-US';
+
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      const recognizer  = new SpeechSDK.SpeechRecognizer(_azureSpeechConfig, audioConfig);
+
+      recognizer.recognizing = (s, e) => {
+        const vp = document.getElementById('profIA-voice-preview');
+        if (vp) { vp.textContent = e.result.text; vp.style.display = 'block'; }
+      };
+
+      recognizer.recognized = (s, e) => {
+        if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech && e.result.text?.trim()) {
+          profIA_stopMic();
+          profIA_processInput(e.result.text);
+        }
+      };
+
+      recognizer.canceled = (s, e) => {
+        profIA_stopMic();
+        if (e.reason !== SpeechSDK.CancellationReason.EndOfStream) {
+          profIA_toast('Erro no microfone: ' + (e.errorDetails || 'desconhecido'), 'warn');
+        }
+      };
+
+      recognizer.sessionStopped = () => { profIA_stopMic(); };
+
+      PISPEECH.recording = true;
+      PISPEECH.rec = { _isAzure: true, recognizer };
+      recognizer.startContinuousRecognitionAsync(
+        () => {
+          const btn = document.getElementById('profIA-mic-btn');
+          if (btn) { btn.classList.add('recording'); btn.textContent = '⏹'; }
+          profIA_setExpression('aguardando');
+          profIA_setPos('right');
+        },
+        err => {
+          PISPEECH.recording = false;
+          profIA_toast('Microfone Azure: ' + err, 'warn');
+          // Fallback WebSpeech
+          _profIA_startMicWebSpeech();
+        }
+      );
+      return;
+    } catch(e) {
+      console.warn('[profIA] Azure mic error, usando fallback:', e);
+    }
+  }
+
+  // Fallback: WebSpeech API
+  _profIA_startMicWebSpeech();
+}
+
+function _profIA_startMicWebSpeech() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { profIA_toast('Microfone não suportado. Use o teclado.', 'warn'); return; }
-  if (PISPEECH.speaking) { window.speechSynthesis.cancel(); profIA_stopTalking(); }
+  if (!SR) { profIA_toast('Microfone não suportado. Use o teclado.', 'warn'); profIA_toggleTextInput(true); return; }
 
   const rec = new SR();
   const langMap = { English: 'en-US', Spanish: 'es-ES', French: 'fr-FR' };
@@ -1240,7 +1276,16 @@ function profIA_stopMic() {
   if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
   const vp = document.getElementById('profIA-voice-preview');
   if (vp) vp.style.display = 'none';
-  try { PISPEECH.rec?.stop(); } catch(_) {}
+
+  // Fase 1A: fechar recognizer Azure ou WebSpeech
+  if (PISPEECH.rec?._isAzure) {
+    try {
+      PISPEECH.rec.recognizer.stopContinuousRecognitionAsync();
+      PISPEECH.rec.recognizer.close();
+    } catch(_) {}
+  } else {
+    try { PISPEECH.rec?.stop(); } catch(_) {}
+  }
   PISPEECH.rec = null;
 }
 
@@ -1473,7 +1518,8 @@ async function profIA_endSession() {
   PISTATE.active = false;
   clearInterval(PISTATE.timerRef);
   profIA_stopMic();
-  window.speechSynthesis?.cancel();
+  // Fase 1A: Azure TTS para automaticamente quando o player termina
+  PISPEECH.speaking = false;
   profIA_stopTalking();
 
   const duration = Math.floor((Date.now() - PISTATE.startTime) / 1000);

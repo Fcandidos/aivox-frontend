@@ -1728,6 +1728,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
   from { height: 4px; }
   to   { height: 20px; }
 }
+/* ── Fase 2: Tradutor ao Vivo ─────────────────────────────────────── */
+.lt-select { width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; font-family:inherit; cursor:pointer; appearance:none; -webkit-appearance:none; }
+.lt-history-item { font-size:13px; color:var(--text); padding:8px 0; border-bottom:1px solid var(--border); line-height:1.4; }
+.lt-history-item:last-child { border-bottom:none; }
 </style>
 </head>
 <body>
@@ -3746,6 +3750,47 @@ body[data-page="2fa"] .bnav{display:none!important;}
       </div>
     </div>
 
+    <!-- ══ PAGE: TRADUTOR AO VIVO (Fase 2) ═══════════════════════════════════ -->
+    <div class="page content-area" id="page-liveTrans">
+      <div class="page-header">
+        <div class="page-title">🌐 Tradutor ao <span>Vivo</span></div>
+        <div class="page-subtitle">Aponte o microfone e ouça qualquer idioma em tempo real</div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="section-label">Idioma de entrada</div>
+        <select id="lt-from-lang" class="lt-select" onchange="liveTransSetFrom(this.value)"></select>
+        <div style="text-align:center;margin:10px 0;color:var(--muted);font-size:18px;">↓</div>
+        <div class="section-label">Idioma de saída</div>
+        <select id="lt-to-lang" class="lt-select" onchange="liveTransSetTo(this.value)"></select>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;text-align:center;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;">
+          <div class="dot" id="lt-dot" style="display:none;background:var(--red);animation:blink 1s infinite;"></div>
+          <span id="lt-status-label" style="font-size:13px;color:var(--muted);">Pronto para traduzir</span>
+        </div>
+        <button id="lt-toggle-btn" class="btn btn-primary"
+                style="width:100%;height:52px;font-size:16px;font-weight:700;"
+                onclick="liveTransToggle()">▶ Iniciar Tradução</button>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="section-label">Ouvindo</div>
+        <div id="lt-original" style="font-size:14px;color:var(--muted);min-height:32px;line-height:1.5;">—</div>
+        <div style="border-top:1px solid var(--border);margin:10px 0;"></div>
+        <div class="section-label">Tradução</div>
+        <div id="lt-translated" style="font-size:18px;font-weight:700;color:var(--accent);min-height:40px;line-height:1.4;">—</div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">Histórico da sessão</div>
+        <div id="lt-history" style="max-height:240px;overflow-y:auto;">
+          <div style="color:var(--muted);font-size:12px;text-align:center;padding:16px 0;">As traduções aparecerão aqui</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ PAGE: NOVIDADES ══════════════════════════════════════════════════ -->
     <div class="page" id="page-novidades" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 20px calc(80px + env(safe-area-inset-bottom,0px));flex-direction:column;">
 <!-- Hero header -->
@@ -5269,6 +5314,194 @@ function _updateCallTranscript(original, translated, side) {
 //  FIM FASE 4A
 // ════════════════════════════════════════════════════════════════
 
+// ════════════════════════════════════════════════════════════════
+//  FASE 2 — TRADUTOR AO VIVO (browser-only, zero backend)
+// ════════════════════════════════════════════════════════════════
+let _liveTrans           = false;
+let _liveTransRecognizer = null;
+let _liveTransSynth      = null;
+let _liveTransAudioCtx   = null;
+let _liveTransQueue      = [];
+let _liveTransSpeaking   = false;
+let _liveTransFromLang   = 'en-US';
+let _liveTransToLang     = 'pt';
+let _liveTransVoice      = 'pt-BR-FranciscaNeural';
+
+const LIVE_TRANS_LANGUAGES = {
+  from: [
+    { code:'en-US', label:'🇺🇸 Inglês (EUA)' },
+    { code:'en-GB', label:'🇬🇧 Inglês (UK)' },
+    { code:'es-ES', label:'🇪🇸 Espanhol' },
+    { code:'fr-FR', label:'🇫🇷 Francês' },
+    { code:'de-DE', label:'🇩🇪 Alemão' },
+    { code:'it-IT', label:'🇮🇹 Italiano' },
+    { code:'ja-JP', label:'🇯🇵 Japonês' },
+    { code:'zh-CN', label:'🇨🇳 Mandarim' },
+    { code:'pt-BR', label:'🇧🇷 Português (BR)' },
+  ],
+  to: [
+    { code:'pt', label:'🇧🇷 Português', voice:'pt-BR-FranciscaNeural' },
+    { code:'en', label:'🇺🇸 Inglês',    voice:'en-US-JennyNeural' },
+    { code:'es', label:'🇪🇸 Espanhol',  voice:'es-ES-ElviraNeural' },
+    { code:'fr', label:'🇫🇷 Francês',   voice:'fr-FR-DeniseNeural' },
+    { code:'de', label:'🇩🇪 Alemão',    voice:'de-DE-KatjaNeural' },
+    { code:'it', label:'🇮🇹 Italiano',  voice:'it-IT-ElsaNeural' },
+    { code:'ja', label:'🇯🇵 Japonês',   voice:'ja-JP-NanamiNeural' },
+    { code:'zh', label:'🇨🇳 Mandarim',  voice:'zh-CN-XiaoxiaoNeural' },
+  ]
+};
+
+function liveTransInit() {
+  const selFrom = document.getElementById('lt-from-lang');
+  const selTo   = document.getElementById('lt-to-lang');
+  if (selFrom && !selFrom.dataset.inited) {
+    selFrom.innerHTML = LIVE_TRANS_LANGUAGES.from.map(l => `<option value="${l.code}" ${l.code===_liveTransFromLang?'selected':''}>${l.label}</option>`).join('');
+    selFrom.dataset.inited = '1';
+  }
+  if (selTo && !selTo.dataset.inited) {
+    selTo.innerHTML = LIVE_TRANS_LANGUAGES.to.map(l => `<option value="${l.code}" ${l.code===_liveTransToLang?'selected':''}>${l.label}</option>`).join('');
+    selTo.dataset.inited = '1';
+  }
+}
+
+function liveTransToggle() {
+  if (_liveTrans) liveTransStop(); else liveTransStart();
+}
+
+async function liveTransStart() {
+  if (!window.AZURE_SPEECH_KEY || window.AZURE_SPEECH_KEY === '{{AZURE_SPEECH_KEY}}') {
+    showToast('❌ AZURE_SPEECH_KEY não configurada', 'error'); return;
+  }
+  if (typeof SpeechSDK === 'undefined') {
+    showToast('❌ Azure Speech SDK não carregou', 'error'); return;
+  }
+  try {
+    const translationConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(
+      window.AZURE_SPEECH_KEY, window.AZURE_SPEECH_REGION || 'eastus'
+    );
+    translationConfig.speechRecognitionLanguage = _liveTransFromLang;
+    translationConfig.addTargetLanguage(_liveTransToLang);
+
+    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    _liveTransRecognizer = new SpeechSDK.TranslationRecognizer(translationConfig, audioConfig);
+
+    _liveTransRecognizer.recognizing = (s, e) => {
+      _liveTransUpdateOriginal(e.result.text, false);
+    };
+
+    _liveTransRecognizer.recognized = (s, e) => {
+      if (e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech) return;
+      const original   = e.result.text;
+      const translated = e.result.translations.get(_liveTransToLang);
+      if (!original?.trim() || !translated?.trim()) return;
+      _liveTransUpdateOriginal(original, true);
+      _liveTransUpdateTranslated(translated);
+      _liveTransAddHistory(original, translated);
+      _liveTransEnqueueTTS(translated);
+    };
+
+    _liveTransRecognizer.canceled = (s, e) => {
+      if (e.reason === SpeechSDK.CancellationReason.Error) {
+        showToast('❌ Erro: ' + e.errorDetails, 'error');
+      }
+      liveTransStop();
+    };
+
+    _liveTransRecognizer.startContinuousRecognitionAsync(
+      () => {
+        _liveTrans = true;
+        _liveTransUpdateUI(true);
+        showToast('🌐 Tradução ao vivo ativada', 'success');
+      },
+      err => { showToast('❌ Microfone: ' + err, 'error'); }
+    );
+  } catch(e) {
+    showToast('❌ Erro: ' + e.message, 'error');
+  }
+}
+
+function liveTransStop() {
+  _liveTrans = false;
+  try { _liveTransRecognizer?.stopContinuousRecognitionAsync(); _liveTransRecognizer?.close(); } catch(_) {}
+  _liveTransRecognizer = null;
+  _liveTransQueue = [];
+  _liveTransSpeaking = false;
+  _liveTransUpdateUI(false);
+  showToast('⏹ Tradução ao vivo encerrada', 'info');
+}
+
+function liveTransSetFrom(code) {
+  if (_liveTrans) liveTransStop();
+  _liveTransFromLang = code;
+}
+
+function liveTransSetTo(code) {
+  if (_liveTrans) liveTransStop();
+  _liveTransToLang = code;
+  const lang = LIVE_TRANS_LANGUAGES.to.find(l => l.code === code);
+  _liveTransVoice = lang?.voice || 'en-US-JennyNeural';
+}
+
+function _liveTransEnqueueTTS(text) {
+  _liveTransQueue.push(text);
+  if (!_liveTransSpeaking) _liveTransProcessQueue();
+}
+
+function _liveTransProcessQueue() {
+  if (_liveTransQueue.length === 0) { _liveTransSpeaking = false; return; }
+  if (typeof SpeechSDK === 'undefined') { _liveTransQueue = []; return; }
+  _liveTransSpeaking = true;
+  const text = _liveTransQueue.shift();
+  try {
+    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+      window.AZURE_SPEECH_KEY, window.AZURE_SPEECH_REGION || 'eastus'
+    );
+    speechConfig.speechSynthesisVoiceName = _liveTransVoice;
+    const player = new SpeechSDK.SpeakerAudioDestination();
+    player.onAudioEnd = () => { _liveTransSpeaking = false; _liveTransProcessQueue(); };
+    const audioConfig = SpeechSDK.AudioConfig.fromSpeakerOutput(player);
+    const synth = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+    synth.speakTextAsync(text, result => { synth.close(); }, err => { synth.close(); _liveTransSpeaking = false; _liveTransProcessQueue(); });
+  } catch(e) { _liveTransSpeaking = false; _liveTransProcessQueue(); }
+}
+
+function _liveTransUpdateOriginal(text, isFinal) {
+  const el = document.getElementById('lt-original');
+  if (!el) return;
+  el.textContent = text;
+  el.style.opacity = isFinal ? '1' : '0.5';
+}
+
+function _liveTransUpdateTranslated(text) {
+  const el = document.getElementById('lt-translated');
+  if (el) el.textContent = text;
+}
+
+function _liveTransAddHistory(original, translated) {
+  const el = document.getElementById('lt-history');
+  if (!el) return;
+  const placeholder = el.querySelector('div[style*="padding:16px"]');
+  if (placeholder) placeholder.remove();
+  const item = document.createElement('div');
+  item.className = 'lt-history-item';
+  item.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:2px;">${original}</div><div style="font-weight:700;color:var(--accent);">${translated}</div>`;
+  el.insertBefore(item, el.firstChild);
+  const items = el.querySelectorAll('.lt-history-item');
+  if (items.length > 20) items[items.length - 1].remove();
+}
+
+function _liveTransUpdateUI(active) {
+  const btn = document.getElementById('lt-toggle-btn');
+  const dot = document.getElementById('lt-dot');
+  const lbl = document.getElementById('lt-status-label');
+  if (btn) { btn.textContent = active ? '⏹ Parar Tradução' : '▶ Iniciar Tradução'; btn.style.background = active ? 'var(--red)' : ''; }
+  if (dot) dot.style.display = active ? 'block' : 'none';
+  if (lbl) lbl.textContent = active ? '● Traduzindo ao vivo...' : 'Pronto para traduzir';
+}
+// ════════════════════════════════════════════════════════════════
+//  FIM FASE 2
+// ════════════════════════════════════════════════════════════════
+
 function startFriendPractice() { closeFriendChat(); navApp('sala'); showToast('💡 Compartilhe o código da sala com seu amigo!','info'); }
 
 const _amiNotifQueue=[]; let _amiNotifShowing=false;
@@ -6016,7 +6249,7 @@ console.log('✅ AIVOX Módulo Amigos + Grupos carregado');
       <div class="ni active" id="bn-home" onclick="navApp('home')"><span>🏠</span><span class="nl">Início</span></div>
       <div class="ni" id="bn-history" onclick="navApp('history')"><span>💬</span><span class="nl">Histórico</span></div>
       <div class="ni" id="bn-amigos" onclick="navApp('amigos')"><span>👫</span><span class="nl">Amigos</span></div>
-      <div class="ni" id="bn-novidades" onclick="navApp('novidades')"><span>✨</span><span class="nl">Novidades</span></div>
+      <div class="ni" id="bn-liveTrans" onclick="navApp('liveTrans')"><span>🌐</span><span class="nl">Tradutor</span></div>
       <div class="ni" id="bn-profile" onclick="navApp('profile')"><span>👤</span><span class="nl">Conta</span></div>
     </div>
   </div>
@@ -6435,6 +6668,8 @@ function enterApp(data){
   }
   // ── MÓDULO AMIGOS ──
   setTimeout(()=>{ if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();} }, 1000);
+  // ── AZURE CONFIG — busca chaves do backend após login (nunca expostas no HTML) ──
+  setTimeout(()=>{ if(typeof window._fetchAzureConfig==='function') window._fetchAzureConfig(); }, 1500);
 }
 function navApp(name){
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));
@@ -6447,7 +6682,7 @@ function navApp(name){
   const sn=document.getElementById('snav-'+name);if(sn)sn.classList.add('active');
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const bn=document.getElementById('bn-'+name);if(bn)bn.classList.add('active');
-  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem',amigos:'Amigos',novidades:'Novidades'};
+  const titles={home:'Início',active:'Sessão Ativa',history:'Histórico',faq:'Central de Ajuda',settings:'Configurações',admin:'Admin',chat:'Suporte',payment:'Pagamento',langsel:'Idiomas',profile:'Minha Conta',escuta:'Escuta ao vivo',sala:'Salas Colaborativas','sala-ativa':'Sala Ativa',learn:'Aprendizagem',amigos:'Amigos',novidades:'Novidades',liveTrans:'Tradutor ao Vivo'};
   const tb=document.getElementById('topbar-title');if(tb)tb.textContent=titles[name]||'';
   if(name==='history'){renderHist(histData);_histTab='sess';switchHistTab('sess');}
   if(name==='faq'){renderFaq('todos');setTimeout(()=>goSlide(0),100);}
@@ -6460,6 +6695,8 @@ function navApp(name){
   if(name==='sala'){initSalaPage();setTimeout(()=>{ if(typeof grpInit==='function')grpInit(); },500);}
   if(name==='learn'){loadStreak();loadVocab();setTimeout(()=>{ if(typeof astLoadStats==='function')astLoadStats(); },700);}
   if(name==='novidades'&&typeof _amiLoadVotes==='function')_amiLoadVotes();
+  if(name==='liveTrans') liveTransInit();
+  if(typeof _liveTrans!=='undefined' && _liveTrans && name!=='liveTrans') liveTransStop();
   if(name==='amigos'){
     if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();}
     else{amiSwitchTab(_amiCurrentTab||'amigos');}
@@ -10002,10 +10239,16 @@ async function _vcProcessAudio(){
     // Salvar voice_id no Firestore e _fbUser local
     const uid=window._fbUser?.uid;
     if(uid&&db){
-      await db.collection('users').doc(uid).update({voice_id:data.voice_id,voice_name:data.name,voice_created_at:firebase.firestore.FieldValue.serverTimestamp()});
+      await db.collection('users').doc(uid).update({
+        voice_id: data.voice_id,
+        voice_name: data.name,
+        azure_voice_id: data.azure_voice_id || data.voice_id, // Fase 1C: campo Azure
+        voice_created_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
     }
     window._fbUser.voice_id=data.voice_id;
     window._fbUser.voice_name=data.name;
+    if(data.azure_voice_id) window._fbUser.azure_voice_id=data.azure_voice_id;
 
     _vcUpdateStatus();
     _vcShowFeedback('✅ Voz clonada com sucesso! Todas as traduções agora usarão sua voz.','success');
@@ -10873,16 +11116,20 @@ function _rtStartMicCapture(){
 
 function _rtHandleEvent(msg){
   switch(msg.type){
+    // ── Fase 1B: eventos Azure (mantém lógica interna idêntica) ──
+    case 'aivox.transcription':
     case 'conversation.item.input_audio_transcription.completed':{
-      const t=msg.transcript?.trim();
+      const t=(msg.transcript||msg.transcript)?.trim();
       if(t){ const el=document.getElementById('sala-tr-eu'); if(el) el.textContent=t; }
       break;
     }
+    case 'aivox.translation.delta':
     case 'response.audio_transcript.delta':{
       const el=document.getElementById('sala-tr-outro');
       if(el) el.textContent=(el.textContent||'')+( msg.delta||'');
       break;
     }
+    case 'aivox.translation.done':
     case 'response.audio_transcript.done':{
       const translation=msg.transcript?.trim();
       if(!translation) break;
@@ -10898,6 +11145,7 @@ function _rtHandleEvent(msg){
       const el=document.getElementById('sala-tr-eu'); if(el) el.textContent='';
       break;
     }
+    case 'aivox.audio.delta':
     case 'response.audio.delta':{
       if(!msg.delta) break;
       try{
@@ -10915,6 +11163,7 @@ function _rtHandleEvent(msg){
       }catch(e){console.warn('rt audio:',e);}
       break;
     }
+    case 'aivox.error':
     case 'error': console.warn('Realtime error:',msg.error); break;
   }
 }
@@ -13385,6 +13634,40 @@ function _salaMostrarUIVideo(show){
 </div>
 
 <script src="professor-ia.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AZURE SPEECH SDK — STT, TTS, Translation direto no browser
+     Fase 1A + Fase 2 (Tradutor ao Vivo)
+     ═══════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+<script>
+  // Fase 1A: Chaves Azure buscadas do backend (nunca expostas no HTML)
+  // O backend serve via /api/azure-config após autenticação
+  window.AZURE_SPEECH_KEY         = '';
+  window.AZURE_SPEECH_REGION      = 'eastus';
+  window.AZURE_CUSTOM_ENDPOINT_ID = '';
+
+  // Busca chaves do backend assim que o usuário logar
+  window._fetchAzureConfig = async function() {
+    try {
+      const backendUrl = (typeof getBackendUrl === 'function') ? getBackendUrl() : localStorage.getItem('aivox_backend_url') || '';
+      if (!backendUrl) return;
+      const token = (typeof getAuthToken === 'function') ? await getAuthToken() : null;
+      if (!token) return;
+      const res = await fetch(backendUrl + '/api/azure-config', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      if (!res.ok) return;
+      const cfg = await res.json();
+      if (cfg.speechKey)    window.AZURE_SPEECH_KEY    = cfg.speechKey;
+      if (cfg.speechRegion) window.AZURE_SPEECH_REGION = cfg.speechRegion;
+      if (cfg.endpointId)   window.AZURE_CUSTOM_ENDPOINT_ID = cfg.endpointId;
+      console.log('[AIVOX] Azure config carregada do backend ✓');
+    } catch(e) {
+      console.warn('[AIVOX] Não foi possível buscar Azure config:', e.message);
+    }
+  };
+</script>
 
 <!-- ====== DEBUG PANEL — REMOVER EM PRODUÇÃO ====== -->
 <style>

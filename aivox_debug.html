@@ -1201,5 +1201,239 @@ window.onload = async () => {
   checkDb();
 };
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FASE 4A — Debug: Tradução em Chamada P2P
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+// ── Fase 4A: verificações de debug ────────────────────────────
+
+function fase4aLog(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const d = document.createElement('div');
+  d.className = 'log-line ' + (type||'i');
+  d.textContent = new Date().toLocaleTimeString('pt-BR') + ' · ' + msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function fase4aCheckAll() {
+  fase4aCheckMic();
+  fase4aCheckSocket();
+  fase4aCheckAmiState();
+  fase4aCheckAzureEnv();
+}
+
+async function fase4aCheckMic() {
+  const log = id => fase4aLog('fase4a-log-mic', id, arguments[1]);
+  const logFn = (msg, t) => fase4aLog('fase4a-log-mic', msg, t);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1 } });
+    const tracks = stream.getAudioTracks();
+    logFn('✓ Microfone concedido: ' + (tracks[0]?.label || 'sem label'), 's');
+    logFn('  sampleRate solicitado: 16000Hz', 'i');
+    // Teste de AudioContext a 16kHz
+    const ctx = new AudioContext({ sampleRate: 16000 });
+    logFn('✓ AudioContext criado — sampleRate real: ' + ctx.sampleRate + 'Hz', ctx.sampleRate === 16000 ? 's' : 'w');
+    // Teste de ScriptProcessorNode
+    const proc = ctx.createScriptProcessor(4096, 1, 1);
+    logFn('✓ ScriptProcessorNode(4096) criado — pronto para captura PCM16', 's');
+    proc.disconnect();
+    ctx.close();
+    stream.getTracks().forEach(t => t.stop());
+    document.getElementById('dot-fase4a-mic').className = 'ok';
+  } catch(e) {
+    logFn('✗ Erro no microfone: ' + e.message, 'e');
+    document.getElementById('dot-fase4a-mic').className = 'err';
+  }
+}
+
+function fase4aCheckSocket() {
+  const logFn = (msg, t) => fase4aLog('fase4a-log-socket', msg, t);
+  const s = window._salaSocket;
+  if (!s) {
+    logFn('✗ window._salaSocket não encontrado — conecte-se a uma sala primeiro', 'e');
+    document.getElementById('dot-fase4a-socket').className = 'err';
+    return;
+  }
+  logFn('✓ Socket presente — id: ' + s.id, 's');
+  logFn('  connected: ' + s.connected, s.connected ? 's' : 'e');
+
+  // Verifica se os novos eventos Fase 4A estão registrados
+  const events4a = ['ami-trans-out', 'ami-trans-text', 'ami-trans-toggle'];
+  events4a.forEach(ev => {
+    const listeners = s.listeners(ev);
+    const hasListener = listeners && listeners.length > 0;
+    logFn((hasListener ? '✓' : '⚠') + ' listener "' + ev + '": ' + (hasListener ? listeners.length + ' registrado(s)' : 'NÃO registrado — chame _callTransSetupListeners()'), hasListener ? 's' : 'w');
+  });
+
+  document.getElementById('dot-fase4a-socket').className = s.connected ? 'ok' : 'warn';
+}
+
+function fase4aCheckAmiState() {
+  const logFn = (msg, t) => fase4aLog('fase4a-log-state', msg, t);
+  if (typeof _ami === 'undefined') {
+    logFn('✗ Objeto _ami não encontrado — este debug precisa rodar no mesmo contexto do app', 'e');
+    document.getElementById('dot-fase4a-state').className = 'err';
+    return;
+  }
+
+  logFn('_ami.callUid: '    + (_ami.callUid    || '(null — sem chamada ativa)'), _ami.callUid ? 's' : 'i');
+  logFn('_ami.transEnabled: ' + _ami.transEnabled, 'i');
+  logFn('_ami.voiceClone: '   + _ami.voiceClone, 'i');
+  logFn('_ami.transFromLang: '+ _ami.transFromLang, 'i');
+  logFn('_ami.transToLang: '  + _ami.transToLang, 'i');
+  logFn('_ami.transSeqOut: '  + _ami.transSeqOut, 'i');
+  logFn('_ami.transSeqIn: '   + _ami.transSeqIn, 'i');
+  logFn('_ami.transQueue.length: ' + (_ami.transQueue?.length || 0), 'i');
+  logFn('_ami.transSpeaking: '  + _ami.transSpeaking, 'i');
+  logFn('transProcessor: ' + (_ami.transProcessor ? 'ATIVO' : 'null'), _ami.transEnabled && !_ami.transProcessor ? 'e' : 'i');
+  logFn('transAudioCtx: '  + (_ami.transAudioCtx  ? 'ATIVO (state: ' + _ami.transAudioCtx.state + ')' : 'null'), 'i');
+
+  // Verifica overlay HTML
+  const overlayEls = ['fcall-overlay', 'fcall-trans', 'fcall-voice-clone', 'fcall-transcript', 'fcall-tr-original', 'fcall-tr-translated'];
+  overlayEls.forEach(id => {
+    const el = document.getElementById(id);
+    logFn((el ? '✓' : '✗') + ' elemento #' + id + ': ' + (el ? 'encontrado' : 'NÃO ENCONTRADO no DOM'), el ? 's' : 'e');
+  });
+
+  document.getElementById('dot-fase4a-state').className = 'ok';
+}
+
+async function fase4aCheckAzureEnv() {
+  const logFn = (msg, t) => fase4aLog('fase4a-log-azure', msg, t);
+  const backendUrl = (typeof getBackendUrl === 'function') ? getBackendUrl() : localStorage.getItem('aivox_backend_url') || '';
+  if (!backendUrl) {
+    logFn('✗ Backend URL não configurado — configure em Configurações → Admin', 'e');
+    document.getElementById('dot-fase4a-azure').className = 'err';
+    return;
+  }
+  logFn('Backend URL: ' + backendUrl, 'i');
+  try {
+    const res = await fetch(backendUrl + '/api/fase4a/status', { method: 'GET' });
+    const data = await res.json().catch(() => ({}));
+    logFn('✓ Endpoint /api/fase4a/status respondeu: HTTP ' + res.status, res.ok ? 's' : 'w');
+    logFn('  AZURE_SPEECH_KEY: ' + (data.hasAzureKey ? '✓ configurado' : '✗ NÃO configurado'), data.hasAzureKey ? 's' : 'e');
+    logFn('  AZURE_SPEECH_REGION: ' + (data.hasAzureRegion ? '✓ ' + data.region : '✗ NÃO configurado'), data.hasAzureRegion ? 's' : 'e');
+    logFn('  SDK microsoft-cognitiveservices-speech-sdk: ' + (data.hasSdk ? '✓ instalado' : '✗ NÃO instalado — rode npm install microsoft-cognitiveservices-speech-sdk'), data.hasSdk ? 's' : 'e');
+    document.getElementById('dot-fase4a-azure').className = (data.hasAzureKey && data.hasAzureRegion && data.hasSdk) ? 'ok' : 'err';
+  } catch(e) {
+    logFn('⚠ Endpoint /api/fase4a/status não encontrado (pode não estar implementado ainda)', 'w');
+    logFn('  → Verifique manualmente no Render: AZURE_SPEECH_KEY e AZURE_SPEECH_REGION nas env vars', 'w');
+    logFn('  → npm list microsoft-cognitiveservices-speech-sdk no servidor', 'w');
+    document.getElementById('dot-fase4a-azure').className = 'warn';
+  }
+}
+
+function fase4aSimulateTrans() {
+  const logFn = (msg, t) => fase4aLog('fase4a-log-state', msg, t);
+  const s = window._salaSocket;
+  if (!s || !s.connected) { logFn('✗ Socket não conectado', 'e'); return; }
+  // Simula chegada de texto traduzido
+  logFn('→ Simulando evento ami-trans-text...', 'i');
+  s.emit('_fase4a_sim_text', {
+    original: 'Hello, how are you?',
+    translated: 'Olá, como vai você?',
+    side: 'other'
+  });
+  // Simula diretamente no handler local
+  if (typeof _updateCallTranscript === 'function') {
+    _updateCallTranscript('Hello, how are you?', 'Olá, como vai você?', 'other');
+    logFn('✓ _updateCallTranscript() chamado — verifique o overlay de chamada', 's');
+  } else {
+    logFn('✗ _updateCallTranscript não encontrado', 'e');
+  }
+  // Simula toggle de tradução UI
+  if (typeof _updateCallTransUI === 'function') {
+    const oldState = window._ami?.transEnabled;
+    if (window._ami) window._ami.transEnabled = true;
+    _updateCallTransUI();
+    logFn('✓ _updateCallTransUI() chamado com transEnabled=true — verifique botão 🌐', 's');
+    setTimeout(() => {
+      if (window._ami) window._ami.transEnabled = oldState || false;
+      _updateCallTransUI();
+      logFn('↩ Estado restaurado', 'i');
+    }, 3000);
+  }
+}
+</script>
+
+<!-- HTML da seção Fase 4A no body -->
+<div class="section" style="border-color:rgba(0,255,136,.2);">
+  <div class="section-title">
+    <span id="dot-fase4a-header" class="ok"></span>
+    🌐 FASE 4A — Tradução em Chamada P2P
+    <span class="section-tag new">NOVO</span>
+  </div>
+
+  <div class="detail-box" style="margin-bottom:12px;">
+    Verifica se todos os componentes da <strong>Fase 4A</strong> estão corretamente implementados:<br>
+    captura de microfone 16kHz, eventos Socket.io, estado do objeto <code>_ami</code>, elementos HTML do overlay, e variáveis de ambiente Azure no backend.
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <button class="btn green" onclick="fase4aCheckAll()">▶ Verificar Fase 4A completo</button>
+    <button class="btn" onclick="fase4aSimulateTrans()">🎭 Simular tradução</button>
+    <button class="btn red" onclick="document.querySelectorAll('[id^=fase4a-log]').forEach(e=>e.innerHTML='')">🗑 Limpar logs</button>
+  </div>
+
+  <!-- Microfone 16kHz -->
+  <div class="section-title" style="margin-top:10px;">
+    <span id="dot-fase4a-mic" class="warn"></span>
+    Microfone &amp; AudioContext 16kHz
+  </div>
+  <button class="btn" style="margin-bottom:6px;font-size:11px;padding:6px 12px;" onclick="fase4aCheckMic()">Testar mic</button>
+  <div class="log" id="fase4a-log-mic"></div>
+
+  <!-- Socket.io -->
+  <div class="section-title" style="margin-top:10px;">
+    <span id="dot-fase4a-socket" class="warn"></span>
+    Socket.io — Eventos Fase 4A
+  </div>
+  <button class="btn" style="margin-bottom:6px;font-size:11px;padding:6px 12px;" onclick="fase4aCheckSocket()">Verificar socket</button>
+  <div class="log" id="fase4a-log-socket"></div>
+
+  <!-- Estado _ami -->
+  <div class="section-title" style="margin-top:10px;">
+    <span id="dot-fase4a-state" class="warn"></span>
+    Estado _ami &amp; Elementos HTML
+  </div>
+  <button class="btn" style="margin-bottom:6px;font-size:11px;padding:6px 12px;" onclick="fase4aCheckAmiState()">Verificar estado</button>
+  <div class="log" id="fase4a-log-state"></div>
+
+  <!-- Azure Backend -->
+  <div class="section-title" style="margin-top:10px;">
+    <span id="dot-fase4a-azure" class="warn"></span>
+    Azure Speech — Variáveis de Ambiente
+  </div>
+  <button class="btn" style="margin-bottom:6px;font-size:11px;padding:6px 12px;" onclick="fase4aCheckAzureEnv()">Verificar Azure</button>
+  <div class="log" id="fase4a-log-azure"></div>
+
+  <!-- Checklist manual -->
+  <div class="section-title" style="margin-top:14px;"><span class="ok"></span>Checklist Manual Pós-Deploy</div>
+  <div class="detail-box">
+    <strong style="color:#00e5ff;">index.html</strong><br>
+    □ <code>_ami.transEnabled</code> existe no objeto <code>_ami</code><br>
+    □ <code>_callTransSetupListeners()</code> chamado ao final de <code>startCallTo</code> e <code>acceptFriendCall</code><br>
+    □ <code>_callTransStop()</code> chamado no início de <code>hangupFriendCall</code><br>
+    □ <code>#fcall-overlay</code>, <code>#fcall-trans</code>, <code>#fcall-voice-clone</code>, <code>#fcall-transcript</code> existem no HTML<br>
+    □ XP extra de 5pts ao encerrar com tradução ativa ≥ 30s<br><br>
+    <strong style="color:#00e5ff;">server.js</strong><br>
+    □ <code>callTransSessions</code> Map declarado<br>
+    □ Handler <code>ami-trans-toggle</code> presente<br>
+    □ Handler <code>ami-trans-audio</code> presente<br>
+    □ <code>_startCallTransSession</code> e <code>_stopCallTransSession</code> implementados<br>
+    □ <code>_stopCallTransSession</code> chamado no <code>disconnect</code> e no <code>ami-call-hangup</code><br><br>
+    <strong style="color:#00e5ff;">Render / Railway — Env Vars</strong><br>
+    □ <code>AZURE_SPEECH_KEY</code> configurado<br>
+    □ <code>AZURE_SPEECH_REGION</code> configurado (ex: <code>eastus</code>)<br>
+    □ <code>microsoft-cognitiveservices-speech-sdk</code> no <code>package.json</code><br><br>
+    <strong style="color:#00e5ff;">Firestore — Campos no perfil do usuário</strong><br>
+    □ <code>nativeLang</code>: idioma nativo (ex: <code>pt-BR</code>)<br>
+    □ <code>targetLang</code>: idioma que está aprendendo (ex: <code>en-US</code>)<br>
+    □ <code>azure_voice_id</code>: ID da voz clonada (opcional — fallback para voz Neural)
+  </div>
+</div>
 </body>
 </html>

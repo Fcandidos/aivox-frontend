@@ -3693,6 +3693,59 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
     </div><!-- /page-amigos -->
 
+    <!-- ══════════════════════════════════════════════════════════
+         FASE 4A: OVERLAY DE CHAMADA COM TRADUÇÃO EM TEMPO REAL
+         ═══════════════════════════════════════════════════════ -->
+
+    <!-- Overlay principal da chamada ativa -->
+    <div class="fcall-overlay" id="fcall-overlay">
+      <div class="fcall-av-big" id="fcall-av">A</div>
+      <div class="fcall-name"   id="fcall-name">Amigo</div>
+      <div class="fcall-status" id="fcall-status">Chamando...</div>
+      <div class="fcall-timer"  id="fcall-timer">00:00</div>
+
+      <!-- Botões existentes -->
+      <div class="fcall-btns">
+        <button id="fcall-mute"    class="fcall-btn mute"    onclick="toggleCallMute()">🎤</button>
+        <button id="fcall-speaker" class="fcall-btn speaker" onclick="toggleSpeaker()">🔊</button>
+        <!-- Fase 4A: botão tradução -->
+        <button id="fcall-trans"   class="fcall-btn" onclick="toggleCallTranslation()"
+          title="Ativar tradução"
+          style="background:var(--surface);border:1px solid var(--border);border-radius:50%;width:60px;height:60px;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;">
+          🌐
+        </button>
+        <button id="fcall-hangup"  class="fcall-btn hangup"  onclick="hangupFriendCall()">📵</button>
+      </div>
+
+      <!-- Fase 4A: botão voz clonada (visível apenas com tradução ativa) -->
+      <button id="fcall-voice-clone" onclick="toggleCallVoiceClone()"
+        title="Voz clonada"
+        style="display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:50%;width:52px;height:52px;font-size:20px;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;">
+        🎭
+      </button>
+
+      <!-- Fase 4A: área de transcrição (visível apenas com tradução ativa) -->
+      <div id="fcall-transcript"
+        style="display:none;margin-top:14px;background:rgba(0,0,0,.45);border:1px solid rgba(0,229,255,.2);border-radius:14px;padding:10px 14px;max-height:130px;overflow-y:auto;width:86%;max-width:340px;">
+        <div id="fcall-tr-original"   style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:4px;font-style:italic;"></div>
+        <div id="fcall-tr-translated" style="font-size:15px;color:#00e5ff;font-weight:700;"></div>
+      </div>
+    </div>
+
+    <!-- Overlay de chamada recebida -->
+    <div class="fcall-overlay" id="fcall-incoming"
+      style="background:linear-gradient(135deg,#080b12,#0f1a2e);z-index:501;">
+      <div class="fcall-av-big" id="finc-av">A</div>
+      <div class="fcall-name"   id="finc-name">Amigo</div>
+      <div class="fcall-status">Chamada de voz</div>
+      <div class="fcall-btns" style="margin-top:40px;">
+        <button class="fcall-btn" onclick="rejectFriendCall()"
+          style="background:#ff4466;color:#fff;border:none;box-shadow:0 4px 20px rgba(255,68,102,.5);">📵</button>
+        <button class="fcall-btn" onclick="acceptFriendCall()"
+          style="background:#00cc66;color:#fff;border:none;box-shadow:0 4px 20px rgba(0,204,102,.5);">📞</button>
+      </div>
+    </div>
+
     <!-- ══ PAGE: NOVIDADES ══════════════════════════════════════════════════ -->
     <div class="page" id="page-novidades" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 20px calc(80px + env(safe-area-inset-bottom,0px));flex-direction:column;">
 <!-- Hero header -->
@@ -4119,6 +4172,17 @@ const _ami = {
   pc: null, localStream: null, remoteStream: null,
   callUid: null, callTimer: null, callSeconds: 0,
   isMuted: false, isCaller: false, pendingIce: [],
+  // ── Fase 4A: Tradução em chamada ──────────────────────────────
+  transEnabled:   false,
+  voiceClone:     true,
+  transFromLang:  'pt-BR',
+  transToLang:    'en-US',
+  transProcessor: null,
+  transAudioCtx:  null,
+  transQueue:     [],
+  transSeqOut:    0,
+  transSeqIn:     0,
+  transSpeaking:  false,
 };
 
 let _amiTypingTO = null;
@@ -4903,6 +4967,7 @@ async function startCallTo(uid, name) {
     await _ami.pc.setLocalDescription(offer);
     window._salaSocket?.emit('ami-call-offer',{toUid:uid,fromName:window._fbUser?.displayName||'Usuário',offer});
     _amiShowCallOverlay(name,'Chamando...');
+    _callTransSetupListeners(); // Fase 4A
   } catch(e) { showToast('Sem acesso ao microfone','error'); }
 }
 
@@ -4939,6 +5004,7 @@ async function acceptFriendCall() {
     await _ami.pc.setLocalDescription(answer);
     window._salaSocket?.emit('ami-call-answer',{toUid:fromUid,answer});
     _amiShowCallOverlay(fromName,'Conectando...');
+    _callTransSetupListeners(); // Fase 4A
     _ami.pc.onconnectionstatechange=()=>_amiCallStateChange();
   } catch(e) { showToast('Erro ao atender chamada','error'); hangupFriendCall(); }
 }
@@ -4971,10 +5037,21 @@ function _amiCallRejected() { hangupFriendCall(); showToast('Chamada recusada','
 
 function hangupFriendCall() {
   clearInterval(_ami.callTimer); _ami.callTimer=null;
+  // Fase 4A: encerrar tradução antes do cleanup WebRTC
+  if (_ami.transEnabled) {
+    _callTransStop();
+    window._salaSocket?.emit('ami-trans-toggle', { toUid: _ami.callUid, enabled: false });
+  }
+  _ami.transEnabled = false; _ami.voiceClone = true; _ami.transSeqOut = 0; _ami.transSeqIn = 0;
   // XP por chamada de voz (se durou pelo menos 10 segundos)
   if(_ami.callSeconds>=10 && typeof addPts==='function') {
     addPts(10,'chamadas');
     _gamifToast('📞 +10 XP pela chamada de voz!','#00e5ff');
+  }
+  // Fase 4A: XP extra por chamada com tradução ativa ≥30s
+  if (_ami.callSeconds >= 30 && typeof addPts === 'function') {
+    addPts(5, 'traducao');
+    _gamifToast('🌐 +5 XP por usar tradução!', '#00e5ff');
   }
   if (_ami.callUid&&window._salaSocket) window._salaSocket.emit('ami-call-hangup',{toUid:_ami.callUid});
   try{_ami.localStream?.getTracks().forEach(t=>t.stop());}catch(e){}
@@ -5009,6 +5086,188 @@ function _amiShowCallOverlay(name, status) {
 }
 
 function _createRemoteAudio() { const a=document.createElement('audio');a.id='fcall-remote-audio';a.autoplay=true;document.body.appendChild(a);return a; }
+
+// ════════════════════════════════════════════════════════════════
+//  FASE 4A — Tradução em chamada P2P com Azure Speech
+// ════════════════════════════════════════════════════════════════
+
+async function toggleCallTranslation() {
+  if (!_ami.callUid) return;
+  _ami.transEnabled = !_ami.transEnabled;
+  window._salaSocket?.emit('ami-trans-toggle', {
+    toUid:      _ami.callUid,
+    enabled:    _ami.transEnabled,
+    voiceClone: _ami.voiceClone
+  });
+  if (_ami.transEnabled) {
+    await _callTransStart();
+  } else {
+    _callTransStop();
+  }
+  _updateCallTransUI();
+}
+
+async function toggleCallVoiceClone() {
+  _ami.voiceClone = !_ami.voiceClone;
+  window._salaSocket?.emit('ami-trans-toggle', {
+    toUid:      _ami.callUid,
+    enabled:    _ami.transEnabled,
+    voiceClone: _ami.voiceClone
+  });
+  _updateCallTransUI();
+}
+
+async function _callTransStart() {
+  try {
+    // Buscar idiomas do perfil Firebase
+    if (window._fbUser?.uid && typeof db !== 'undefined') {
+      try {
+        const snap = await db.collection('users').doc(window._fbUser.uid).get();
+        const p = snap.data() || {};
+        _ami.transFromLang = p.nativeLang   || _ami.transFromLang || 'pt-BR';
+        _ami.transToLang   = p.targetLang   || _ami.transToLang   || 'en-US';
+      } catch(e) {}
+    }
+
+    // Captura de áudio do mic separada do stream WebRTC (16kHz para Azure)
+    const micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000, channelCount: 1 }
+    });
+
+    _ami.transAudioCtx  = new AudioContext({ sampleRate: 16000 });
+    const source        = _ami.transAudioCtx.createMediaStreamSource(micStream);
+    _ami.transProcessor = _ami.transAudioCtx.createScriptProcessor(4096, 1, 1);
+
+    _ami.transProcessor.onaudioprocess = (e) => {
+      if (!_ami.transEnabled || !window._salaSocket) return;
+      const f32   = e.inputBuffer.getChannelData(0);
+      const pcm16 = new Int16Array(f32.length);
+      for (let i = 0; i < f32.length; i++) {
+        pcm16[i] = Math.max(-32768, Math.min(32767, Math.round(f32[i] * 32767)));
+      }
+      const chunk = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
+      window._salaSocket.emit('ami-trans-audio', {
+        toUid: _ami.callUid,
+        chunk,
+        seq: _ami.transSeqOut++
+      });
+    };
+
+    source.connect(_ami.transProcessor);
+    _ami.transProcessor.connect(_ami.transAudioCtx.destination);
+
+    // Silenciar stream WebRTC local enquanto tradução envia áudio pelo pipeline Azure
+    if (!_ami.isMuted) {
+      _ami.localStream?.getAudioTracks().forEach(t => { t.enabled = false; });
+    }
+
+    showToast('🌐 Tradução ativada', 'success');
+  } catch(e) {
+    showToast('❌ Erro ao ativar tradução: ' + e.message, 'error');
+    _ami.transEnabled = false;
+  }
+}
+
+function _callTransStop() {
+  // Restaura stream WebRTC (respeitando mudo)
+  if (!_ami.isMuted) {
+    _ami.localStream?.getAudioTracks().forEach(t => { t.enabled = true; });
+  }
+  try { _ami.transProcessor?.disconnect(); } catch(e) {}
+  try { _ami.transAudioCtx?.close(); }      catch(e) {}
+  _ami.transProcessor = null;
+  _ami.transAudioCtx  = null;
+  _ami.transQueue     = [];
+  _ami.transSpeaking  = false;
+  _ami.transSeqOut    = 0;
+  _ami.transSeqIn     = 0;
+  showToast('🔇 Tradução desativada', 'info');
+}
+
+function _callTransSetupListeners() {
+  const s = window._salaSocket;
+  if (!s) return;
+
+  // Remove listeners anteriores para evitar duplicatas
+  s.off('ami-trans-out');
+  s.off('ami-trans-text');
+  s.off('ami-trans-toggle');
+
+  s.on('ami-trans-out', ({ chunk, seq }) => {
+    _ami.transQueue.push({ chunk, seq });
+    _ami.transQueue.sort((a, b) => a.seq - b.seq);
+    if (!_ami.transSpeaking) _callTransPlayQueue();
+  });
+
+  s.on('ami-trans-text', ({ original, translated, side }) => {
+    _updateCallTranscript(original, translated, side);
+  });
+
+  s.on('ami-trans-toggle', ({ enabled, voiceClone }) => {
+    const msg = enabled ? '🌐 Tradução ativada pelo outro lado' : '🔇 Tradução desativada pelo outro lado';
+    showToast(msg, 'info');
+  });
+}
+
+function _callTransPlayQueue() {
+  if (_ami.transQueue.length === 0) { _ami.transSpeaking = false; return; }
+  _ami.transSpeaking = true;
+  const { chunk } = _ami.transQueue.shift();
+
+  try {
+    const binary = atob(chunk);
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    const ctx   = new AudioContext();
+    const pcm16 = new Int16Array(bytes.buffer);
+    const f32   = new Float32Array(pcm16.length);
+    for (let i = 0; i < pcm16.length; i++) f32[i] = pcm16[i] / 32768;
+
+    const buffer = ctx.createBuffer(1, f32.length, 24000); // 24kHz output do Azure TTS
+    buffer.getChannelData(0).set(f32);
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.onended = () => _callTransPlayQueue();
+    src.start();
+  } catch(e) {
+    _ami.transSpeaking = false;
+    _callTransPlayQueue();
+  }
+}
+
+function _updateCallTransUI() {
+  const btnTrans  = document.getElementById('fcall-trans');
+  const btnClone  = document.getElementById('fcall-voice-clone');
+  const transcript= document.getElementById('fcall-transcript');
+
+  if (btnTrans) {
+    btnTrans.style.background = _ami.transEnabled ? 'var(--accent)' : 'var(--surface)';
+    btnTrans.style.color      = _ami.transEnabled ? '#000' : 'var(--text)';
+    btnTrans.title = _ami.transEnabled ? 'Desativar tradução' : 'Ativar tradução';
+  }
+  if (btnClone) {
+    btnClone.style.display    = _ami.transEnabled ? 'flex' : 'none';
+    btnClone.style.background = _ami.voiceClone ? 'var(--accent2)' : 'var(--surface)';
+    btnClone.style.color      = _ami.voiceClone ? '#fff' : 'var(--text)';
+    btnClone.title = _ami.voiceClone ? 'Usando sua voz clonada' : 'Usando voz genérica';
+  }
+  if (transcript) {
+    transcript.style.display = _ami.transEnabled ? 'block' : 'none';
+  }
+}
+
+function _updateCallTranscript(original, translated, side) {
+  const elOrig  = document.getElementById('fcall-tr-original');
+  const elTrans = document.getElementById('fcall-tr-translated');
+  if (elOrig)  elOrig.textContent  = original  || '';
+  if (elTrans) elTrans.textContent = translated || '';
+}
+// ════════════════════════════════════════════════════════════════
+//  FIM FASE 4A
+// ════════════════════════════════════════════════════════════════
 
 function startFriendPractice() { closeFriendChat(); navApp('sala'); showToast('💡 Compartilhe o código da sala com seu amigo!','info'); }
 

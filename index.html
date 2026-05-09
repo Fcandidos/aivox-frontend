@@ -910,9 +910,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .vc-status{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .vc-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .vc-status-dot.none{background:var(--muted);}
-.vc-status-dot.ready{background:var(--green);animation:blink 2s ease infinite;}
+.vc-status-dot.ready{background:var(--green);box-shadow:0 0 0 0 rgba(0,255,136,.5);animation:vcGlow 2.5s ease infinite;}
 .vc-status-dot.processing{background:var(--orange);animation:blink .8s ease infinite;}
 .vc-status-dot.error{background:var(--red);}
+@keyframes vcGlow{0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,.5);}50%{box-shadow:0 0 0 5px rgba(0,255,136,.0);}}
 .vc-status-label{font-size:13px;font-weight:700;flex:1;}
 .vc-status-badge{font-size:9px;font-weight:800;font-family:var(--mono);padding:3px 8px;border-radius:7px;text-transform:uppercase;}
 .vc-status-badge.none{background:var(--surface);color:var(--muted);border:1px solid var(--border);}
@@ -2810,8 +2811,15 @@ body[data-page="2fa"] .bnav{display:none!important;}
             </button>
           </div>
 
-          <!-- Gravador -->
-          <div id="vc-recorder">
+          <!-- Gravar nova voz (aparece só quando já tem voz ativa) -->
+          <div id="vc-regravar-row" style="display:none;margin-bottom:14px;">
+            <button class="btn btn-ghost btn-full btn-sm" onclick="vcToggleRecorder()" id="vc-regravar-btn">
+              🎙️ Gravar nova voz
+            </button>
+          </div>
+
+          <!-- Gravador (colapsado quando já tem voz) -->
+          <div id="vc-recorder" style="display:block;">
             <!-- Roteiro de frases sugeridas -->
             <div class="vc-script" id="vc-script-box">
               <div class="vc-script-header">
@@ -5122,8 +5130,8 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <div class="feat-card clone">
             <div class="feat-card-icon">🧬</div>
             <div class="feat-card-title">Clonagem de Voz com IA</div>
-            <div class="feat-card-desc">Clone sua própria voz em segundos. A IA reproduz traduções com o seu timbre, tornando a conversa 100% natural — mesmo em outro idioma.</div>
-            <div class="feat-card-badge">🟣 Exclusivo AIVOX</div>
+            <div class="feat-card-desc">Clone sua voz em 30–90 segundos. O Azure Personal Voice reproduz traduções com o seu timbre — conversas 100% naturais em qualquer idioma.</div>
+            <div class="feat-card-badge">🟣 Azure Personal Voice</div>
           </div>
 
           <!-- Modo Sala -->
@@ -5548,11 +5556,11 @@ body[data-page="2fa"] .bnav{display:none!important;}
           </div>
 
           <!-- Personal Voice Azure — EM BREVE -->
-          <div class="feat-card clone" style="position:relative;overflow:hidden;">
-            <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(255,208,0,.12);color:#ffd000;border:1px solid rgba(255,208,0,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">⏳ EM BREVE</div>
+          <div class="feat-card clone" style="position:relative;overflow:hidden;border-color:rgba(0,255,136,.3);" onclick="navApp('profile')" style="cursor:pointer;">
+            <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">✅ DISPONÍVEL</div>
             <div class="feat-card-icon">🧬</div>
             <div class="feat-card-title">Voz Clonada via Azure Personal Voice</div>
-            <div class="feat-card-desc">Migração da clonagem de voz do ElevenLabs para o <strong style="color:var(--text);">Azure Personal Voice</strong>. Grave 1 minuto de áudio no Speech Studio e o Azure gera seu perfil de voz — traduções soarão com seu timbre real.</div>
+            <div class="feat-card-desc">Clone sua voz em <strong style="color:var(--text);">30–90 segundos</strong> de gravação. O Azure Personal Voice gera seu perfil de voz — todas as traduções soarão com seu timbre real em qualquer idioma.</div>
             <div style="margin-top:10px;padding:10px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.12);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6;">
               <strong style="color:#a855f7;">Como vai funcionar:</strong><br>
               ✦ Grave no <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;font-family:var(--mono);">speech.microsoft.com</code> → Personal Voice<br>
@@ -11618,15 +11626,21 @@ function _vcUpdateStatus(){
   const delRow=document.getElementById('vc-delete-row');
   if(!dot)return;
 
+  const recorderDiv  = document.getElementById('vc-recorder');
+  const regravar     = document.getElementById('vc-regravar-row');
+
   if(u?.azure_speaker_id || u?.voice_id){
     dot.className='vc-status-dot ready';
     lbl.textContent='Voz clonada ativa ✓';
     const displayId = u?.azure_speaker_id || u?.voice_id || '';
-    sub.textContent='Azure ID: '+displayId.substring(0,20)+'...';
+    sub.textContent='Azure Personal Voice · ID: '+displayId.substring(0,16)+'…';
     badge.className='vc-status-badge ready';
     badge.textContent='Ativa';
     if(prevRow)prevRow.style.display='block';
     if(delRow)delRow.style.display='block';
+    // Colapsa gravador e mostra botão "Gravar nova voz"
+    if(recorderDiv) recorderDiv.style.display='none';
+    if(regravar)    regravar.style.display='block';
   } else {
     dot.className='vc-status-dot none';
     lbl.textContent='Voz não configurada';
@@ -11635,7 +11649,19 @@ function _vcUpdateStatus(){
     badge.textContent='Inativa';
     if(prevRow)prevRow.style.display='none';
     if(delRow)delRow.style.display='none';
+    // Mostra gravador normalmente quando não tem voz
+    if(recorderDiv) recorderDiv.style.display='block';
+    if(regravar)    regravar.style.display='none';
   }
+}
+
+function vcToggleRecorder(){
+  const rec = document.getElementById('vc-recorder');
+  const btn = document.getElementById('vc-regravar-btn');
+  if(!rec) return;
+  const isOpen = rec.style.display !== 'none';
+  rec.style.display = isOpen ? 'none' : 'block';
+  if(btn) btn.textContent = isOpen ? '🎙️ Gravar nova voz' : '✕ Cancelar gravação';
 }
 
 function toggleVoiceRecord(){

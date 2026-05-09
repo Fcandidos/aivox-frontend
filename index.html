@@ -542,6 +542,10 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
 /* ── Bandeiras como imagem (compatível Windows/Linux/Mac) ── */
 .flag-img{display:none!important;}.flag-emoji{font-size:16px;display:inline-block;vertical-align:middle;margin-right:4px;line-height:1;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif;font-style:normal;}.lfl .flag-emoji{font-size:28px;margin:0;line-height:1;}.si-from-flag .flag-emoji,.si-to-flag .flag-emoji{font-size:24px;margin:0;}#aff .flag-emoji,#atf .flag-emoji{font-size:20px;margin:0;}.flag-emoji.flag-lg{font-size:24px;margin:0;}
+/* FIX: garante que o avatar do grupo chat exibe emojis de bandeira corretamente no desktop (Windows/Chrome) */
+#grp-chat-avatar{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif !important;line-height:1;overflow:hidden;}
+#grp-chat-avatar img{display:block;border-radius:4px;object-fit:cover;}
+#grp-chat-avatar .flag-emoji{font-size:24px;margin:0;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif !important;}
 .learn-lang-btn .flag-emoji{font-size:13px;margin-right:3px;}
 
 /* PROFESSOR CHAT */
@@ -1294,7 +1298,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
 /* ====== CHAMADA DE ÁUDIO (P2P WebRTC) ====== */
 .fcall-overlay {
-  position: fixed; inset: 0; z-index: 500;
+  position: fixed; inset: 0; z-index: 999998;
   background: linear-gradient(135deg, #080b12, #0f1a2e);
   display: none; flex-direction: column; align-items: center; justify-content: center;
 }
@@ -5025,6 +5029,8 @@ body[data-page="2fa"] .bnav{display:none!important;}
       <div class="fcall-av-big" id="fcall-av">A</div>
       <div class="fcall-name"   id="fcall-name">Amigo</div>
       <div class="fcall-status" id="fcall-status">Chamando...</div>
+      <!-- FIX: indicador de idiomas da tradução -->
+      <div id="fcall-lang-info" style="display:none;font-size:11px;color:var(--muted);margin-bottom:6px;font-family:var(--mono);letter-spacing:.5px;"></div>
       <div class="fcall-timer"  id="fcall-timer">00:00</div>
 
       <!-- Botões existentes -->
@@ -5057,7 +5063,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
     <!-- Overlay de chamada recebida -->
     <div class="fcall-overlay" id="fcall-incoming"
-      style="background:linear-gradient(135deg,#080b12,#0f1a2e);z-index:501;">
+      style="background:linear-gradient(135deg,#080b12,#0f1a2e);z-index:999999;">
       <div class="fcall-av-big" id="finc-av">A</div>
       <div class="fcall-name"   id="finc-name">Amigo</div>
       <div class="fcall-status">Chamada de voz</div>
@@ -5600,6 +5606,7 @@ const _ami = {
   pc: null, localStream: null, remoteStream: null,
   callUid: null, callTimer: null, callSeconds: 0,
   isMuted: false, isCaller: false, pendingIce: [],
+  _pendingOffer: null, // FIX: inicializado explicitamente
   // ── Fase 4A: Tradução em chamada ──────────────────────────────
   transEnabled:   false,
   voiceClone:     true,
@@ -6130,6 +6137,7 @@ async function _amiLoadChatMsgs(friendUid) {
         existing.forEach(m=>{ const dup=merged.some(fm=>fm.text===m.text&&fm.mine===m.mine&&Math.abs((fm.ts||0)-(m.ts||0))<3000); if(!dup)merged.push(m); });
         merged.sort((a,b)=>a.ts-b.ts);
         _ami.chatMessages[friendUid]=merged;
+        _amiRenderChat(friendUid); // FIX: renderizar após fallback bem-sucedido
       } catch(e2){ console.warn('_amiLoadChatMsgs fallback:',e2); }
     } else {
       console.warn('_amiLoadChatMsgs',e);
@@ -6525,7 +6533,9 @@ async function toggleCallTranslation() {
   window._salaSocket?.emit('ami-trans-toggle', {
     toUid:      _ami.callUid,
     enabled:    _ami.transEnabled,
-    voiceClone: _ami.voiceClone
+    voiceClone: _ami.voiceClone,
+    fromLang:   _ami.transFromLang, // FIX: informa idioma ao outro lado
+    toLang:     _ami.transToLang
   });
   if (_ami.transEnabled) {
     await _callTransStart();
@@ -6575,9 +6585,11 @@ async function _callTransStart() {
       }
       const chunk = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
       window._salaSocket.emit('ami-trans-audio', {
-        toUid: _ami.callUid,
+        toUid:    _ami.callUid,
         chunk,
-        seq: _ami.transSeqOut++
+        seq:      _ami.transSeqOut++,
+        fromLang: _ami.transFromLang, // FIX: idioma do falante (ex: pt-BR)
+        toLang:   _ami.transToLang    // FIX: idioma de saída (ex: en-US)
       });
     };
 
@@ -6631,7 +6643,13 @@ function _callTransSetupListeners() {
     _updateCallTranscript(original, translated, side);
   });
 
-  s.on('ami-trans-toggle', ({ enabled, voiceClone }) => {
+  s.on('ami-trans-toggle', ({ enabled, voiceClone, fromLang, toLang }) => {
+    // FIX: quando o outro lado ativa tradução, invertemos os idiomas para traduzir corretamente
+    // Exemplo: se o outro fala pt-BR → en-US, eu ouço en-US → meu toLang deve ser pt-BR
+    if (enabled && fromLang && toLang) {
+      _ami.transFromLang = toLang;   // o que o outro traduz para → é o que eu falo
+      _ami.transToLang   = fromLang; // o que o outro fala → é o que eu quero ouvir traduzido
+    }
     const msg = enabled ? '🌐 Tradução ativada pelo outro lado' : '🔇 Tradução desativada pelo outro lado';
     showToast(msg, 'info');
   });
@@ -6670,6 +6688,7 @@ function _updateCallTransUI() {
   const btnTrans  = document.getElementById('fcall-trans');
   const btnClone  = document.getElementById('fcall-voice-clone');
   const transcript= document.getElementById('fcall-transcript');
+  const langInfo  = document.getElementById('fcall-lang-info'); // FIX: indicador idiomas
 
   if (btnTrans) {
     btnTrans.style.background = _ami.transEnabled ? 'var(--accent)' : 'var(--surface)';
@@ -6684,6 +6703,17 @@ function _updateCallTransUI() {
   }
   if (transcript) {
     transcript.style.display = _ami.transEnabled ? 'block' : 'none';
+  }
+  // FIX: mostrar/ocultar indicador de idiomas
+  if (langInfo) {
+    if (_ami.transEnabled) {
+      const from = (_ami.transFromLang||'PT-BR').toUpperCase();
+      const to   = (_ami.transToLang||'EN-US').toUpperCase();
+      langInfo.textContent = `🌐 ${from} → ${to}`;
+      langInfo.style.display = 'block';
+    } else {
+      langInfo.style.display = 'none';
+    }
   }
 }
 
@@ -7325,19 +7355,28 @@ let _grpPresenceListener = null;  // listener de presença Firestore
 let _grpPresenceRef = null;       // ref do doc de presença do usuário atual
 let _grpBC = null;          // BroadcastChannel para sincronizar abas
 let _grpMsgsLocal = {};     // cache em memória por groupId
+// FIX desktop: usa <img> via flagcdn para garantir bandeira em Windows/Chrome
+// Flags emoji Unicode não renderizam no Windows — flagcdn garante compatibilidade cross-platform
+function _makeFlagImg(code, emoji) {
+  return '<img src="https://flagcdn.com/40x30/'+code+'.png" '
+    + 'width="32" height="24" alt="'+emoji+'" '
+    + 'style="border-radius:4px;display:block;object-fit:cover;" '
+    + 'onerror="this.style.display=\'none\';this.nextSibling&&(this.nextSibling.style.display=\'inline\');">'
+    + '<span class="flag-emoji" style="font-size:24px;display:none;">'+emoji+'</span>';
+}
 const _langEmoji = {
-  inglês:   '<span class="flag-emoji" style="font-size:24px;">🇺🇸</span>',
-  espanhol: '<span class="flag-emoji" style="font-size:24px;">🇪🇸</span>',
-  francês:  '<span class="flag-emoji" style="font-size:24px;">🇫🇷</span>',
-  alemão:   '<span class="flag-emoji" style="font-size:24px;">🇩🇪</span>',
-  japonês:  '<span class="flag-emoji" style="font-size:24px;">🇯🇵</span>',
-  italiano: '<span class="flag-emoji" style="font-size:24px;">🇮🇹</span>',
-  chinês:   '<span class="flag-emoji" style="font-size:24px;">🇨🇳</span>',
-  russo:    '<span class="flag-emoji" style="font-size:24px;">🇷🇺</span>',
-  árabe:    '<span class="flag-emoji" style="font-size:24px;">🇦🇪</span>',
-  coreano:  '<span class="flag-emoji" style="font-size:24px;">🇰🇷</span>',
-  holandês: '<span class="flag-emoji" style="font-size:24px;">🇳🇱</span>',
-  turco:    '<span class="flag-emoji" style="font-size:24px;">🇹🇷</span>',
+  inglês:   _makeFlagImg('us','🇺🇸'),
+  espanhol: _makeFlagImg('es','🇪🇸'),
+  francês:  _makeFlagImg('fr','🇫🇷'),
+  alemão:   _makeFlagImg('de','🇩🇪'),
+  japonês:  _makeFlagImg('jp','🇯🇵'),
+  italiano: _makeFlagImg('it','🇮🇹'),
+  chinês:   _makeFlagImg('cn','🇨🇳'),
+  russo:    _makeFlagImg('ru','🇷🇺'),
+  árabe:    _makeFlagImg('ae','🇦🇪'),
+  coreano:  _makeFlagImg('kr','🇰🇷'),
+  holandês: _makeFlagImg('nl','🇳🇱'),
+  turco:    _makeFlagImg('tr','🇹🇷'),
 };
 
 // ── Carrega msgs do localStorage ────────────────────────────────

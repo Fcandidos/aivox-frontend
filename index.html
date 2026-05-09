@@ -1817,15 +1817,15 @@ body[data-page="2fa"] .bnav{display:none!important;}
   <div class="auth-box">
     <div class="auth-logo"><div class="auth-logo-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:20px;" alt="AIVOX"></div><div class="auth-title">AI<span>VOX</span></div><div class="auth-sub">Faça login na sua conta</div></div>
     <div class="rl-overlay" id="rl-ov-login"><div style="font-size:48px;">🔒</div><div style="font-size:18px;font-weight:800;">Conta bloqueada temporariamente</div><div style="font-size:13px;color:var(--muted);">Aguarde <strong style="color:var(--red);" id="rl-countdown">30</strong> segundos.</div></div>
-    <div class="auth-form">
-      <div class="input-group"><div class="input-label">E-mail</div><input class="input-field" id="lo-email" type="email" placeholder="seu@email.com" autocomplete="email"></div>
-      <div class="input-group"><div class="input-label">Senha</div><input class="input-field" id="lo-pass" type="password" placeholder="Sua senha" autocomplete="current-password"></div>
+    <form class="auth-form" onsubmit="event.preventDefault();doLogin();" autocomplete="on">
+      <div class="input-group"><div class="input-label">E-mail</div><input class="input-field" id="lo-email" type="email" name="username" placeholder="seu@email.com" autocomplete="username email"></div>
+      <div class="input-group"><div class="input-label">Senha</div><input class="input-field" id="lo-pass" type="password" name="password" placeholder="Sua senha" autocomplete="current-password"></div>
       <div id="lo-err" class="form-error"></div>
-      <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar →</button>
+      <button type="submit" class="btn btn-primary btn-full">Entrar →</button>
       <div class="auth-link" onclick="goToReset()">Esqueceu a senha? <span>Redefinir</span></div>
       <div class="auth-link" onclick="showAuth('register')">Não tem conta? <span>Criar grátis</span></div>
       <div class="auth-link" onclick="showLanding()">← Voltar</div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -1834,17 +1834,17 @@ body[data-page="2fa"] .bnav{display:none!important;}
   <div class="auth-box">
     <div class="auth-logo"><div class="auth-logo-icon" style="background:none;overflow:hidden;padding:0;"><img src="/aivox-frontend/icon-192.png" style="width:100%;height:100%;object-fit:cover;border-radius:20px;" alt="AIVOX"></div><div class="auth-title">AI<span>VOX</span></div><div class="auth-sub">Crie sua conta grátis</div></div>
     <div style="display:flex;align-items:center;gap:8px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.18);border-radius:11px;padding:10px 13px;margin-bottom:14px;"><span style="font-size:16px;">🎁</span><div><div style="font-size:12px;font-weight:700;color:var(--green);">5 minutos grátis inclusos</div><div style="font-size:11px;color:var(--muted);">Sem cartão · Cancele quando quiser</div></div></div>
-    <div class="auth-form">
-      <div class="input-group"><div class="input-label">Nome completo</div><input class="input-field" id="reg-name" type="text" placeholder="Rafael Souza" autocomplete="name"></div>
-      <div class="input-group"><div class="input-label">E-mail</div><input class="input-field" id="reg-email" type="email" placeholder="seu@email.com" autocomplete="email"></div>
-      <div class="input-group"><div class="input-label">Senha</div><input class="input-field" id="reg-pass" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkRegPwStrength(this.value)"><div style="background:var(--surface);border-radius:2px;height:3px;margin-top:2px;"><div id="reg-pw-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div><div id="reg-pw-label" style="font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--mono);"></div></div>
-      <div class="input-group"><div class="input-label">Confirmar senha</div><input class="input-field" id="reg-pass2" type="password" placeholder="Repita a senha" autocomplete="new-password"></div>
+    <form class="auth-form" onsubmit="event.preventDefault();doRegister();" autocomplete="on">
+      <div class="input-group"><div class="input-label">Nome completo</div><input class="input-field" id="reg-name" type="text" name="name" placeholder="Rafael Souza" autocomplete="name"></div>
+      <div class="input-group"><div class="input-label">E-mail</div><input class="input-field" id="reg-email" type="email" name="username" placeholder="seu@email.com" autocomplete="username email"></div>
+      <div class="input-group"><div class="input-label">Senha</div><input class="input-field" id="reg-pass" type="password" name="new-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkRegPwStrength(this.value)"><div style="background:var(--surface);border-radius:2px;height:3px;margin-top:2px;"><div id="reg-pw-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div><div id="reg-pw-label" style="font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--mono);"></div></div>
+      <div class="input-group"><div class="input-label">Confirmar senha</div><input class="input-field" id="reg-pass2" type="password" name="confirm-password" placeholder="Repita a senha" autocomplete="new-password"></div>
       <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;"><input type="checkbox" id="reg-terms" style="width:16px;height:16px;border-radius:4px;margin-top:2px;flex-shrink:0;accent-color:var(--accent);"><span style="font-size:12px;color:var(--muted);line-height:1.5;">Aceito os <span style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="event.preventDefault();openTermsModal('terms')">Termos de Uso</span> e <span style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="event.preventDefault();openTermsModal('privacy')">Política de Privacidade</span></span></label>
       <div id="reg-err" class="form-error"></div>
-      <button class="btn btn-primary btn-full" id="reg-btn" onclick="doRegister()"><span id="reg-btn-txt">Criar conta grátis</span></button>
+      <button type="submit" class="btn btn-primary btn-full" id="reg-btn"><span id="reg-btn-txt">Criar conta grátis</span></button>
       <div class="auth-link" onclick="showAuth('login')">Já tem conta? <span>Entrar</span></div>
       <div class="auth-link" onclick="showLanding()">← Voltar</div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -3282,7 +3282,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <div class="chat-input-bar" style="flex-shrink:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));"><textarea class="chat-input" id="achat-reply-field" placeholder="Responder como admin..." rows="1" onkeydown="adminReplyKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendAdminReply()">➤</button></div>
       </div>
       <!-- Reset pw modal -->
-      <div class="rp-modal" id="rp-modal-el"><div class="rp-inner"><div class="rp-handle"></div><div style="font-size:16px;font-weight:800;margin-bottom:4px;">🔑 Redefinir senha</div><div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Usuário: <strong id="rp-user-name" style="color:var(--text);">—</strong></div><form onsubmit="event.preventDefault();confirmResetPw();" autocomplete="new-password"><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"><div class="input-group"><div class="input-label">Nova senha</div><input class="input-field" id="rp-new" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkPwStrength(this.value)"><div style="background:var(--surface);border-radius:2px;height:3px;margin-top:5px;"><div id="pw-str-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div></div><div class="input-group"><div class="input-label">Confirmar senha</div><input class="input-field" id="rp-confirm" type="password" placeholder="Repita a senha" autocomplete="new-password"></div></div><div id="rp-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div><div id="rp-ok" style="font-size:12px;color:var(--green);display:none;margin-bottom:8px;">✓ Senha redefinida!</div><div style="display:flex;gap:8px;"><button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeResetPw()">Cancelar</button><button type="submit" class="btn btn-primary" style="flex:2;">🔑 Confirmar</button></div></form></div></div>
+      <div class="rp-modal" id="rp-modal-el"><div class="rp-inner"><div class="rp-handle"></div><div style="font-size:16px;font-weight:800;margin-bottom:4px;">🔑 Redefinir senha</div><div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Usuário: <strong id="rp-user-name" style="color:var(--text);">—</strong></div><form onsubmit="event.preventDefault();confirmResetPw();" autocomplete="new-password"><input type="text" id="rp-username-hidden" name="username" autocomplete="username" style="display:none;" aria-hidden="true" tabindex="-1"><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"><div class="input-group"><div class="input-label">Nova senha</div><input class="input-field" id="rp-new" type="password" name="new-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkPwStrength(this.value)"><div style="background:var(--surface);border-radius:2px;height:3px;margin-top:5px;"><div id="pw-str-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div></div><div class="input-group"><div class="input-label">Confirmar senha</div><input class="input-field" id="rp-confirm" type="password" name="confirm-password" placeholder="Repita a senha" autocomplete="new-password"></div></div><div id="rp-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div><div id="rp-ok" style="font-size:12px;color:var(--green);display:none;margin-bottom:8px;">✓ Senha redefinida!</div><div style="display:flex;gap:8px;"><button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeResetPw()">Cancelar</button><button type="submit" class="btn btn-primary" style="flex:2;">🔑 Confirmar</button></div></form></div></div>
     </div>
 
 
@@ -8584,7 +8584,7 @@ async function adminAddMinutes(uid){
 }
 
 // ====== ADMIN — Reset PW ======
-function openResetPw(uid,name){document.getElementById('rp-user-name').textContent=name;document.getElementById('rp-modal-el').currentUid=uid;document.getElementById('rp-err').style.display='none';document.getElementById('rp-ok').style.display='none';document.getElementById('rp-new').value='';document.getElementById('rp-confirm').value='';document.getElementById('rp-modal-el').classList.add('sh');}
+function openResetPw(uid,name){document.getElementById('rp-user-name').textContent=name;document.getElementById('rp-modal-el').currentUid=uid;document.getElementById('rp-err').style.display='none';document.getElementById('rp-ok').style.display='none';document.getElementById('rp-new').value='';document.getElementById('rp-confirm').value='';const uh=document.getElementById('rp-username-hidden');if(uh)uh.value=name||uid||'';document.getElementById('rp-modal-el').classList.add('sh');}
 function closeResetPw(){document.getElementById('rp-modal-el').classList.remove('sh');}
 function checkPwStrength(val){const bar=document.getElementById('pw-str-bar');if(!bar)return;let score=0;if(val.length>=8)score++;if(/[A-Z]/.test(val))score++;if(/[0-9]/.test(val))score++;const colors=['#ff4466','#ff8c00','#00ff88'],widths=['33%','66%','100%'];bar.style.width=score>0?widths[score-1]:'0%';bar.style.background=score>0?colors[score-1]:'transparent';}
 function confirmResetPw(){const np=document.getElementById('rp-new').value,cp=document.getElementById('rp-confirm').value,err=document.getElementById('rp-err'),ok=document.getElementById('rp-ok');err.style.display='none';ok.style.display='none';if(np.length<8){err.textContent='Senha muito curta (mín. 8).';err.style.display='block';return;}if(np!==cp){err.textContent='Senhas não coincidem.';err.style.display='block';return;}ok.style.display='block';setTimeout(closeResetPw,1500);showToast('🔑 Senha redefinida!');}

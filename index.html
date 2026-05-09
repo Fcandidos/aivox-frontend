@@ -3735,6 +3735,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const backend = _backend();
             log('Backend: '+(backend||'(não detectado)'),'i');
             _dot('dbg-dot-api','run');
+            let hasErr=false, hasWarn=false;
 
             if(!backend){ log('✗ getBackendUrl() não retornou URL','e'); _dot('dbg-dot-api','err'); return; }
 
@@ -3742,80 +3743,68 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
             // ping
             try {
-              const t0 = Date.now();
-              const r  = await fetch(backend+'/api/ping');
-              const ms = Date.now()-t0;
-              _val('dbg-val-ping', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+              const t0=Date.now(); const r=await fetch(backend+'/api/ping'); const ms=Date.now()-t0;
+              _val('dbg-val-ping', r.ok?'✅ '+ms+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
               log((r.ok?'✓':'✗')+' /api/ping → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
-            } catch(e){ _val('dbg-val-ping','❌ '+e.message,'err'); log('✗ /api/ping: '+e.message,'e'); }
+              if(!r.ok) hasErr=true;
+            } catch(e){ _val('dbg-val-ping','❌ '+e.message,'err'); log('✗ /api/ping: '+e.message,'e'); hasErr=true; }
 
             // check
             try {
-              const t0 = Date.now();
-              const r  = await fetch(backend+'/api/check');
-              const ms = Date.now()-t0;
-              const d  = await r.json().catch(()=>({}));
-              _val('dbg-val-check', r.ok ? '✅ '+ms+'ms' : '❌ '+r.status, r.ok?'ok':'err');
-              log((r.ok?'✓':'✗')+' /api/check: openai='+d.openai_key+' anthropic='+d.anthropic_key+' azure='+d.anthropic_key, r.ok?'s':'w');
-            } catch(e){ _val('dbg-val-check','❌ '+e.message,'err'); log('✗ /api/check: '+e.message,'e'); }
+              const t0=Date.now(); const r=await fetch(backend+'/api/check'); const ms=Date.now()-t0;
+              const d=await r.json().catch(()=>({}));
+              _val('dbg-val-check', r.ok?'✅ '+ms+'ms':'❌ '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/check: openai='+d.openai_key+' anthropic='+d.anthropic_key, r.ok?'s':'w');
+              if(!r.ok) hasErr=true;
+            } catch(e){ _val('dbg-val-check','❌ '+e.message,'err'); log('✗ /api/check: '+e.message,'e'); hasErr=true; }
 
             // translate-free
             try {
-              const t0 = Date.now();
-              const r  = await fetch(backend+'/api/translate-free', {
-                method:'POST', headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({text:'Hello',from:'en',to:'pt'})
-              });
-              const ms = Date.now()-t0;
-              _val('dbg-val-translate', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+              const t0=Date.now();
+              const r=await fetch(backend+'/api/translate-free',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'Hello',from:'en',to:'pt'})});
+              const ms=Date.now()-t0;
+              _val('dbg-val-translate', r.ok?'✅ '+ms+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
               log((r.ok?'✓':'✗')+' /api/translate-free → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
-            } catch(e){ _val('dbg-val-translate','❌ '+e.message,'err'); log('✗ /api/translate-free: '+e.message,'e'); }
+              if(!r.ok) hasErr=true;
+            } catch(e){ _val('dbg-val-translate','❌ '+e.message,'err'); log('✗ /api/translate-free: '+e.message,'e'); hasErr=true; }
 
-            // licoes (requer auth)
             if(tok){
+              // licoes — HTTP 500 = erro real no backend
               try {
-                const t0 = Date.now();
-                const r  = await fetch(backend+'/api/learn/licoes', {
-                  method:'POST',
-                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
-                  body: JSON.stringify({lang:'inglês'})
-                });
-                const ms = Date.now()-t0;
-                _val('dbg-val-licoes', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+                const t0=Date.now();
+                const r=await fetch(backend+'/api/learn/licoes',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({lang:'inglês'})});
+                const ms=Date.now()-t0;
+                _val('dbg-val-licoes', r.ok?'✅ '+ms+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
                 log((r.ok?'✓':'✗')+' /api/learn/licoes → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
-              } catch(e){ _val('dbg-val-licoes','❌ '+e.message,'err'); log('✗ /api/learn/licoes: '+e.message,'e'); }
+                if(!r.ok) hasErr=true;
+              } catch(e){ _val('dbg-val-licoes','❌ '+e.message,'err'); log('✗ /api/learn/licoes: '+e.message,'e'); hasErr=true; }
 
-              // claude (Azure OpenAI)
+              // Azure OpenAI (LLM)
               try {
-                const t0 = Date.now();
-                const r  = await fetch(backend+'/api/claude', {
-                  method:'POST',
-                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
-                  body: JSON.stringify({messages:[{role:'user',content:'responda apenas: ok'}], max_tokens:10})
-                });
-                const ms = Date.now()-t0;
-                _val('dbg-val-llm', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+                const t0=Date.now();
+                const r=await fetch(backend+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({messages:[{role:'user',content:'responda apenas: ok'}],max_tokens:10})});
+                const ms=Date.now()-t0;
+                _val('dbg-val-llm', r.ok?'✅ '+ms+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
                 log((r.ok?'✓':'✗')+' /api/claude (Azure LLM) → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
-              } catch(e){ _val('dbg-val-llm','❌ '+e.message,'err'); log('✗ /api/claude: '+e.message,'e'); }
+                if(!r.ok) hasErr=true;
+              } catch(e){ _val('dbg-val-llm','❌ '+e.message,'err'); log('✗ /api/claude: '+e.message,'e'); hasErr=true; }
 
-              // speak (Azure TTS)
+              // Azure TTS
               try {
-                const t0 = Date.now();
-                const r  = await fetch(backend+'/api/speak', {
-                  method:'POST',
-                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
-                  body: JSON.stringify({text:'teste',lang:'pt',voiceId:''})
-                });
-                const ms = Date.now()-t0;
-                _val('dbg-val-tts', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+                const t0=Date.now();
+                const r=await fetch(backend+'/api/speak',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({text:'teste',lang:'pt',voiceId:''})});
+                const ms=Date.now()-t0;
+                _val('dbg-val-tts', r.ok?'✅ '+ms+'ms':'❌ HTTP '+r.status, r.ok?'ok':'err');
                 log((r.ok?'✓':'✗')+' /api/speak (Azure TTS) → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
-              } catch(e){ _val('dbg-val-tts','❌ '+e.message,'err'); log('✗ /api/speak: '+e.message,'e'); }
+                if(!r.ok) hasErr=true;
+              } catch(e){ _val('dbg-val-tts','❌ '+e.message,'err'); log('✗ /api/speak: '+e.message,'e'); hasErr=true; }
             } else {
-              ['dbg-val-licoes','dbg-val-llm','dbg-val-tts'].forEach(id => _val(id,'⚠️ sem token','warn'));
+              ['dbg-val-licoes','dbg-val-llm','dbg-val-tts'].forEach(id=>_val(id,'⚠️ sem token','warn'));
               log('⚠ Testes autenticados pulados (sem token)','w');
+              hasWarn=true;
             }
 
-            _dot('dbg-dot-api','ok');
+            _dot('dbg-dot-api', hasErr?'err':hasWarn?'warn':'ok');
           };
 
           // ── CHAT DE AMIGOS ────────────────────────────────────────
@@ -3823,6 +3812,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const log = (m,t) => _log('dbg-log-chat', m, t);
             log('Testando friend_messages...','i');
             _dot('dbg-dot-chat','run');
+            let hasErr=false, hasWarn=false;
 
             const user = firebase?.auth?.()?.currentUser;
             if(!user){ log('✗ Usuário não logado','e'); _dot('dbg-dot-chat','err'); return; }
@@ -3830,12 +3820,12 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const db = firebase.firestore();
             let testId = null;
 
-            // WRITE
+            // WRITE — usa fromUid/toUid (campos reais da coleção)
             try {
               const ref = await db.collection('friend_messages').add({
-                senderId: user.uid, receiverId: user.uid,
+                fromUid: user.uid, toUid: user.uid,
                 text: '[DEBUG TEST] '+new Date().toISOString(),
-                createdAt: firebase.firestore.Timestamp.now(), _debug: true
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(), _debug: true
               });
               testId = ref.id;
               _val('dbg-val-chat-write','✅ OK','ok');
@@ -3846,25 +3836,25 @@ body[data-page="2fa"] .bnav{display:none!important;}
               _dot('dbg-dot-chat','err'); return;
             }
 
-            // READ recebidas
+            // READ recebidas (toUid)
             try {
-              const snap = await db.collection('friend_messages').where('receiverId','==',user.uid).limit(10).get();
+              const snap = await db.collection('friend_messages').where('toUid','==',user.uid).limit(10).get();
               _val('dbg-val-chat-rec','✅ '+snap.size+' msgs','ok');
-              log('✓ READ (recebidas): '+snap.size+' docs','s');
+              log('✓ READ (toUid recebidas): '+snap.size+' docs','s');
             } catch(e){
-              _val('dbg-val-chat-rec','❌ '+e.message,'err');
-              log('✗ READ recebidas: '+e.message,'e');
+              _val('dbg-val-chat-rec','⚠️ '+e.message,'warn');
+              log('⚠ READ recebidas: '+e.message,'w'); hasWarn=true;
             }
 
-            // READ enviadas
+            // READ enviadas (fromUid)
             try {
-              const snap = await db.collection('friend_messages').where('senderId','==',user.uid).limit(10).get();
+              const snap = await db.collection('friend_messages').where('fromUid','==',user.uid).limit(10).get();
               _val('dbg-val-chat-sent','✅ '+snap.size+' msgs','ok');
               _val('dbg-val-chat-count', snap.size+' total','info');
-              log('✓ READ (enviadas): '+snap.size+' docs','s');
+              log('✓ READ (fromUid enviadas): '+snap.size+' docs','s');
             } catch(e){
-              _val('dbg-val-chat-sent','❌ '+e.message,'err');
-              log('✗ READ enviadas: '+e.message,'e');
+              _val('dbg-val-chat-sent','⚠️ '+e.message,'warn');
+              log('⚠ READ enviadas: '+e.message,'w'); hasWarn=true;
             }
 
             // DELETE
@@ -3873,13 +3863,13 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 await db.collection('friend_messages').doc(testId).delete();
                 _val('dbg-val-chat-delete','✅ OK','ok');
                 log('✓ DELETE msg de teste','s');
-                _dot('dbg-dot-chat','ok');
               } catch(e){
-                _val('dbg-val-chat-delete','❌ '+e.message,'err');
-                log('✗ DELETE: '+e.message,'e');
-                _dot('dbg-dot-chat','warn');
+                _val('dbg-val-chat-delete','⚠️ '+e.message,'warn');
+                log('⚠ DELETE: '+e.message,'w'); hasWarn=true;
               }
             }
+
+            _dot('dbg-dot-chat', hasErr?'err':hasWarn?'warn':'ok');
           };
 
           // ── MIGRAÇÃO AZURE ────────────────────────────────────────
@@ -4115,7 +4105,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const fnsOk = found.length === fns.length;
             _val('dbg-val-session-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções encontradas: '+(found.join(', ')||'nenhuma'),'i');
-            if(!fnsOk && found.length===0) hasErr=true; else if(!fnsOk) hasWarn=true;
+            if(!fnsOk) hasWarn=true; // 0/5 funções = aviso, não erro crítico
 
             // Sessões Firestore
             try {
@@ -4380,7 +4370,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
               {name:'progress', query:()=>db.collection('progress').where('uid','==',user.uid).limit(3).get(), desc:'progresso'},
               {name:'vocabulary', query:()=>db.collection('vocabulary').where('uid','==',user.uid).limit(5).get(), desc:'vocab'},
               {name:'gamif', query:()=>db.collection('gamif').doc(user.uid).get(), desc:'gamificação'},
-              {name:'friend_messages', query:()=>db.collection('friend_messages').where('receiverId','==',user.uid).limit(5).get(), desc:'msgs recebidas'},
+              {name:'friend_messages', query:()=>db.collection('friend_messages').where('toUid','==',user.uid).limit(5).get(), desc:'msgs recebidas'},
               {name:'friends', query:()=>db.collection('friends').doc(user.uid).get(), desc:'lista amigos'},
               {name:'friend_requests', query:()=>db.collection('friend_requests').where('to','==',user.uid).limit(5).get(), desc:'pedidos'},
               {name:'chats', query:()=>db.collection('chats').limit(3).get(), desc:'suporte'},

@@ -5503,6 +5503,70 @@ body[data-page="2fa"] .bnav{display:none!important;}
           </div>
         </div>
 
+
+        <!-- ─── SEÇÃO: EM DESENVOLVIMENTO ──────────────────────── -->
+        <div class="nov-section-header" style="margin-top:28px;">
+          <div class="nov-section-line"></div>
+          <div class="nov-section-title" style="color:#00e5ff;">🔧 Em desenvolvimento</div>
+          <div class="nov-section-line"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;">Funcionalidades em construção — disponíveis em breve para os usuários Pro!</div>
+
+        <div class="sug-grid">
+
+          <!-- Limpeza de fala A+B — JÁ ATIVO -->
+          <div class="feat-card" style="border-color:rgba(0,255,136,.3);background:linear-gradient(135deg,rgba(0,255,136,.05),var(--card));">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div class="feat-card-icon" style="margin:0;font-size:24px;">🧹</div>
+              <span style="font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:20px;">✅ ATIVO</span>
+            </div>
+            <div class="feat-card-title">Filtro de Vícios de Linguagem</div>
+            <div class="feat-card-desc">Remove automaticamente fillers como "tipo", "né", "então", "ahn", "intaum" e outros da transcrição — antes de traduzir. Usa limpeza local instantânea + IA para refinamento.</div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:10px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);color:var(--accent);padding:2px 8px;border-radius:6px;">⚡ Filtro A — Local</span>
+              <span style="font-size:10px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#a855f7;padding:2px 8px;border-radius:6px;">🤖 Filtro B — IA</span>
+            </div>
+          </div>
+
+          <!-- Custom Speech Azure — EM BREVE -->
+          <div class="feat-card" style="border-color:rgba(0,229,255,.25);background:linear-gradient(135deg,rgba(0,229,255,.04),var(--card));position:relative;overflow:hidden;">
+            <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(255,208,0,.12);color:#ffd000;border:1px solid rgba(255,208,0,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">⏳ EM BREVE</div>
+            <div class="feat-card-icon">🎙️</div>
+            <div class="feat-card-title">Custom Speech Azure (Filtro C)</div>
+            <div class="feat-card-desc">Modelo de reconhecimento de voz treinado com <strong style="color:var(--text);">seu próprio vocabulário e sotaque</strong>. Usa o Azure Custom Speech + Text Normalization para eliminar vícios diretamente no STT — antes mesmo de chegar ao app.</div>
+            <div style="margin-top:10px;padding:10px;background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.12);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6;">
+              <strong style="color:var(--accent);">O que será possível:</strong><br>
+              ✦ Treinar com texto + áudio do seu vocabulário<br>
+              ✦ Regras de reescrita (Text Normalization) personalizadas<br>
+              ✦ Reconhecer nomes próprios, gírias técnicas e siglas<br>
+              ✦ Integração direta com o SpeechSDK via <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;font-family:var(--mono);">endpointId</code>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:10px;background:rgba(255,208,0,.08);border:1px solid rgba(255,208,0,.2);color:#ffd000;padding:2px 8px;border-radius:6px;">☁️ Azure Custom Speech</span>
+              <span style="font-size:10px;background:rgba(255,208,0,.08);border:1px solid rgba(255,208,0,.2);color:#ffd000;padding:2px 8px;border-radius:6px;">📝 Text Normalization</span>
+            </div>
+          </div>
+
+          <!-- Personal Voice Azure — EM BREVE -->
+          <div class="feat-card clone" style="position:relative;overflow:hidden;">
+            <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;font-family:var(--mono);background:rgba(255,208,0,.12);color:#ffd000;border:1px solid rgba(255,208,0,.3);padding:2px 8px;border-radius:20px;white-space:nowrap;">⏳ EM BREVE</div>
+            <div class="feat-card-icon">🧬</div>
+            <div class="feat-card-title">Voz Clonada via Azure Personal Voice</div>
+            <div class="feat-card-desc">Migração da clonagem de voz do ElevenLabs para o <strong style="color:var(--text);">Azure Personal Voice</strong>. Grave 1 minuto de áudio no Speech Studio e o Azure gera seu perfil de voz — traduções soarão com seu timbre real.</div>
+            <div style="margin-top:10px;padding:10px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.12);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6;">
+              <strong style="color:#a855f7;">Como vai funcionar:</strong><br>
+              ✦ Grave no <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;font-family:var(--mono);">speech.microsoft.com</code> → Personal Voice<br>
+              ✦ O <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;font-family:var(--mono);">speakerProfileId</code> gerado entra no backend<br>
+              ✦ Todas as traduções usam sua voz automaticamente
+            </div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);color:#a855f7;padding:2px 8px;border-radius:6px;">☁️ Azure Personal Voice</span>
+              <span style="font-size:10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);color:#a855f7;padding:2px 8px;border-radius:6px;">🎙️ 1 min de áudio</span>
+            </div>
+          </div>
+
+        </div>
+
         <div style="margin-top:20px;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;text-align:center;">
           <div style="font-size:11px;color:var(--muted);">💬 Tem uma ideia? Fale com o suporte e sugira novas funcionalidades para o AIVOX!</div>
         </div>
@@ -6699,13 +6763,17 @@ async function liveTransStart() {
 
     _liveTransRecognizer.recognized = (s, e) => {
       if (e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech) return;
-      const original   = e.result.text;
-      const translated = e.result.translations.get(_liveTransToLang);
-      if (!original?.trim() || !translated?.trim()) return;
+      const originalRaw = e.result.text;
+      const translated  = e.result.translations.get(_liveTransToLang);
+      if (!originalRaw?.trim() || !translated?.trim()) return;
+      // Filtro A — instantâneo
+      const original = _fillerCleanLocal(originalRaw);
       _liveTransUpdateOriginal(original, true);
       _liveTransUpdateTranslated(translated);
       _liveTransAddHistory(original, translated);
       _liveTransEnqueueTTS(translated);
+      // Filtro B — IA em background
+      if(window._fillerConfig?.aiEnabled){ _fillerCleanAI(original).then(aiClean=>{ if(aiClean!==original) _liveTransUpdateOriginal(aiClean, true); }); }
     };
 
     _liveTransRecognizer.canceled = (s, e) => {
@@ -7687,6 +7755,115 @@ let userPlan='trial',userRole='user',currentPage='landing';
 
 // ── Backend URL — sempre lê o valor atual ──
 const _BACKEND_FALLBACK = 'https://aivox-backend.onrender.com';
+
+// ══════════════════════════════════════════════════════════════════
+//  AIVOX — Motor de Limpeza de Fala (Filtro A + IA B)
+//  Versão 1.0 · Fabio Candido / CMAA
+// ══════════════════════════════════════════════════════════════════
+
+// ── Configuração (pode ser alterada pelo usuário) ─────────────────
+window._fillerConfig = {
+  enabled: true,       // Filtro A ativo
+  aiEnabled: true,     // Limpeza via IA (Opção B) ativa
+  // Aprende fillers do usuário — persistido no localStorage
+  userFillers: JSON.parse(localStorage.getItem('aivox_user_fillers') || '[]'),
+};
+
+// ── Lista base PT-BR de fillers ───────────────────────────────────
+const _FILLERS_PTBR = [
+  // Vícios de linguagem
+  'intaum','intão','entaum','então','então','tipo assim','tipo',
+  'né','né não','né isso','tá','tá bom','tá certo',
+  'sabe','sabe não','você sabe','sabe como',
+  'assim','assim ó','assim assim',
+  'ahn','ahh','ahm','éh','ééé','iii','uuu','hmm','hm','uhh','uh',
+  'é que','é tipo','é assim','é isso','é isso aí',
+  'cara','mano','véi',
+  // Falsos começos e repetições
+  'eu eu','eu ia','eu ia dizer','como é que','como é',
+  'na verdade','de certa forma','de alguma forma',
+  'basicamente','literalmente',
+  // Inglês (quando fala misturado)
+  'you know','i mean','like','well','uh','um','so','okay','ok',
+  'actually','basically','literally','right',
+];
+
+// ── Filtro A: limpeza local via regex ────────────────────────────
+function _fillerCleanLocal(text) {
+  if (!window._fillerConfig.enabled || !text) return text;
+
+  // Combina lista base + fillers aprendidos do usuário
+  const allFillers = [..._FILLERS_PTBR, ...window._fillerConfig.userFillers];
+
+  let cleaned = text;
+
+  // Remove fillers — ordem: maiores primeiro (ex: "tipo assim" antes de "tipo")
+  const sorted = allFillers
+    .filter(f => f && f.trim().length > 0)
+    .sort((a, b) => b.length - a.length);
+
+  for (const filler of sorted) {
+    // Borda de palavra, case-insensitive, com possível pontuação ao redor
+    const escaped = filler.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const rx = new RegExp('(?:^|\\s)' + escaped + '(?=\\s|[,;.!?]|$)', 'gi');
+    cleaned = cleaned.replace(rx, ' ');
+  }
+
+  // Remove espaços duplos e trim
+  return cleaned.replace(/\s{2,}/g, ' ').replace(/^[,;.\s]+/, '').trim();
+}
+
+// ── Aprende novo filler do usuário ───────────────────────────────
+function _fillerLearn(word) {
+  if (!word || word.length < 2) return;
+  const w = word.toLowerCase().trim();
+  if (_FILLERS_PTBR.includes(w)) return;
+  if (!window._fillerConfig.userFillers.includes(w)) {
+    window._fillerConfig.userFillers.push(w);
+    localStorage.setItem('aivox_user_fillers', JSON.stringify(window._fillerConfig.userFillers));
+  }
+}
+
+// ── Filtro B: limpeza via Azure OpenAI ───────────────────────────
+async function _fillerCleanAI(text) {
+  if (!window._fillerConfig.aiEnabled || !text || text.length < 8) return text;
+  try {
+    const backendUrl = (typeof getBackendUrl === 'function') ? getBackendUrl() : '';
+    const token = (typeof getAuthToken === 'function') ? await getAuthToken().catch(() => null) : null;
+    if (!backendUrl || !token) return text;
+
+    const prompt = `Você é um processador de texto de fala. Remova APENAS vícios de linguagem, hesitações e fillers do texto abaixo, mantendo o significado original intacto. NÃO traduza. NÃO adicione palavras. NÃO altere o idioma. Retorne SOMENTE o texto limpo, sem explicação.
+
+Texto: "${text}"`;
+
+    const res = await fetch(backendUrl + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], max_tokens: 200 })
+    });
+    if (!res.ok) return text;
+    const data = await res.json();
+    const cleaned = (data.content || []).map(b => b.text || '').join('').trim();
+    return cleaned.length > 2 ? cleaned : text;
+  } catch (e) {
+    return text; // fallback: retorna original se IA falhar
+  }
+}
+
+// ── Ponto de entrada principal ────────────────────────────────────
+// Aplica A primeiro (instantâneo), depois B se IA habilitada
+async function _fillerProcess(text) {
+  if (!text || !text.trim()) return text;
+  const afterA = _fillerCleanLocal(text);
+  // Só chama IA se o texto mudou ou se AI está forçada
+  if (window._fillerConfig.aiEnabled && afterA.length > 8) {
+    return await _fillerCleanAI(afterA);
+  }
+  return afterA;
+}
+
+console.log('[AIVOX] Motor de Limpeza de Fala carregado ✓ (A+B ativos)');
+
 function getBackendUrl(){
   return (window.AIVOX_BACKEND_URL||'').trim() || _BACKEND_FALLBACK;
 }
@@ -9102,7 +9279,8 @@ async function _processEscutaChunk(blob){
       const rd=await fetch(backendUrl+'/api/listen',{method:'POST',headers,body:fd,signal:AbortSignal.timeout(30000)});
       const d=await rd.json();
       if(d.original&&d.original.trim().length>1){
-        _updateLiveEscutaLine(lineEl,d.original,d.translation);
+        const _escOrigClean = _fillerCleanLocal(d.original);
+        _updateLiveEscutaLine(lineEl,_escOrigClean,d.translation);
         if(curr)curr.textContent='...';
         if(_escutaMode==='audio'&&d.translation)_speakTranslation(d.translation);
       }else{
@@ -9127,8 +9305,7 @@ async function _processEscutaChunk(blob){
         try{
           const ev=JSON.parse(line.slice(5));
           if(ev.type==='transcript'){
-            original=ev.text;
-            // Atualiza texto original na linha em tempo real
+            original = _fillerCleanLocal(ev.text); // Filtro A
             const origEl=lineEl?.querySelector('[data-orig]');
             if(origEl)origEl.textContent=original;
           }
@@ -9725,9 +9902,13 @@ async function _processSessAudio(){
       document.getElementById('tr1').textContent='Não entendi. Tente novamente.';
       return;
     }
-    document.getElementById('tr1').textContent=d.original;
+    // ── Filtro A+B: limpa fala antes de exibir ──────────────
+    const _origClean = _fillerCleanLocal(d.original);
+    document.getElementById('tr1').textContent=_origClean;
     document.getElementById('tr2').textContent=d.translation;
-    _addSessionBubble(d.original,d.translation,'me',from,to,latMs+'ms');
+    _addSessionBubble(_origClean,d.translation,'me',from,to,latMs+'ms');
+    // Limpeza IA em background (atualiza se diferente)
+    if(window._fillerConfig?.aiEnabled){ _fillerCleanAI(_origClean).then(aiClean=>{ if(aiClean!==_origClean){ document.getElementById('tr1').textContent=aiClean; const bubs=document.getElementById('bubs'); if(bubs){const last=bubs.querySelector('.bme:last-child .bub-orig'); if(last)last.textContent=aiClean;} } }); }
     wc+=d.original.split(' ').length;
     document.getElementById('mwrd').textContent=wc;
     document.getElementById('mlat').textContent=latMs+'ms';

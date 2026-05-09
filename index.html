@@ -3282,7 +3282,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
         <div class="chat-input-bar" style="flex-shrink:0;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));"><textarea class="chat-input" id="achat-reply-field" placeholder="Responder como admin..." rows="1" onkeydown="adminReplyKeydown(event)" oninput="autoResize(this)"></textarea><button class="chat-send" onclick="sendAdminReply()">➤</button></div>
       </div>
       <!-- Reset pw modal -->
-      <div class="rp-modal" id="rp-modal-el"><div class="rp-inner"><div class="rp-handle"></div><div style="font-size:16px;font-weight:800;margin-bottom:4px;">🔑 Redefinir senha</div><div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Usuário: <strong id="rp-user-name" style="color:var(--text);">—</strong></div><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"><div class="input-group"><div class="input-label">Nova senha</div><input class="input-field" id="rp-new" type="password" placeholder="Mínimo 8 caracteres" oninput="checkPwStrength(this.value)"><div style="background:var(--surface);border-radius:2px;height:3px;margin-top:5px;"><div id="pw-str-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div></div><div class="input-group"><div class="input-label">Confirmar senha</div><input class="input-field" id="rp-confirm" type="password" placeholder="Repita a senha"></div></div><div id="rp-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div><div id="rp-ok" style="font-size:12px;color:var(--green);display:none;margin-bottom:8px;">✓ Senha redefinida!</div><div style="display:flex;gap:8px;"><button class="btn btn-ghost" style="flex:1;" onclick="closeResetPw()">Cancelar</button><button class="btn btn-primary" style="flex:2;" onclick="confirmResetPw()">🔑 Confirmar</button></div></div></div>
+      <div class="rp-modal" id="rp-modal-el"><div class="rp-inner"><div class="rp-handle"></div><div style="font-size:16px;font-weight:800;margin-bottom:4px;">🔑 Redefinir senha</div><div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Usuário: <strong id="rp-user-name" style="color:var(--text);">—</strong></div><form onsubmit="event.preventDefault();confirmResetPw();" autocomplete="new-password"><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"><div class="input-group"><div class="input-label">Nova senha</div><input class="input-field" id="rp-new" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkPwStrength(this.value)"><div style="background:var(--surface);border-radius:2px;height:3px;margin-top:5px;"><div id="pw-str-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div></div><div class="input-group"><div class="input-label">Confirmar senha</div><input class="input-field" id="rp-confirm" type="password" placeholder="Repita a senha" autocomplete="new-password"></div></div><div id="rp-err" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div><div id="rp-ok" style="font-size:12px;color:var(--green);display:none;margin-bottom:8px;">✓ Senha redefinida!</div><div style="display:flex;gap:8px;"><button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeResetPw()">Cancelar</button><button type="submit" class="btn btn-primary" style="flex:2;">🔑 Confirmar</button></div></form></div></div>
     </div>
 
 
@@ -11626,50 +11626,61 @@ let _gamifCurrentTab = 'missoes';
 
 // ── Carregar do Firestore ───────────────────────────────────────
 async function loadStreak() {
-  const uid = window._fbUser?.uid; if(!uid||!db) return;
+  const uid = window._fbUser?.uid; if(!uid) return;
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  // Tenta carregar do Firestore, com fallback para localStorage
   try {
-    const doc = await db.collection('users').doc(uid).collection('gamif').doc('data').get();
-    if(doc.exists) { _gamif = {..._gamif, ...doc.data()}; }
-    _gamifLoaded = true;
-    // Streak logic
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now()-86400000).toDateString();
-    if(_gamif.lastDay !== today) {
-      if(_gamif.lastDay === yesterday) { _gamif.streakDays++; }
-      else if(_gamif.lastDay) { _gamif.streakDays=1; }
-      else { _gamif.streakDays=1; }
-      _gamif.lastDay = today;
-      if(_gamif.streakDays > (_gamif.streakMax||0)) _gamif.streakMax=_gamif.streakDays;
-      _gamifSave();
-    }
-    // Daily missions: regenerate if new day
-    if(_gamif.dailyDate !== today) {
-      _gamif.dailyDate = today;
-      _gamif.dailyProgress = {};
-      // Pick 3 random missions
-      const pool = [...DAILY_MISSIONS_POOL].sort(()=>Math.random()-.5).slice(0,3);
-      _gamif.dailyMissions = pool.map(m=>({...m, done:false}));
-      _gamifSave();
-    }
-    _streakDays = _gamif.streakDays;
-    _streakPts  = _gamif.xp;
-    updateStreakUI();
-    // Aviso de streak em risco: se já é fim de dia e ainda não praticou hoje
-    const hour = new Date().getHours();
-    if(hour >= 20 && _gamif.streakDays > 2 && _gamif.lastDay !== today) {
-      setTimeout(()=>{
-        _gamifToast('⚠️ Seu streak de '+_gamif.streakDays+'🔥 dias está em risco! Pratique agora!','#f97316');
-      }, 3000);
-    }
-  } catch(e){ console.warn('[GAMIF] load err',e); }
+    if(db) {
+      const doc = await db.collection('users').doc(uid).collection('gamif').doc('data').get();
+      if(doc.exists) { _gamif = {..._gamif, ...doc.data()}; }
+    } else { throw new Error('db indisponível'); }
+  } catch(e){
+    // Firebase sem permissão ou offline — carrega do localStorage
+    try {
+      const local = JSON.parse(localStorage.getItem('aivox_gamif_'+uid)||'{}');
+      if(Object.keys(local).length) _gamif = {..._gamif, ...local};
+    } catch(_){}
+  }
+  _gamifLoaded = true;
+  // Streak logic
+  if(_gamif.lastDay !== today) {
+    if(_gamif.lastDay === yesterday) { _gamif.streakDays++; }
+    else if(_gamif.lastDay) { _gamif.streakDays=1; }
+    else { _gamif.streakDays=1; }
+    _gamif.lastDay = today;
+    if(_gamif.streakDays > (_gamif.streakMax||0)) _gamif.streakMax=_gamif.streakDays;
+    _gamifSave();
+  }
+  // Daily missions: regenerate if new day
+  if(_gamif.dailyDate !== today) {
+    _gamif.dailyDate = today;
+    _gamif.dailyProgress = {};
+    const pool = [...DAILY_MISSIONS_POOL].sort(()=>Math.random()-.5).slice(0,3);
+    _gamif.dailyMissions = pool.map(m=>({...m, done:false}));
+    _gamifSave();
+  }
+  _streakDays = _gamif.streakDays;
+  _streakPts  = _gamif.xp;
+  updateStreakUI();
+  // Aviso de streak em risco: se já é fim de dia e ainda não praticou hoje
+  const hour = new Date().getHours();
+  if(hour >= 20 && _gamif.streakDays > 2 && _gamif.lastDay !== today) {
+    setTimeout(()=>{
+      _gamifToast('⚠️ Seu streak de '+_gamif.streakDays+'🔥 dias está em risco! Pratique agora!','#f97316');
+    }, 3000);
+  }
 }
 
-// ── Salvar no Firestore ─────────────────────────────────────────
 async function _gamifSave() {
-  const uid = window._fbUser?.uid; if(!uid||!db) return;
+  const uid = window._fbUser?.uid; if(!uid) return;
+  // Sempre salva no localStorage como backup
+  try { localStorage.setItem('aivox_gamif_'+uid, JSON.stringify(_gamif)); } catch(_){}
+  // Tenta salvar no Firestore silenciosamente
+  if(!db) return;
   try {
     await db.collection('users').doc(uid).collection('gamif').doc('data').set(_gamif);
-  } catch(e){ console.warn('[GAMIF] save err',e); }
+  } catch(e){ /* Permissão negada ou offline — localStorage já garantiu a persistência */ }
 }
 
 // ── Adicionar XP e verificar missões/badges ─────────────────────
@@ -12280,13 +12291,23 @@ async function _carregarLicoesIA(lang, forceRefresh){
   if(!forceRefresh && _licoesCacheIA[key]) return _licoesCacheIA[key];
   const scroll = document.getElementById('licoes-scroll');
   if(scroll) scroll.innerHTML = _licoesSkeleton();
+  const backendUrl = (typeof getBackendUrl === 'function') ? getBackendUrl() : '';
+  if(!backendUrl){
+    const fallback = LICOES_DATA[lang] || [];
+    _licoesCacheIA[key] = fallback;
+    return fallback;
+  }
   try{
-    const token = await getAuthToken();
-    const res = await fetch(getBackendUrl()+'/api/learn/licoes',{
+    const token = await getAuthToken().catch(()=>null);
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 8000);
+    const res = await fetch(backendUrl+'/api/learn/licoes',{
       method:'POST',
       headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
-      body:JSON.stringify({lang})
+      body:JSON.stringify({lang}),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     if(!res.ok) throw new Error('Backend retornou '+res.status);
     const data = await res.json();
     const parsed = data.licoes;
@@ -12294,8 +12315,10 @@ async function _carregarLicoesIA(lang, forceRefresh){
     _licoesCacheIA[key] = parsed;
     return parsed;
   }catch(e){
-    console.error('Lições IA erro:',e.message);
-    return LICOES_DATA[lang] || [];
+    if(!e.message?.includes('aborted')) console.warn('[Learn] Backend indisponível, usando lições locais.');
+    const fallback = LICOES_DATA[lang] || [];
+    _licoesCacheIA[key] = fallback;
+    return fallback;
   }
 }
 

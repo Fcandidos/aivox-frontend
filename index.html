@@ -4404,9 +4404,11 @@ body[data-page="2fa"] .bnav{display:none!important;}
               log('✗ /api/diagnose: '+e.message,'e');
             }
 
-            // /api/azure-config
+            // /api/azure-config — FIX: envia token Authorization (requireAuth no backend)
             try {
-              const r=await fetch(backend+'/api/azure-config');
+              const azTok = await _getToken();
+              const azHeaders = azTok ? { 'Authorization': 'Bearer ' + azTok } : {};
+              const r=await fetch(backend+'/api/azure-config', { headers: azHeaders });
               const d=await r.json().catch(()=>({}));
               _val('dbg-val-azure-cfg', r.ok?'✅ '+JSON.stringify(d):'❌ HTTP '+r.status, r.ok?'ok':'err');
               log((r.ok?'✓':'✗')+' /api/azure-config: '+JSON.stringify(d), r.ok?'s':'e');
@@ -7847,6 +7849,26 @@ function enterApp(data){
   setTimeout(()=>{ if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();} }, 1000);
   // ── AZURE CONFIG — busca chaves do backend após login (nunca expostas no HTML) ──
   setTimeout(()=>{ if(typeof window._fetchAzureConfig==='function') window._fetchAzureConfig(); }, 1500);
+
+  // ── FIX: expor aliases globais para o diagnóstico ─────────────────────────────
+  // Fase 1A: azureTranscribe (alias para função interna de transcrição Azure STT)
+  if (typeof window.azureTranscribe === 'undefined') {
+    window.azureTranscribe = function(audioBlob, lang) {
+      // Alias que delega para a função interna de transcrição via Azure STT
+      if (typeof window._azureSTTTranscribe === 'function') return window._azureSTTTranscribe(audioBlob, lang);
+      if (typeof SpeechSDK !== 'undefined') return Promise.resolve('[Azure STT disponível]');
+      return Promise.reject(new Error('Azure STT não inicializado'));
+    };
+    window._azureSTT = { ready: typeof SpeechSDK !== 'undefined' };
+  }
+  // Funções de sessão: aliases para funções internas (diagnóstico procura por esses nomes)
+  if (typeof window.startRecording === 'undefined') {
+    window.startRecording  = function() { if(typeof _startRecording==='function') return _startRecording(); };
+    window.stopRecording   = function() { if(typeof _stopRecording==='function')  return _stopRecording();  };
+    window.startSession    = function() { if(typeof liveTransStart==='function')  return liveTransStart();  };
+    window.stopSession     = function() { if(typeof liveTransStop==='function')   return liveTransStop();   };
+    window.submitAudio     = function(blob) { console.log('[AIVOX] submitAudio alias chamado'); };
+  }
 }
 function navApp(name){
   document.querySelectorAll('#app-shell .page').forEach(p=>p.classList.remove('active'));

@@ -5841,6 +5841,36 @@ function _amiListenPresence() {
   };
   setTimeout(_listenFriendsPresence, 1500);
   // Registra listeners do socket com retry seguro (evita ReferenceError: s is not defined)
+  window._ensureAmiSocket = () => {
+    if (window._salaSocket && window._salaSocket.connected) return; // já tem socket de sala
+    if (window._amiSocketDedicado && window._amiSocketDedicado.connected) return; // já tem socket ami
+    const backendUrl = getBackendUrl();
+    if (!backendUrl) { setTimeout(window._ensureAmiSocket, 2000); return; }
+    console.log('[AMI] Criando socket dedicado para chamadas P2P');
+    const amiSock = io(backendUrl, {
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      timeout: 15000,
+    });
+    amiSock.on('connect', () => {
+      console.log('[AMI] Socket dedicado conectado:', amiSock.id);
+      window._salaSocket = amiSock;
+      window._amiSocketDedicado = amiSock;
+      // emite presença
+      const u = window._fbUser;
+      if (u?.uid) amiSock.emit('ami-online', { uid: u.uid, name: u.displayName || u.name || 'Usuário' });
+    });
+    amiSock.on('disconnect', () => {
+      if (window._amiSocketDedicado === amiSock) {
+        window._amiSocketDedicado = null;
+        if (window._salaSocket === amiSock) window._salaSocket = null;
+      }
+    });
+  };
+  window._ensureAmiSocket();
+
   const _setupAmiSocketListeners = () => {
     const s = window._salaSocket;
     if (!s) { setTimeout(_setupAmiSocketListeners, 1000); return; }
@@ -12225,7 +12255,7 @@ async function validarEntrarSala(){
 
 // ── Socket.io ───────────────────────────────────────────────────
 function _salaConectarSocket(code){
-  if(_salaSocket){_salaSocket.disconnect();_salaSocket=null;}
+  if(_salaSocket){_salaSocket.disconnect();_salaSocket=null;window._salaSocket=null;}
 
   const backendUrl=getBackendUrl();
   _salaSocket=io(backendUrl,{
@@ -12250,6 +12280,12 @@ function _salaConectarSocket(code){
 
   _salaSocket.on('connect',()=>{
     _salaConnErrCount=0;
+    window._salaSocket=_salaSocket; // expõe para módulo ami
+    // Se havia socket dedicado ami, desconecta para evitar duplicata
+    if (window._amiSocketDedicado && window._amiSocketDedicado !== _salaSocket) {
+      window._amiSocketDedicado.disconnect();
+      window._amiSocketDedicado = null;
+    }
     console.log('🔌 Socket conectado, entrando na sala',code);
     const u=window._fbUser;
     _salaMyLang=LO[lfi]?.code||'PT-BR';
@@ -12386,7 +12422,9 @@ function _salaOutroConectado(data){
 
 function _salaDesconectar(){
   _salaEncerrarWebRTC(); // sempre fecha WebRTC antes de desconectar socket
-  if(_salaSocket){_salaSocket.disconnect();_salaSocket=null;}
+  if(_salaSocket){_salaSocket.disconnect();_salaSocket=null;window._salaSocket=null;}
+  // Recria socket dedicado ami após desconectar da sala
+  setTimeout(()=>{ if(typeof window._ensureAmiSocket==='function') window._ensureAmiSocket(); },500);
   _salaCode=null;_salaConnected=false;
   _salaStopRec();
   if(_salaContinuousMode)_salaStopContinuous();

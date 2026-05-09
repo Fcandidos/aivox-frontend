@@ -185,6 +185,12 @@ body{background:var(--bg);min-height:100%;font-family:var(--font);color:var(--te
 #confirm-modal .cm-btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);}
 #confirm-modal .cm-btn.cancel{background:var(--card);color:var(--text);border:1px solid var(--border);}
 #confirm-modal .cm-btn.confirm{background:var(--red);color:#fff;}
+/* ── SELETOR DE IDIOMA DA SALA ── */
+.sala-lang-picker{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;background:var(--surface);border-radius:14px;padding:12px 14px;border:1px solid var(--border);}
+.sala-lang-picker-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:var(--mono);margin-bottom:2px;}
+.sala-lang-select{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-size:14px;font-weight:700;color:var(--text);font-family:var(--font);width:100%;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5170' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+.sala-lang-select:focus{border-color:rgba(0,229,255,.5);}
+body.light-mode .sala-lang-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a82a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");}
 #toast-portal{position:fixed;z-index:9999;pointer-events:none;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
 @media(max-width:767px){#toast-portal{bottom:80px;right:auto;left:50%;transform:translateX(-50%);align-items:center;}}
 .toast{background:var(--card);border-radius:14px;padding:12px 20px;font-size:13px;font-weight:600;color:var(--text);box-shadow:0 4px 24px rgba(0,0,0,.5);animation:toastIn .3s ease both;white-space:nowrap;}
@@ -4653,6 +4659,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 <div style="font-size:40px;margin-bottom:10px;">🚀</div>
                 <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Crie uma sala e compartilhe o código</div>
                 <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">A outra pessoa entra com o código — sem precisar de conta</div>
+                <div class="sala-lang-picker">
+                  <div class="sala-lang-picker-label">🌐 Qual idioma você vai falar?</div>
+                  <select class="sala-lang-select" id="sala-my-lang-select" onchange="salaSetMyLang(this.value)"></select>
+                </div>
                 <button class="btn btn-primary btn-full" onclick="criarSala()" id="sala-criar-btn">
                   👥 Criar sala agora
                 </button>
@@ -4691,6 +4701,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <input class="sala-code-input" id="sala-code-input" maxlength="6" placeholder="------"
             oninput="onSalaCodeInput(this)" onkeydown="if(event.key==='Enter')validarEntrarSala()">
           <div id="sala-code-feedback" style="font-size:12px;margin-top:8px;min-height:18px;text-align:center;"></div>
+          <div class="sala-lang-picker" style="margin-top:14px;">
+            <div class="sala-lang-picker-label">🌐 Qual idioma você vai falar?</div>
+            <select class="sala-lang-select" id="sala-my-lang-select-enter" onchange="salaSetMyLang(this.value)"></select>
+          </div>
           <button class="btn btn-primary btn-full" style="margin-top:14px;" onclick="validarEntrarSala()" id="sala-entrar-btn" disabled>
             🚪 Entrar na sala
           </button>
@@ -12121,14 +12135,43 @@ function initSalaPage(){
   if(fb)fb.textContent='';
   const btn = document.getElementById('sala-entrar-btn');
   if(btn)btn.disabled=true;
+  // Inicia seletor de idioma da sala
+  _salaInitLangPicker();
   // Verifica backend silenciosamente se for criador
   if(canCreate){
     fetch(getBackendUrl()+'/api/ping',{signal:AbortSignal.timeout(5000)})
       .then(r=>{if(!r.ok)throw new Error(r.status);})
-      .catch(()=>{
-        if(notice)notice.style.display='block';
-      });
+      .catch(()=>{ if(notice)notice.style.display='block'; });
   }
+}
+
+// ── Seletor de idioma da sala ────────────────────────────────────
+function _salaInitLangPicker(){
+  const langs = typeof allLangs !== 'undefined' ? allLangs : [
+    {code:'PT-BR',name:'Português 🇧🇷'},{code:'EN-US',name:'Inglês 🇺🇸'},
+    {code:'ES',name:'Espanhol 🇪🇸'},{code:'FR',name:'Francês 🇫🇷'},
+    {code:'DE',name:'Alemão 🇩🇪'},{code:'IT',name:'Italiano 🇮🇹'},
+    {code:'JA',name:'Japonês 🇯🇵'},{code:'ZH',name:'Mandarim 🇨🇳'},
+  ];
+  // Idioma atual do usuário (da sessão ativa) como padrão
+  const currentLang = _salaMyLang || LO[lfi]?.code || 'PT-BR';
+  ['sala-my-lang-select','sala-my-lang-select-enter'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    sel.innerHTML = langs.map(l=>`<option value="${l.code}"${l.code===currentLang?' selected':''}>${l.name||l.code}</option>`).join('');
+    sel.value = currentLang;
+  });
+  _salaMyLang = currentLang;
+}
+
+function salaSetMyLang(code){
+  _salaMyLang = code;
+  // Sincroniza os dois selects
+  ['sala-my-lang-select','sala-my-lang-select-enter'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(sel && sel.value !== code) sel.value = code;
+  });
+  console.log('[SALA] idioma definido:', code);
 }
 
 // ── Criar sala ──────────────────────────────────────────────────

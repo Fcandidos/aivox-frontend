@@ -3321,6 +3321,34 @@ body[data-page="2fa"] .bnav{display:none!important;}
             </div>
           </div>
 
+          <!-- BARRA DE PROGRESSO NEON -->
+          <div id="dbg-progress-wrap" style="display:none;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span style="font-size:11px;font-family:'Space Mono',monospace;color:#00e5ff;letter-spacing:1px;" id="dbg-prog-label">Iniciando diagnóstico…</span>
+              <span style="font-size:11px;font-family:'Space Mono',monospace;color:#00e5ff;" id="dbg-prog-pct">0%</span>
+            </div>
+            <div style="height:6px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;position:relative;">
+              <div id="dbg-prog-bar" style="height:100%;width:0%;border-radius:10px;transition:width .4s cubic-bezier(.4,0,.2,1);
+                background:linear-gradient(90deg,#7c3aed,#00e5ff,#00ff88);
+                box-shadow:0 0 8px rgba(0,229,255,.7),0 0 18px rgba(0,229,255,.35);
+                position:relative;">
+                <!-- brilho animado -->
+                <div style="position:absolute;top:0;right:0;bottom:0;width:40px;
+                  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+                  animation:neonSweep 1.2s ease infinite;"></div>
+              </div>
+            </div>
+            <style>
+              @keyframes neonSweep{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+            </style>
+          </div>
+
+          <!-- RESUMO DE ERROS -->
+          <div id="dbg-summary-wrap" style="display:none;margin-bottom:20px;">
+            <div style="font-size:11px;letter-spacing:2px;color:#4a5170;text-transform:uppercase;margin-bottom:10px;font-family:'Space Mono',monospace;">📋 Resumo do Diagnóstico</div>
+            <div id="dbg-summary-content"></div>
+          </div>
+
           <!-- Firebase & Auth -->
           <div class="dbg-section">
             <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-firebase"></span>Firebase & Auth</div>
@@ -4417,22 +4445,107 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
           // ── RODAR TUDO ────────────────────────────────────────────
           window.dbgRunAll = async function(){
-            await dbgTestFirebase();
-            await dbgTestRanking();
-            await dbgTestPresence();
-            await dbgTestAPIs();
-            await dbgTestChat();
-            await dbgTestMig();
-            dbgTestDOM();
-            await dbgTestLearn();
-            await dbgTestSession();
-            await dbgTestEscuta();
-            await dbgTestSala();
-            await dbgTestAmigos();
-            await dbgTestPay();
-            await dbgTestNotif();
-            await dbgTestCollections();
-            await dbgTestDiagnose();
+            const steps = [
+              { fn: dbgTestFirebase,    label: 'Firebase & Auth',        dot: 'dbg-dot-firebase'    },
+              { fn: dbgTestRanking,     label: 'Ranking',                dot: 'dbg-dot-ranking'     },
+              { fn: dbgTestPresence,    label: 'Presença Online',        dot: 'dbg-dot-presence'    },
+              { fn: dbgTestAPIs,        label: 'APIs do Backend',        dot: 'dbg-dot-api'         },
+              { fn: dbgTestChat,        label: 'Chat de Amigos',         dot: 'dbg-dot-chat'        },
+              { fn: dbgTestMig,         label: 'Migração Azure',         dot: 'dbg-dot-mig'         },
+              { fn: dbgTestDOM,         label: 'Páginas & DOM',          dot: 'dbg-dot-dom'         },
+              { fn: dbgTestLearn,       label: 'Aprendizado',            dot: 'dbg-dot-learn'       },
+              { fn: dbgTestSession,     label: 'Sessão',                 dot: 'dbg-dot-session'     },
+              { fn: dbgTestEscuta,      label: 'Escuta ao Vivo',         dot: 'dbg-dot-escuta'      },
+              { fn: dbgTestSala,        label: 'Salas Colaborativas',    dot: 'dbg-dot-sala'        },
+              { fn: dbgTestAmigos,      label: 'Amigos & Grupos',        dot: 'dbg-dot-amigos'      },
+              { fn: dbgTestPay,         label: 'Pagamentos',             dot: 'dbg-dot-pay'         },
+              { fn: dbgTestNotif,       label: 'Notificações Push',      dot: 'dbg-dot-notif'       },
+              { fn: dbgTestCollections, label: 'Coleções Firestore',     dot: 'dbg-dot-collections' },
+              { fn: dbgTestDiagnose,    label: 'Diagnóstico Backend',    dot: 'dbg-dot-diagnose'    },
+            ];
+
+            const total = steps.length;
+            const bar   = document.getElementById('dbg-prog-bar');
+            const pct   = document.getElementById('dbg-prog-pct');
+            const lbl   = document.getElementById('dbg-prog-label');
+            const wrap  = document.getElementById('dbg-progress-wrap');
+            const sumWrap = document.getElementById('dbg-summary-wrap');
+            const sumContent = document.getElementById('dbg-summary-content');
+
+            if(wrap)  wrap.style.display  = 'block';
+            if(sumWrap) sumWrap.style.display = 'none';
+            if(sumContent) sumContent.innerHTML = '';
+
+            function setProgress(done, stepLabel){
+              const p = Math.round((done / total) * 100);
+              if(bar){ bar.style.width = p + '%'; }
+              if(pct){ pct.textContent = p + '%'; }
+              if(lbl){ lbl.textContent = done < total ? '⚡ Testando: ' + stepLabel + '…' : '✅ Concluído!'; }
+              // Muda cor para verde quando 100%
+              if(p === 100 && bar){
+                bar.style.background = 'linear-gradient(90deg,#00ff88,#00e5ff)';
+                bar.style.boxShadow  = '0 0 12px rgba(0,255,136,.8),0 0 24px rgba(0,255,136,.4)';
+              }
+            }
+
+            setProgress(0, steps[0].label);
+
+            for(let i = 0; i < steps.length; i++){
+              const s = steps[i];
+              try { await s.fn(); } catch(e){}
+              setProgress(i + 1, steps[i + 1]?.label || '');
+            }
+
+            // ── Monta resumo de erros/avisos ─────────────────────────
+            const errRows = [];
+            const warnRows = [];
+            steps.forEach(s => {
+              const dotEl = document.getElementById(s.dot);
+              if(!dotEl) return;
+              const cls = dotEl.className.replace('dbg-dot','').trim();
+              if(cls === 'err')  errRows.push(s.label);
+              if(cls === 'warn') warnRows.push(s.label);
+            });
+
+            const totalOk   = steps.length - errRows.length - warnRows.length;
+            let html = '';
+
+            // Card de resultado geral
+            const allOk = errRows.length === 0 && warnRows.length === 0;
+            html += `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+              background:${allOk ? 'rgba(0,255,136,.06)' : errRows.length > 0 ? 'rgba(255,68,102,.07)' : 'rgba(255,208,0,.07)'};
+              border:1px solid ${allOk ? 'rgba(0,255,136,.2)' : errRows.length > 0 ? 'rgba(255,68,102,.25)' : 'rgba(255,208,0,.2)'};
+              border-radius:12px;margin-bottom:10px;">
+              <span style="font-size:22px;">${allOk ? '🟢' : errRows.length > 0 ? '🔴' : '🟡'}</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;">${allOk ? 'Todos os sistemas OK' : errRows.length + ' erro(s) · ' + warnRows.length + ' aviso(s)'}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">${totalOk} de ${total} módulos saudáveis</div>
+              </div>
+            </div>`;
+
+            if(errRows.length > 0){
+              html += `<div style="background:rgba(255,68,102,.07);border:1px solid rgba(255,68,102,.2);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#ff4466;margin-bottom:6px;font-family:'Space Mono',monospace;">❌ Erros</div>`;
+              errRows.forEach(r => {
+                html += `<div style="font-size:12px;color:#ff4466;padding:2px 0;">• ${r}</div>`;
+              });
+              html += `</div>`;
+            }
+
+            if(warnRows.length > 0){
+              html += `<div style="background:rgba(255,208,0,.07);border:1px solid rgba(255,208,0,.2);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#ffd000;margin-bottom:6px;font-family:'Space Mono',monospace;">⚠ Avisos</div>`;
+              warnRows.forEach(r => {
+                html += `<div style="font-size:12px;color:#ffd000;padding:2px 0;">• ${r}</div>`;
+              });
+              html += `</div>`;
+            }
+
+            if(sumContent) sumContent.innerHTML = html;
+            if(sumWrap)    sumWrap.style.display = 'block';
+
+            // Scroll suave até o resumo
+            setTimeout(()=>{ sumWrap?.scrollIntoView({ behavior:'smooth', block:'start' }); }, 200);
           };
 
           window.dbgClearAll = function(){
@@ -4444,6 +4557,14 @@ body[data-page="2fa"] .bnav{display:none!important;}
             });
             document.getElementById('dbg-dom-rows') && (document.getElementById('dbg-dom-rows').innerHTML='');
             document.getElementById('dbg-collections-rows') && (document.getElementById('dbg-collections-rows').innerHTML='');
+            // Reset barra e resumo
+            const bar=document.getElementById('dbg-prog-bar');
+            if(bar){ bar.style.width='0%'; bar.style.background='linear-gradient(90deg,#7c3aed,#00e5ff,#00ff88)'; bar.style.boxShadow='0 0 8px rgba(0,229,255,.7),0 0 18px rgba(0,229,255,.35)'; }
+            const pctEl=document.getElementById('dbg-prog-pct'); if(pctEl) pctEl.textContent='0%';
+            const lblEl=document.getElementById('dbg-prog-label'); if(lblEl) lblEl.textContent='Iniciando diagnóstico…';
+            const wrap=document.getElementById('dbg-progress-wrap'); if(wrap) wrap.style.display='none';
+            const sumW=document.getElementById('dbg-summary-wrap'); if(sumW) sumW.style.display='none';
+            const sumC=document.getElementById('dbg-summary-content'); if(sumC) sumC.innerHTML='';
           };
 
         })();
@@ -7280,9 +7401,10 @@ function grpEntrar(grupo) {
         _grpSetStatus('🟢 ao vivo', 'var(--green)');
       }, err => {
         if (err.code === 'failed-precondition' || err.message?.includes('index')) {
-          // Índice ausente — usa fallback sem orderBy (funciona sem índice)
-          console.warn('[grpChat] Índice composto ausente, usando fallback. Crie em:', err.message?.match(/https:\/\/\S+/)?.[0] || 'Firebase Console > Índices > group_messages(groupId ASC, createdAt ASC)');
-          _grpSetStatus('🟡 sem índice', 'var(--yellow)');
+          // Índice composto ausente — fallback sem orderBy (funciona sem índice, ordena localmente)
+          const indexUrl = err.message?.match(/https:\/\/\S+/)?.[0];
+          console.info('[grpChat] Usando fallback (índice composto não criado ainda).' + (indexUrl ? ' Crie em: ' + indexUrl : ''));
+          _grpSetStatus('conectando…', 'var(--muted)');
           try {
             _grpChatListener = db.collection('group_messages')
               .where('groupId', '==', grupo.id)

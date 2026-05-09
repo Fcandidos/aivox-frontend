@@ -5848,19 +5848,25 @@ function _amiListenPresence() {
     if (!backendUrl) { setTimeout(window._ensureAmiSocket, 2000); return; }
     console.log('[AMI] Criando socket dedicado para chamadas P2P');
     const amiSock = io(backendUrl, {
-      transports: ['polling', 'websocket'],
+      transports: ['polling', 'websocket'], // igual ao socket de sala
       reconnection: true,
       reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-      timeout: 15000,
+      reconnectionDelay: 3000,
+      timeout: 20000,
+    });
+    amiSock.on('connect_error', (err) => {
+      console.warn('[AMI] Socket connect error (normal no Render free):', err.message);
     });
     amiSock.on('connect', () => {
       console.log('[AMI] Socket dedicado conectado:', amiSock.id);
       window._salaSocket = amiSock;
       window._amiSocketDedicado = amiSock;
-      // emite presença
+      // Entra em sala virtual ami para o backend não rejeitar
       const u = window._fbUser;
-      if (u?.uid) amiSock.emit('ami-online', { uid: u.uid, name: u.displayName || u.name || 'Usuário' });
+      if (u?.uid) {
+        amiSock.emit('join-room', { code: 'ami-' + u.uid, uid: u.uid, name: u.displayName || u.name || 'Usuário', lang: 'PT-BR' });
+        amiSock.emit('ami-online', { uid: u.uid, name: u.displayName || u.name || 'Usuário' });
+      }
     });
     amiSock.on('disconnect', () => {
       if (window._amiSocketDedicado === amiSock) {

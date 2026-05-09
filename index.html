@@ -4086,6 +4086,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const log = (m,t) => _log('dbg-log-session', m, t);
             log('Testando sessão ativa e STT...','i');
             _dot('dbg-dot-session','run');
+            let hasErr=false, hasWarn=false;
 
             // Microfone
             if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
@@ -4093,24 +4094,29 @@ body[data-page="2fa"] .bnav{display:none!important;}
               log('✓ getUserMedia API presente','s');
             } else {
               _val('dbg-val-mic','❌ Não disponível','err');
-              log('✗ getUserMedia não disponível','e');
+              log('✗ getUserMedia não disponível','e'); hasErr=true;
             }
 
             // MediaRecorder
             const mrOk = typeof MediaRecorder !== 'undefined';
             _val('dbg-val-mediarecorder', mrOk?'✅ Disponível':'❌ Não disponível', mrOk?'ok':'err');
             log((mrOk?'✓':'✗')+' MediaRecorder', mrOk?'s':'e');
+            if(!mrOk) hasErr=true;
 
             // SpeechSDK
             const sdkOk = typeof SpeechSDK !== 'undefined';
             _val('dbg-val-speechsdk', sdkOk?'✅ SpeechSDK carregado':'⚠️ Não carregado', sdkOk?'ok':'warn');
             log((sdkOk?'✓':'⚠')+' SpeechSDK', sdkOk?'s':'w');
+            if(!sdkOk) hasWarn=true;
 
             // Funções sessão
             const fns = ['startRecording','stopRecording','startSession','stopSession','submitAudio'];
             const found = fns.filter(fn=>typeof window[fn]==='function');
-            _val('dbg-val-session-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            const fnsOk = found.length === fns.length;
+            _val('dbg-val-session-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções encontradas: '+(found.join(', ')||'nenhuma'),'i');
+            if(!fnsOk && found.length===0) hasErr=true;
+            else if(!fnsOk) hasWarn=true;
 
             // Sessões Firestore
             try {
@@ -4121,23 +4127,23 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 _val('dbg-val-sessions-fs','✅ '+snap.size+' sessões encontradas','ok');
                 log('✓ Firestore sessions: '+snap.size+' docs','s');
               }
-            } catch(e){ _val('dbg-val-sessions-fs','❌ '+e.message,'err'); log('✗ sessions: '+e.message,'e'); }
+            } catch(e){ _val('dbg-val-sessions-fs','❌ '+e.message,'err'); log('✗ sessions: '+e.message,'e'); hasErr=true; }
 
             // /api/transcribe e /api/listen (HEAD-only sem áudio real)
             const backend=_backend(); const tok=await _getToken();
             if(backend && tok){
-              ['transcribe','listen'].forEach(async ep=>{
+              for(const ep of ['transcribe','listen']){
                 try {
                   const r=await fetch(backend+'/api/'+ep,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({})});
                   const id='dbg-val-'+ep;
-                  // 400 é ok — significa que chegou mas faltou o arquivo de áudio
                   _val(id, (r.ok||r.status===400)?'✅ Rota ativa ('+r.status+')':'❌ HTTP '+r.status, (r.ok||r.status===400)?'ok':'err');
                   log((r.status<500?'✓':'✗')+' /api/'+ep+' → '+r.status, r.status<500?'s':'e');
-                } catch(e){ _val('dbg-val-'+ep,'❌ '+e.message,'err'); }
-              });
+                  if(r.status>=500) hasErr=true;
+                } catch(e){ _val('dbg-val-'+ep,'❌ '+e.message,'err'); hasErr=true; }
+              }
             }
 
-            _dot('dbg-dot-session','ok');
+            _dot('dbg-dot-session', hasErr?'err':hasWarn?'warn':'ok');
           };
 
           // ── ESCUTA AO VIVO ────────────────────────────────────────
@@ -4228,6 +4234,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const user=firebase?.auth?.()?.currentUser;
             if(!user){ log('✗ Não logado','e'); _dot('dbg-dot-amigos','err'); return; }
             const db=firebase.firestore();
+            let hasErr=false, hasWarn=false;
 
             // friends
             try {
@@ -4238,7 +4245,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
               try {
                 const snap=await db.collection('friends').where('uid','==',user.uid).limit(5).get();
                 _val('dbg-val-friends-read','✅ '+snap.size+' docs (flat)','ok');
-              } catch(e2){ _val('dbg-val-friends-read','❌ '+e2.message,'err'); log('✗ friends: '+e2.message,'e'); }
+              } catch(e2){ _val('dbg-val-friends-read','❌ '+e2.message,'err'); log('✗ friends: '+e2.message,'e'); hasErr=true; }
             }
 
             // friend_requests
@@ -4246,36 +4253,39 @@ body[data-page="2fa"] .bnav{display:none!important;}
               const snap=await db.collection('friend_requests').where('to','==',user.uid).limit(5).get();
               _val('dbg-val-freq-read','✅ '+snap.size+' pendentes','ok');
               log('✓ friend_requests: '+snap.size+' docs','s');
-            } catch(e){ _val('dbg-val-freq-read','❌ '+e.message,'err'); log('✗ friend_requests: '+e.message,'e'); }
+            } catch(e){ _val('dbg-val-freq-read','❌ '+e.message,'err'); log('✗ friend_requests: '+e.message,'e'); hasErr=true; }
 
             // online
             try {
               const snap=await db.collection('online').limit(10).get();
               _val('dbg-val-online-read','✅ '+snap.size+' online','ok');
               log('✓ online: '+snap.size+' docs','s');
-            } catch(e){ _val('dbg-val-online-read','⚠️ '+e.message,'warn'); log('⚠ online: '+e.message,'w'); }
+            } catch(e){ _val('dbg-val-online-read','⚠️ '+e.message,'warn'); log('⚠ online: '+e.message,'w'); hasWarn=true; }
 
             // conversation_groups
             try {
               const snap=await db.collection('conversation_groups').limit(5).get();
               _val('dbg-val-groups','✅ '+snap.size+' grupos','ok');
               log('✓ conversation_groups: '+snap.size+' docs','s');
-            } catch(e){ _val('dbg-val-groups','⚠️ '+e.message,'warn'); log('⚠ groups: '+e.message,'w'); }
+            } catch(e){ _val('dbg-val-groups','⚠️ '+e.message,'warn'); log('⚠ groups: '+e.message,'w'); hasWarn=true; }
 
             // group_messages
             try {
               const snap=await db.collection('group_messages').limit(5).get();
               _val('dbg-val-group-msgs','✅ '+snap.size+' msgs','ok');
               log('✓ group_messages: '+snap.size+' docs','s');
-            } catch(e){ _val('dbg-val-group-msgs','⚠️ '+e.message,'warn'); }
+            } catch(e){ _val('dbg-val-group-msgs','⚠️ '+e.message,'warn'); hasWarn=true; }
 
             // Funções amigos
             const fns=['initAmigoModule','amiSwitchTab','openFriendChat','startFriendCall','hangupFriendCall'];
             const found=fns.filter(fn=>typeof window[fn]==='function');
-            _val('dbg-val-amigos-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            const fnsOk = found.length===fns.length;
+            _val('dbg-val-amigos-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções amigos: '+(found.join(', ')||'nenhuma'),'i');
+            if(!fnsOk && found.length===0) hasErr=true;
+            else if(!fnsOk) hasWarn=true;
 
-            _dot('dbg-dot-amigos','ok');
+            _dot('dbg-dot-amigos', hasErr?'err':hasWarn?'warn':'ok');
           };
 
           // ── PAGAMENTOS ────────────────────────────────────────────
@@ -4284,16 +4294,21 @@ body[data-page="2fa"] .bnav{display:none!important;}
             log('Testando pagamentos...','i');
             _dot('dbg-dot-pay','run');
             const backend=_backend();
+            let hasErr=false, hasWarn=false;
 
             // Página payment
             const pgOk=!!document.getElementById('page-payment');
             _val('dbg-val-pay-page', pgOk?'✅ Encontrada':'❌ Não encontrada', pgOk?'ok':'err');
+            if(!pgOk) hasErr=true;
 
             // Funções pagamento
             const fns=['openTopup','closeTopup','selectTopup','initPix','openPayment'];
             const found=fns.filter(fn=>typeof window[fn]==='function');
-            _val('dbg-val-pay-fns', found.length+'/'+fns.length+' funções', found.length>0?'ok':'warn');
+            const fnsOk=found.length===fns.length;
+            _val('dbg-val-pay-fns', found.length+'/'+fns.length+' funções', fnsOk?'ok':found.length>0?'warn':'err');
             log('Funções pay: '+(found.join(', ')||'nenhuma'),'i');
+            if(!fnsOk && found.length===0) hasErr=true;
+            else if(!fnsOk) hasWarn=true;
 
             if(backend){
               // cambio
@@ -4302,30 +4317,33 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 const d=await r.json().catch(()=>({}));
                 _val('dbg-val-cambio-pay', r.ok?'✅ USD/BRL='+JSON.stringify(d):'❌ HTTP '+r.status, r.ok?'ok':'err');
                 log((r.ok?'✓':'✗')+' /api/cambio → '+JSON.stringify(d), r.ok?'s':'e');
-              } catch(e){ _val('dbg-val-cambio-pay','❌ '+e.message,'err'); }
+                if(!r.ok) hasErr=true;
+              } catch(e){ _val('dbg-val-cambio-pay','❌ '+e.message,'err'); hasErr=true; }
 
               // diagnose para checar MP
               try {
                 const r=await fetch(backend+'/api/diagnose');
                 const d=await r.json().catch(()=>({}));
-                _val('dbg-val-mp-token', d.mp?'✅ Configurado':'❌ Não configurado', d.mp?'ok':'err');
-                log((d.mp?'✓':'✗')+' MercadoPago token no backend', d.mp?'s':'e');
-              } catch(e){ _val('dbg-val-mp-token','⚠️ '+e.message,'warn'); }
+                _val('dbg-val-mp-token', d.mp?'✅ Configurado':'⚠️ Não configurado', d.mp?'ok':'warn');
+                log((d.mp?'✓':'⚠')+' MercadoPago token no backend', d.mp?'s':'w');
+                if(!d.mp) hasWarn=true;
+              } catch(e){ _val('dbg-val-mp-token','⚠️ '+e.message,'warn'); hasWarn=true; }
             }
-            _dot('dbg-dot-pay','ok');
+            _dot('dbg-dot-pay', hasErr?'err':hasWarn?'warn':'ok');
           };
-
-          // ── NOTIFICAÇÕES PUSH ─────────────────────────────────────
           window.dbgTestNotif = async function(){
             const log = (m,t) => _log('dbg-log-notif', m, t);
             log('Testando notificações push...','i');
             _dot('dbg-dot-notif','run');
             const backend=_backend(); const tok=await _getToken();
+            let hasErr=false, hasWarn=false;
 
             // Permission
             const perm = Notification?.permission || 'indisponível';
             _val('dbg-val-notif-perm', perm==='granted'?'✅ granted':perm==='denied'?'❌ denied':'⚠️ '+perm, perm==='granted'?'ok':perm==='denied'?'err':'warn');
             log('Notification.permission: '+perm, perm==='granted'?'s':perm==='denied'?'e':'w');
+            if(perm==='denied') hasErr=true;
+            else if(perm!=='granted') hasWarn=true;
 
             // Service Worker
             if('serviceWorker' in navigator){
@@ -4334,15 +4352,17 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 const sw = regs.length>0;
                 _val('dbg-val-sw', sw?'✅ '+regs.length+' SW(s) registrado(s)':'⚠️ Nenhum SW', sw?'ok':'warn');
                 log((sw?'✓':'⚠')+' Service Workers: '+regs.length, sw?'s':'w');
-              } catch(e){ _val('dbg-val-sw','❌ '+e.message,'err'); }
+                if(!sw) hasWarn=true;
+              } catch(e){ _val('dbg-val-sw','❌ '+e.message,'err'); hasErr=true; }
             } else {
-              _val('dbg-val-sw','❌ SW não suportado','err');
+              _val('dbg-val-sw','❌ SW não suportado','err'); hasErr=true;
             }
 
             // PushManager
             const pmOk = 'PushManager' in window;
             _val('dbg-val-push-mgr', pmOk?'✅ Disponível':'❌ Não disponível', pmOk?'ok':'err');
             log((pmOk?'✓':'✗')+' PushManager', pmOk?'s':'e');
+            if(!pmOk) hasErr=true;
 
             // register endpoint
             if(backend && tok){
@@ -4350,9 +4370,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
                 const r=await fetch(backend+'/api/notifications/register',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({token:'debug-test-token',platform:'web'})});
                 _val('dbg-val-notif-reg', r.status<500?'✅ Rota ativa ('+r.status+')':'❌ HTTP '+r.status, r.status<500?'ok':'err');
                 log((r.status<500?'✓':'✗')+' /api/notifications/register → '+r.status, r.status<500?'s':'e');
-              } catch(e){ _val('dbg-val-notif-reg','❌ '+e.message,'err'); }
+                if(r.status>=500) hasErr=true;
+              } catch(e){ _val('dbg-val-notif-reg','❌ '+e.message,'err'); hasErr=true; }
             }
-            _dot('dbg-dot-notif','ok');
+            _dot('dbg-dot-notif', hasErr?'err':hasWarn?'warn':'ok');
           };
 
           // ── FIRESTORE COLEÇÕES ────────────────────────────────────
@@ -4365,8 +4386,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const db=firebase.firestore();
             const container=document.getElementById('dbg-collections-rows');
             if(container) container.innerHTML='';
-
-            const collections=[
+            let colHasErr = false;
               {name:'users', query:()=>db.collection('users').doc(user.uid).get(), desc:'doc do usuário'},
               {name:'leaderboard', query:()=>db.collection('leaderboard').orderBy('xp','desc').limit(5).get(), desc:'top 5 xp'},
               {name:'presence', query:()=>db.collection('presence').doc(user.uid).get(), desc:'presença própria'},
@@ -4402,9 +4422,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
                   row.innerHTML='<span class="dbg-label">'+col.name+'</span><span class="dbg-val err">❌ '+e.message.slice(0,40)+'</span>';
                   container.appendChild(row);
                 }
+                colHasErr=true;
               }
             }
-            _dot('dbg-dot-collections','ok');
+            _dot('dbg-dot-collections', colHasErr?'err':'ok');
           };
 
           // ── DIAGNOSE COMPLETO ─────────────────────────────────────
@@ -4414,33 +4435,46 @@ body[data-page="2fa"] .bnav{display:none!important;}
             _dot('dbg-dot-diagnose','run');
             const backend=_backend(); const tok=await _getToken();
             if(!backend){ log('✗ Backend não detectado','e'); _dot('dbg-dot-diagnose','err'); return; }
+            let hasErr=false, hasWarn=false;
 
             // /api/diagnose
             try {
               const r=await fetch(backend+'/api/diagnose');
               const d=await r.json().catch(()=>({}));
               _val('dbg-val-diagnose', r.ok?'✅ OK':'❌ HTTP '+r.status, r.ok?'ok':'err');
+              if(!r.ok) hasErr=true;
               _val('dbg-val-diag-firebase', d.firebase?'✅ OK':'❌ Não configurado', d.firebase?'ok':'err');
+              if(!d.firebase) hasErr=true;
               _val('dbg-val-diag-llm', (d.openai||d.azure_oai)?'✅ OK':'❌ Sem LLM', (d.openai||d.azure_oai)?'ok':'err');
+              if(!d.openai&&!d.azure_oai) hasErr=true;
               _val('dbg-val-diag-tts', (d.elevenlabs||d.azure_speech)?'✅ OK':'❌ Sem TTS', (d.elevenlabs||d.azure_speech)?'ok':'err');
-              _val('dbg-val-diag-mp', d.mp?'✅ OK':'❌ Não configurado', d.mp?'ok':'err');
+              if(!d.elevenlabs&&!d.azure_speech) hasErr=true;
+              _val('dbg-val-diag-mp', d.mp?'✅ OK':'⚠️ Não configurado', d.mp?'ok':'warn');
+              if(!d.mp) hasWarn=true;
               _val('dbg-val-diag-node', d.node||'—','info');
               _val('dbg-val-diag-uptime', d.uptime!=null?Math.round(d.uptime)+'s':'—','info');
               log('Resposta: '+JSON.stringify(d),'i');
             } catch(e){
               _val('dbg-val-diagnose','❌ '+e.message,'err');
-              log('✗ /api/diagnose: '+e.message,'e');
+              log('✗ /api/diagnose: '+e.message,'e'); hasErr=true;
             }
 
-            // /api/azure-config
+            // /api/azure-config — 401 = rota existe mas precisa de token (warn, não err fatal)
             try {
-              const r=await fetch(backend+'/api/azure-config');
+              const headers = tok ? {'Authorization':'Bearer '+tok} : {};
+              const r=await fetch(backend+'/api/azure-config',{headers});
               const d=await r.json().catch(()=>({}));
-              _val('dbg-val-azure-cfg', r.ok?'✅ '+JSON.stringify(d):'❌ HTTP '+r.status, r.ok?'ok':'err');
-              log((r.ok?'✓':'✗')+' /api/azure-config: '+JSON.stringify(d), r.ok?'s':'e');
-            } catch(e){ _val('dbg-val-azure-cfg','❌ '+e.message,'err'); }
+              const azOk = r.ok;
+              const azWarn = r.status===401||r.status===403;
+              _val('dbg-val-azure-cfg',
+                azOk ? '✅ '+JSON.stringify(d) : azWarn ? '⚠️ HTTP '+r.status+' ('+( d.error||'sem token' )+')' : '❌ HTTP '+r.status,
+                azOk ? 'ok' : azWarn ? 'warn' : 'err');
+              log((azOk?'✓':azWarn?'⚠':'✗')+' /api/azure-config: HTTP '+r.status, azOk?'s':azWarn?'w':'e');
+              if(azWarn) hasWarn=true;
+              else if(!azOk) hasErr=true;
+            } catch(e){ _val('dbg-val-azure-cfg','❌ '+e.message,'err'); hasErr=true; }
 
-            _dot('dbg-dot-diagnose','ok');
+            _dot('dbg-dot-diagnose', hasErr?'err':hasWarn?'warn':'ok');
           };
 
           // ── RODAR TUDO ────────────────────────────────────────────
@@ -4497,17 +4531,20 @@ body[data-page="2fa"] .bnav{display:none!important;}
             }
 
             // ── Monta resumo de erros/avisos ─────────────────────────
-            const errRows = [];
+            const errRows  = [];
             const warnRows = [];
+            const okRows   = [];
             steps.forEach(s => {
               const dotEl = document.getElementById(s.dot);
               if(!dotEl) return;
-              const cls = dotEl.className.replace('dbg-dot','').trim();
-              if(cls === 'err')  errRows.push(s.label);
-              if(cls === 'warn') warnRows.push(s.label);
+              const cl = dotEl.classList;
+              if(cl.contains('err'))       errRows.push(s.label);
+              else if(cl.contains('warn')) warnRows.push(s.label);
+              else if(cl.contains('ok'))   okRows.push(s.label);
             });
 
-            const totalOk   = steps.length - errRows.length - warnRows.length;
+            const totalOk   = okRows.length;
+            const totalUnk  = steps.length - errRows.length - warnRows.length - okRows.length;
             let html = '';
 
             // Card de resultado geral
@@ -4517,9 +4554,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
               border:1px solid ${allOk ? 'rgba(0,255,136,.2)' : errRows.length > 0 ? 'rgba(255,68,102,.25)' : 'rgba(255,208,0,.2)'};
               border-radius:12px;margin-bottom:10px;">
               <span style="font-size:22px;">${allOk ? '🟢' : errRows.length > 0 ? '🔴' : '🟡'}</span>
-              <div>
+              <div style="flex:1;">
                 <div style="font-size:13px;font-weight:700;">${allOk ? 'Todos os sistemas OK' : errRows.length + ' erro(s) · ' + warnRows.length + ' aviso(s)'}</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px;">${totalOk} de ${total} módulos saudáveis</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">${totalOk} ✅ ok · ${warnRows.length} ⚠️ avisos · ${errRows.length} ❌ erros${totalUnk > 0 ? ' · '+totalUnk+' sem resultado' : ''} — de ${steps.length} módulos</div>
               </div>
             </div>`;
 
@@ -7236,7 +7273,16 @@ let _grpPresenceListener = null;  // listener de presença Firestore
 let _grpPresenceRef = null;       // ref do doc de presença do usuário atual
 let _grpBC = null;          // BroadcastChannel para sincronizar abas
 let _grpMsgsLocal = {};     // cache em memória por groupId
-const _langEmoji = { inglês:'<img class="flag-img" src="https://flagcdn.com/w20/us.png" alt="us">', espanhol:'<img class="flag-img" src="https://flagcdn.com/w20/es.png" alt="es">', francês:'<img class="flag-img" src="https://flagcdn.com/w20/fr.png" alt="fr">', alemão:'<img class="flag-img" src="https://flagcdn.com/w20/de.png" alt="de">', japonês:'<img class="flag-img" src="https://flagcdn.com/w20/jp.png" alt="jp">' };
+const _langEmoji = {
+  inglês:   '<img src="https://flagcdn.com/w40/us.png" alt="us" style="width:28px;height:auto;border-radius:4px;">',
+  espanhol: '<img src="https://flagcdn.com/w40/es.png" alt="es" style="width:28px;height:auto;border-radius:4px;">',
+  francês:  '<img src="https://flagcdn.com/w40/fr.png" alt="fr" style="width:28px;height:auto;border-radius:4px;">',
+  alemão:   '<img src="https://flagcdn.com/w40/de.png" alt="de" style="width:28px;height:auto;border-radius:4px;">',
+  japonês:  '<img src="https://flagcdn.com/w40/jp.png" alt="jp" style="width:28px;height:auto;border-radius:4px;">',
+  italiano: '<img src="https://flagcdn.com/w40/it.png" alt="it" style="width:28px;height:auto;border-radius:4px;">',
+  chinês:   '<img src="https://flagcdn.com/w40/cn.png" alt="cn" style="width:28px;height:auto;border-radius:4px;">',
+  russo:    '<img src="https://flagcdn.com/w40/ru.png" alt="ru" style="width:28px;height:auto;border-radius:4px;">',
+};
 
 // ── Carrega msgs do localStorage ────────────────────────────────
 function _grpLoadLocal(groupId) {
@@ -7267,7 +7313,7 @@ function grpEntrar(grupo) {
   // Atualiza header
   const emoji    = _langEmoji[grupo.lang] || '🌍';
   const nivelCor = _nivelCor[grupo.nivel] || 'var(--muted)';
-  document.getElementById('grp-chat-avatar').textContent = emoji;
+  document.getElementById('grp-chat-avatar').innerHTML = emoji;
   document.getElementById('grp-chat-title').textContent  = grupo.tema;
   document.getElementById('grp-chat-meta').innerHTML =
     `<span style="font-size:10px;font-weight:800;font-family:var(--mono);color:${nivelCor};">${grupo.nivel}</span>
@@ -14921,7 +14967,7 @@ function _salaMostrarUIVideo(show){
       background: linear-gradient(135deg,rgba(124,58,237,.2),rgba(0,229,255,.06));
       flex-shrink: 0;">
       <!-- Avatar -->
-      <div id="grp-chat-avatar" style="width:40px;height:40px;border-radius:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🌍</div>
+      <div id="grp-chat-avatar" style="width:40px;height:40px;border-radius:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;">🌍</div>
       <!-- Info -->
       <div style="flex:1;min-width:0;">
         <div id="grp-chat-title" style="font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px;">Grupo</div>

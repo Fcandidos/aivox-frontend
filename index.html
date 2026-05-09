@@ -12385,7 +12385,8 @@ async function _salaConectarSocket(code){
     }
     console.log('🔌 Socket conectado, entrando na sala',code);
     const u=window._fbUser;
-    _salaMyLang=LO[lfi]?.code||'PT-BR';
+    // BUGFIX: não sobrescreve _salaMyLang — o picker já definiu o idioma correto
+    if(!_salaMyLang) _salaMyLang=LO[lfi]?.code||'PT-BR';
     _salaSocket.emit('join-room',{
       code,
       uid:  u?.uid||'anon',
@@ -12523,6 +12524,8 @@ function _salaDesconectar(){
   // Recria socket dedicado ami após desconectar da sala
   setTimeout(()=>{ if(typeof window._ensureAmiSocket==='function') window._ensureAmiSocket(); },500);
   _salaCode=null;_salaConnected=false;
+  // BUGFIX: reseta _salaMyLang para null para que o picker funcione corretamente na próxima sessão
+  _salaMyLang=null; _salaTheirLang='EN-US';
   _salaStopRec();
   if(_salaContinuousMode)_salaStopContinuous();
   if(typeof _rtMode!=="undefined"&&_rtMode)_rtStopRealtime();
@@ -12535,7 +12538,8 @@ function _salaDesconectar(){
 function entrarNaSalaAtiva(){
   const u=window._fbUser;
   if(!u||!_salaCode)return;
-  _salaMyLang=LO[lfi]?.code||'PT-BR';
+  // BUGFIX: não sobrescreve _salaMyLang — respeita o idioma escolhido no picker
+  if(!_salaMyLang) _salaMyLang=LO[lfi]?.code||'PT-BR';
   _salaWc=0;
 
   // Atualiza UI da sala ativa
@@ -12708,7 +12712,7 @@ async function _salaProcessAudio(){
     if(accEl)accEl.textContent='97%';
 
     // Adiciona bubble local
-    _salaAddBubble(d.original,d.translation,'mine',LO[lfi]?.code||'PT-BR',LO[lti]?.code||'EN-US',latMs+'ms');
+    _salaAddBubble(d.original,d.translation,'mine',_salaMyLang||LO[lfi]?.code||'PT-BR',_salaTheirLang||LO[lti]?.code||'EN-US',latMs+'ms');
 
     // Atualiza painel "última tradução" (visível durante vídeo chamada)
     _salaUpdateLastTranslation('Você → '+(_salaTheirName||'Participante'), d.translation);
@@ -12719,8 +12723,8 @@ async function _salaProcessAudio(){
         code:_salaCode,
         original:d.original,
         translation:d.translation,
-        fromLang:LO[lfi]?.code||'PT-BR',
-        toLang:LO[lti]?.code||'EN-US',
+        fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',
+        toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
         speakerName:window._fbUser?.name||'Você',
         speakerUid:window._fbUser?.uid,
       });
@@ -12827,8 +12831,8 @@ async function _rtStartRealtime(){
 
   try{
     const token   = await getAuthToken();
-    const from    = LO[lfi]?.code?.split('-')[0].toLowerCase()||'pt';
-    const to      = LO[lti]?.code?.split('-')[0].toLowerCase()||'en';
+    const from    = (_salaMyLang||LO[lfi]?.code||'PT-BR').split('-')[0].toLowerCase();
+    const to      = (_salaTheirLang||LO[lti]?.code||'EN-US').split('-')[0].toLowerCase();
     const voiceId = window._fbUser?.azure_speaker_id || window._fbUser?.voice_id || '';
     const wsUrl   = backendUrl.replace('https://','wss://').replace('http://','ws://')
                   + `/api/realtime?from=${from}&to=${to}&voiceId=${encodeURIComponent(voiceId)}&token=${encodeURIComponent(token||'')}`;
@@ -12902,11 +12906,11 @@ function _rtHandleEvent(msg){
       const translation=msg.transcript?.trim();
       if(!translation) break;
       const original=document.getElementById('sala-tr-eu')?.textContent||'';
-      _salaAddBubble(original,translation,'mine',LO[lfi]?.code||'PT-BR',LO[lti]?.code||'EN-US','~RT');
+      _salaAddBubble(original,translation,'mine',_salaMyLang||LO[lfi]?.code||'PT-BR',_salaTheirLang||LO[lti]?.code||'EN-US','~RT');
       _salaUpdateLastTranslation('Você → '+(_salaTheirName||'Participante'),translation);
       if(_salaSocket&&_salaCode){
         _salaSocket.emit('translation',{code:_salaCode,original,translation,
-          fromLang:LO[lfi]?.code||'PT-BR',toLang:LO[lti]?.code||'EN-US',
+          fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
           speakerName:window._fbUser?.name||'Você',speakerUid:window._fbUser?.uid});
         _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:false});
       }
@@ -13135,12 +13139,12 @@ async function _salaVADProcessAudio(){
     if(wrdEl)wrdEl.textContent=_salaWc;
     if(latEl)latEl.textContent=latMs+'ms';
     if(accEl)accEl.textContent='97%';
-    _salaAddBubble(d.original,d.translation,'mine',LO[lfi]?.code||'PT-BR',LO[lti]?.code||'EN-US',latMs+'ms');
+    _salaAddBubble(d.original,d.translation,'mine',_salaMyLang||LO[lfi]?.code||'PT-BR',_salaTheirLang||LO[lti]?.code||'EN-US',latMs+'ms');
     _salaUpdateLastTranslation('Você → '+(_salaTheirName||'Participante'),d.translation);
     if(_salaSocket&&_salaCode){
       _salaSocket.emit('translation',{
         code:_salaCode,original:d.original,translation:d.translation,
-        fromLang:LO[lfi]?.code||'PT-BR',toLang:LO[lti]?.code||'EN-US',
+        fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
         speakerName:window._fbUser?.name||'Você',speakerUid:window._fbUser?.uid,
       });
     }

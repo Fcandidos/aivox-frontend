@@ -13724,6 +13724,7 @@ function _salaMostrarUIVideo(show){
   </div>
   <div id="__dbg-btns">
     <button onclick="__dbgRun()">▶ Rodar tudo</button>
+    <button onclick="__dbgLearn()">🎓 Lições</button>
     <button onclick="__dbgOverflowHL()">🔴 Marcar overflow</button>
     <button onclick="__dbgClearHL()">✕ Limpar marcas</button>
     <button onclick="document.getElementById('__dbg-log').innerHTML=''">🗑 Limpar log</button>
@@ -13968,6 +13969,85 @@ function _salaMostrarUIVideo(show){
     }
 
     log('── FIM ──','sep');
+  };
+
+  window.__dbgLearn=function(){
+    const log=__dbgLog,sep=__dbgSep;
+    document.getElementById('__dbg-log').innerHTML='';
+    sep('LIÇÕES — DIAGNÓSTICO COMPLETO');
+
+    // 1. Backend URL
+    try{
+      const burl=(typeof getBackendUrl==='function')?getBackendUrl():'(fn não encontrada)';
+      log('backendUrl: '+(burl||'(VAZIO — configure nas configurações)'),burl?'info':'err');
+    }catch(e){log('getBackendUrl: ERRO — '+e.message,'err');}
+
+    // 2. Auth token
+    try{
+      if(typeof getAuthToken==='function'){
+        getAuthToken().then(t=>{
+          __dbgLog('authToken: '+(t?'✓ presente ('+t.substring(0,12)+'…)':'✗ nulo/vazio'),t?'ok':'err');
+        }).catch(e=>__dbgLog('authToken erro: '+e.message,'err'));
+      }else{log('getAuthToken: função não encontrada','err');}
+    }catch(e){log('authToken: ERRO — '+e.message,'err');}
+
+    // 3. Cache de lições IA
+    try{
+      const cache=window._licoesCacheIA||{};
+      const keys=Object.keys(cache);
+      log('cache lições IA: '+(keys.length?keys.join(', '):'vazio'),'info');
+      keys.forEach(k=>{
+        const v=cache[k];
+        log('  '+k+': '+(Array.isArray(v)?v.length+' grupos, '+(v[0]?.itens?.length||'?')+' itens no 1º':'?'),'info');
+      });
+    }catch(e){log('cache lições: ERRO — '+e.message,'err');}
+
+    // 4. Cards renderizados
+    const licScroll=document.getElementById('licoes-scroll');
+    if(licScroll){
+      const cards=licScroll.querySelectorAll('.licao-card');
+      const skels=licScroll.querySelectorAll('.skeleton');
+      log('licao-cards: '+cards.length,cards.length>0?'ok':'err');
+      log('skeletons (loading): '+skels.length,skels.length>0?'warn':'ok');
+      if(cards.length===0&&skels.length===0)log('⚠ Div vazia — renderização falhou!','err');
+    }else{log('licoes-scroll: não encontrado no DOM','err');}
+
+    // 5. Firebase / user
+    sep('FIREBASE / AUTH');
+    try{
+      log('db: '+(window.db?'✓ ok':'✗ não init'),window.db?'ok':'err');
+      const u=window._fbUser;
+      log('_fbUser.uid: '+(u?.uid?.substring(0,14)||'(nulo)'),u?'ok':'err');
+      log('_fbUser.email: '+(u?.email||'(vazio)'),'info');
+      log('userPlan: '+(window.userPlan||'(vazio)'),'info');
+    }catch(e){log('firebase: '+e.message,'err');}
+
+    // 6. Testar fetch do backend ao vivo
+    sep('FETCH AO VIVO → /api/learn/licoes');
+    try{
+      const burl=(typeof getBackendUrl==='function')?getBackendUrl():'';
+      if(!burl){log('⚠ backendUrl vazio — fetch não executado','err');return;}
+      log('POST '+burl+'/api/learn/licoes…','info');
+      const t0=Date.now();
+      getAuthToken().catch(()=>null).then(token=>{
+        fetch(burl+'/api/learn/licoes',{
+          method:'POST',
+          headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+          body:JSON.stringify({lang:'inglês'})
+        }).then(async r=>{
+          const ms=Date.now()-t0;
+          const txt=await r.text().catch(()=>'');
+          if(r.ok){
+            __dbgLog('✓ HTTP 200 em '+ms+'ms','ok');
+            try{const j=JSON.parse(txt);__dbgLog('licoes recebidas: '+JSON.stringify(j).substring(0,80)+'…','ok');}
+            catch(e){__dbgLog('JSON parse erro: '+txt.substring(0,80),'err');}
+          }else{
+            __dbgLog('✗ HTTP '+r.status+' em '+ms+'ms','err');
+            __dbgLog('Resposta: '+txt.substring(0,120),'err');
+          }
+        }).catch(e=>__dbgLog('fetch falhou: '+e.message,'err'));
+      });
+    }catch(e){log('fetch: ERRO — '+e.message,'err');}
   };
 
   window.__dbgOverflowHL=function(){

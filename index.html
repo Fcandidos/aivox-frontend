@@ -3315,21 +3315,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
             <div style="font-size:13px;color:#7a82a0;">Diagnóstico completo do sistema AIVOX</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div>
               <button class="dbg-btn green" onclick="dbgRunAll()">▶ Rodar Todos</button>
-              <button class="dbg-btn" style="background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.4);color:#fbbf24;" onclick="dbgShowErrorSummary()">⚠ Ver Erros</button>
               <button class="dbg-btn red" onclick="dbgClearAll()">🗑 Limpar</button>
             </div>
-          </div>
-
-          <!-- Painel de resumo de erros -->
-          <div id="dbg-error-summary" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div style="font-size:12px;font-weight:800;color:#ef4444;letter-spacing:.5px;">⚠️ RESUMO DE ERROS</div>
-              <button onclick="document.getElementById('dbg-error-summary').style.display='none'" style="background:none;border:none;color:#7a82a0;cursor:pointer;font-size:14px;">✕</button>
-            </div>
-            <div id="dbg-error-list" style="font-size:11px;color:#e2e8f0;line-height:1.8;font-family:'Space Mono',monospace;"></div>
-            <div style="margin-top:10px;font-size:10px;color:#7a82a0;">💡 Tire um screenshot desta tela para enviar ao suporte</div>
           </div>
 
           <!-- Firebase & Auth -->
@@ -3813,10 +3802,10 @@ body[data-page="2fa"] .bnav{display:none!important;}
             const db = firebase.firestore();
             let testId = null;
 
-            // WRITE — FIX: usar fromUid/toUid/text para bater com as Security Rules
+            // WRITE
             try {
               const ref = await db.collection('friend_messages').add({
-                fromUid: user.uid, toUid: user.uid,
+                senderId: user.uid, receiverId: user.uid,
                 text: '[DEBUG TEST] '+new Date().toISOString(),
                 createdAt: firebase.firestore.Timestamp.now(), _debug: true
               });
@@ -3829,9 +3818,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
               _dot('dbg-dot-chat','err'); return;
             }
 
-            // READ recebidas — FIX: toUid (não receiverId)
+            // READ recebidas
             try {
-              const snap = await db.collection('friend_messages').where('toUid','==',user.uid).limit(10).get();
+              const snap = await db.collection('friend_messages').where('receiverId','==',user.uid).limit(10).get();
               _val('dbg-val-chat-rec','✅ '+snap.size+' msgs','ok');
               log('✓ READ (recebidas): '+snap.size+' docs','s');
             } catch(e){
@@ -3839,9 +3828,9 @@ body[data-page="2fa"] .bnav{display:none!important;}
               log('✗ READ recebidas: '+e.message,'e');
             }
 
-            // READ enviadas — FIX: fromUid (não senderId)
+            // READ enviadas
             try {
-              const snap = await db.collection('friend_messages').where('fromUid','==',user.uid).limit(10).get();
+              const snap = await db.collection('friend_messages').where('senderId','==',user.uid).limit(10).get();
               _val('dbg-val-chat-sent','✅ '+snap.size+' msgs','ok');
               _val('dbg-val-chat-count', snap.size+' total','info');
               log('✓ READ (enviadas): '+snap.size+' docs','s');
@@ -4428,61 +4417,25 @@ body[data-page="2fa"] .bnav{display:none!important;}
 
           // ── RODAR TUDO ────────────────────────────────────────────
           window.dbgRunAll = async function(){
-            // FIX: feedback visual de progresso enquanto roda
-            const btn = document.querySelector('[onclick="dbgRunAll()"]');
-            if(btn){ btn.disabled=true; btn.textContent='⏳ Rodando...'; }
-            try {
-              await dbgTestFirebase();
-              await dbgTestRanking();
-              await dbgTestPresence();
-              await dbgTestAPIs();
-              await dbgTestChat();
-              await dbgTestMig();
-              dbgTestDOM();
-              await dbgTestLearn();
-              await dbgTestSession();
-              await dbgTestEscuta();
-              await dbgTestSala();
-              await dbgTestAmigos();
-              await dbgTestPay();
-              await dbgTestNotif();
-              await dbgTestCollections();
-              await dbgTestDiagnose();
-            } finally {
-              if(btn){ btn.disabled=false; btn.textContent='▶ Rodar Todos'; }
-              // Mostra resumo de erros automaticamente ao terminar
-              dbgShowErrorSummary();
-            }
-          };
-
-          window.dbgShowErrorSummary = function(){
-            // Coleta todos os dbg-val-* que têm classe 'err'
-            const erros = [];
-            document.querySelectorAll('[id^="dbg-val-"]').forEach(el=>{
-              if(el.classList.contains('err') || el.classList.contains('warn')){
-                // Pega o label do pai
-                const row = el.closest('.dbg-row');
-                const label = row ? row.querySelector('.dbg-label')?.textContent : el.id.replace('dbg-val-','');
-                // Pega a seção (dbg-title do pai do pai)
-                const section = el.closest('.dbg-section')?.querySelector('.dbg-title')?.textContent?.trim() || '';
-                const icon = el.classList.contains('err') ? '❌' : '⚠️';
-                erros.push(`${icon} <strong>${section}</strong> → ${label}: ${el.textContent}`);
-              }
-            });
-            const panel = document.getElementById('dbg-error-summary');
-            const list  = document.getElementById('dbg-error-list');
-            if(!panel || !list) return;
-            if(erros.length === 0){
-              list.innerHTML = '✅ <strong>Nenhum erro encontrado!</strong> Tudo OK.';
-            } else {
-              list.innerHTML = erros.join('<br>');
-            }
-            panel.style.display = 'block';
-            panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+            await dbgTestFirebase();
+            await dbgTestRanking();
+            await dbgTestPresence();
+            await dbgTestAPIs();
+            await dbgTestChat();
+            await dbgTestMig();
+            dbgTestDOM();
+            await dbgTestLearn();
+            await dbgTestSession();
+            await dbgTestEscuta();
+            await dbgTestSala();
+            await dbgTestAmigos();
+            await dbgTestPay();
+            await dbgTestNotif();
+            await dbgTestCollections();
+            await dbgTestDiagnose();
           };
 
           window.dbgClearAll = function(){
-            // Limpa todos os logs de texto
             ['dbg-log-firebase','dbg-log-ranking','dbg-log-presence','dbg-log-api',
              'dbg-log-chat','dbg-log-mig','dbg-log-dom','dbg-log-learn','dbg-log-session',
              'dbg-log-escuta','dbg-log-sala','dbg-log-amigos','dbg-log-pay',
@@ -4491,15 +4444,6 @@ body[data-page="2fa"] .bnav{display:none!important;}
             });
             document.getElementById('dbg-dom-rows') && (document.getElementById('dbg-dom-rows').innerHTML='');
             document.getElementById('dbg-collections-rows') && (document.getElementById('dbg-collections-rows').innerHTML='');
-            // FIX: limpa todos os valores dbg-val-* de volta para —
-            document.querySelectorAll('[id^="dbg-val-"]').forEach(el=>{
-              el.textContent='—';
-              el.className='dbg-val';
-            });
-            // FIX: reseta todos os dots para warn (cinza)
-            document.querySelectorAll('[id^="dbg-dot-"]').forEach(el=>{
-              el.className='dbg-dot warn';
-            });
           };
 
         })();
@@ -7212,6 +7156,14 @@ function grpEntrar(grupo) {
   document.getElementById('grp-chat-overlay').style.display = 'flex';
   document.getElementById('grp-chat-inp').placeholder = `Escreva em ${grupo.lang} aqui...`;
   _grpRenderMsgs(_grpMsgsLocal[grupo.id] || [], uid);
+  // FIX: scroll para o fim das mensagens após renderizar
+  requestAnimationFrame(()=>{
+    const msgs=document.getElementById('grp-chat-msgs');
+    if(msgs) msgs.scrollTop=msgs.scrollHeight;
+    // Focar input para mobile abrir teclado imediatamente
+    const inp=document.getElementById('grp-chat-inp');
+    if(inp) inp.focus();
+  });
 
   // ── BroadcastChannel (sync entre abas do mesmo browser) ──────
   try {
@@ -7593,6 +7545,8 @@ window.addEventListener('unhandledrejection',e=>{
 window.addEventListener('error',e=>{
   const msg=e.message||'Unknown';
   if(msg.includes('message channel'))return;
+  // FIX: ResizeObserver loop é inofensivo — suprimir para não poluir console
+  if(msg.includes('ResizeObserver loop'))return;
   console.error('[AIVOX] JS Error:',msg,'at',e.filename,':',e.lineno);
 });
 
@@ -10288,12 +10242,16 @@ function startApiMonitor(){
     }
   },1000);
   _apiMonitorInterval=1; // flag: monitor ativo (o interval real é _apiCountdownInterval)
-  // Redraw charts on resize
+  // Redraw charts on resize — FIX: debounce para evitar "ResizeObserver loop" no Chrome
   if(window.ResizeObserver){
     const charts=document.getElementById('neon-charts');
     if(charts&&!charts._ro){
+      let _roTimer=null;
       charts._ro=new ResizeObserver(()=>{
-        Object.keys(_neonColors).forEach(api=>_drawNeonChart(api));
+        clearTimeout(_roTimer);
+        _roTimer=setTimeout(()=>{
+          Object.keys(_neonColors).forEach(api=>_drawNeonChart(api));
+        },50);
       });
       charts._ro.observe(charts);
     }
@@ -12959,7 +12917,7 @@ function addPts(n, action) {
 }
 function _gamifToast(msg, color) {
   const t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1f2e;border:1.5px solid '+color+';color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:99999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);';
+  t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1f2e;border:1.5px solid '+color+';color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:999999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);';
   t.textContent=msg; document.body.appendChild(t);
   setTimeout(()=>t.remove(),3500);
 }
@@ -14829,8 +14787,8 @@ function _salaMostrarUIVideo(show){
 
 <!-- PROFESSOR IA — overlay fullscreen (controlado por professor-ia.js) -->
 <!-- ====== GRUPO CHAT OVERLAY ====== -->
-<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:#0d1020;">
-  <div style="background:#0f1420;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
+<div id="grp-chat-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#0d1020;isolation:isolate;">
+  <div style="background:#0f1420;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;position:relative;">
 
     <!-- Header — com safe-area-inset-top para notch/ilha dinâmica -->
     <div id="grp-chat-header" style="

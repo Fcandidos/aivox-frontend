@@ -5841,11 +5841,12 @@ function _amiListenPresence() {
   };
   setTimeout(_listenFriendsPresence, 1500);
   // Registra listeners do socket com retry seguro (evita ReferenceError: s is not defined)
-  window._ensureAmiSocket = () => {
+  window._ensureAmiSocket = async () => {
     if (window._salaSocket && window._salaSocket.connected) return; // já tem socket de sala
     if (window._amiSocketDedicado && window._amiSocketDedicado.connected) return; // já tem socket ami
     const backendUrl = getBackendUrl();
     if (!backendUrl) { setTimeout(window._ensureAmiSocket, 2000); return; }
+    const token = await getAuthToken().catch(()=>null);
     console.log('[AMI] Criando socket dedicado para chamadas P2P');
     const amiSock = io(backendUrl, {
       transports: ['polling', 'websocket'], // igual ao socket de sala
@@ -5853,6 +5854,7 @@ function _amiListenPresence() {
       reconnectionAttempts: 10,
       reconnectionDelay: 3000,
       timeout: 20000,
+      auth: token ? { token } : undefined,
     });
     amiSock.on('connect_error', (err) => {
       console.warn('[AMI] Socket connect error (normal no Render free):', err.message);
@@ -6429,7 +6431,7 @@ const ICE_SERVERS=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.goo
 async function startCallTo(uid, name) {
   if (_ami.callUid) { showToast('Você já está em uma chamada','error'); return; }
   // Garante que o socket está disponível antes de iniciar a chamada
-  if (typeof window._ensureAmiSocket === 'function') window._ensureAmiSocket();
+  if (typeof window._ensureAmiSocket === 'function') await window._ensureAmiSocket();
   if (!window._salaSocket || !window._salaSocket.connected) {
     showToast('Conectando... tente em instantes','error'); return;
   }
@@ -12160,7 +12162,7 @@ async function criarSala(){
     }
 
     // Conecta socket e aguarda participante
-    _salaConectarSocket(d.code);
+    await _salaConectarSocket(d.code);
     showToast('✅ Sala criada! Compartilhe o código.','success');
   }catch(e){
     showToast('Erro: '+e.message,'error');
@@ -12263,20 +12265,22 @@ async function validarEntrarSala(){
   if(code.length!==6){showToast('Digite o código completo de 6 caracteres','error');return;}
   _salaCode=code;
   _salaIsCreator=false;
-  _salaConectarSocket(code);
+  await _salaConectarSocket(code);
 }
 
 // ── Socket.io ───────────────────────────────────────────────────
-function _salaConectarSocket(code){
+async function _salaConectarSocket(code){
   if(_salaSocket){_salaSocket.disconnect();_salaSocket=null;window._salaSocket=null;}
 
   const backendUrl=getBackendUrl();
+  const token = await getAuthToken().catch(()=>null);
   _salaSocket=io(backendUrl,{
     transports:['polling','websocket'], // polling primeiro: mais estável no Render free
     reconnection:true,
     reconnectionAttempts:5,
     reconnectionDelay:2000,
     timeout:15000,
+    auth: token ? { token } : undefined,
   });
 
   let _salaConnErrCount=0;

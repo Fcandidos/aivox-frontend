@@ -2700,19 +2700,20 @@ body[data-page="2fa"] .bnav{display:none!important;}
       <div class="section-label">Segurança</div>
       <div class="card" style="margin-bottom:18px;">
         <div style="font-size:13px;font-weight:700;margin-bottom:12px;">🔑 Alterar senha</div>
-        <div style="display:flex;flex-direction:column;gap:9px;">
+        <form onsubmit="event.preventDefault();doChangePw();" autocomplete="on" style="display:flex;flex-direction:column;gap:9px;">
+          <input type="text" id="prof-pw-username" name="username" autocomplete="username" style="display:none;" aria-hidden="true" tabindex="-1">
           <div class="input-group">
             <div class="input-label">Nova senha</div>
-            <input class="input-field" id="prof-pw-new" type="password" placeholder="Mínimo 8 caracteres">
+            <input class="input-field" id="prof-pw-new" type="password" name="new-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
             <div style="background:var(--surface);border-radius:2px;height:3px;margin-top:4px;"><div id="prof-pw-bar" style="width:0%;height:100%;border-radius:2px;transition:all .3s;"></div></div>
           </div>
           <div class="input-group">
             <div class="input-label">Confirmar nova senha</div>
-            <input class="input-field" id="prof-pw-confirm" type="password" placeholder="Repita a senha">
+            <input class="input-field" id="prof-pw-confirm" type="password" name="confirm-password" placeholder="Repita a senha" autocomplete="new-password">
           </div>
           <div id="prof-pw-msg" style="display:none;font-size:12px;border-radius:9px;padding:8px 12px;"></div>
-          <button class="btn btn-primary btn-full" onclick="doChangePw()">💾 Salvar nova senha</button>
-        </div>
+          <button type="submit" class="btn btn-primary btn-full">💾 Salvar nova senha</button>
+        </form>
       </div>
 
       <!-- Plano atual -->
@@ -6997,6 +6998,8 @@ async function renderProfilePage(){
   const pwNew=document.getElementById('prof-pw-new');const pwConf=document.getElementById('prof-pw-confirm');const pwMsg=document.getElementById('prof-pw-msg');
   if(pwNew)pwNew.value='';if(pwConf)pwConf.value='';if(pwMsg)pwMsg.style.display='none';
   if(pwNew)pwNew.oninput=()=>checkProfPwStrength(pwNew.value);
+  // Preenche campo username oculto para o gerenciador de senhas do Chrome
+  const pwUser=document.getElementById('prof-pw-username');if(pwUser)pwUser.value=email||name||'';
   // Plan card
   const planMeta={
     trial:{icon:'🆓',name:'Trial',desc:'3 dias · 5 minutos gratuitos',price:'Grátis',mins:5},

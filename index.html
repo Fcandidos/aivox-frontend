@@ -2945,6 +2945,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <div class="atab" onclick="adTab('api',this)">⚙️ APIs</div>
           <div class="atab" onclick="adTab('chats',this)">💬 Chats <span id="chat-badge" style="display:none;background:var(--accent);color:#000;font-size:9px;font-weight:800;padding:1px 5px;border-radius:6px;margin-left:3px;"></span></div>
           <div class="atab" onclick="adTab('sistema',this)">🔧 Sistema</div>
+          <div class="atab" onclick="adTab('debug',this)">🐛 Debug</div>
         </div>
       </div>
       <div class="atcont scroll-area">
@@ -3273,6 +3274,539 @@ body[data-page="2fa"] .bnav{display:none!important;}
           <button class="btn btn-danger btn-full" onclick="doLogout()">🚪 Sair do painel admin</button>
           <div style="height:20px;"></div>
         </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- TAB: DEBUG PANEL                                          -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="atpanel" id="tab-debug">
+          <style>
+            #tab-debug .dbg-section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:16px;}
+            #tab-debug .dbg-title{font-size:11px;letter-spacing:2px;color:#4a5170;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+            #tab-debug .dbg-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a5170;flex-shrink:0;}
+            #tab-debug .dbg-dot.ok{background:#00ff88;}
+            #tab-debug .dbg-dot.err{background:#ff4466;}
+            #tab-debug .dbg-dot.warn{background:#ffd000;}
+            #tab-debug .dbg-dot.run{background:#00e5ff;animation:dbgPulse 1s infinite;}
+            @keyframes dbgPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+            #tab-debug .dbg-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);gap:12px;}
+            #tab-debug .dbg-row:last-child{border-bottom:none;}
+            #tab-debug .dbg-label{color:#7a82a0;font-size:12px;flex-shrink:0;}
+            #tab-debug .dbg-val{font-size:12px;text-align:right;word-break:break-all;max-width:70%;color:var(--text);}
+            #tab-debug .dbg-val.ok{color:#00ff88;}
+            #tab-debug .dbg-val.err{color:#ff4466;}
+            #tab-debug .dbg-val.warn{color:#ffd000;}
+            #tab-debug .dbg-val.info{color:#00e5ff;}
+            #tab-debug .dbg-log{background:#080b12;border-radius:8px;padding:10px;margin-top:10px;max-height:200px;overflow-y:auto;font-size:11px;line-height:1.7;font-family:'Courier New',monospace;}
+            #tab-debug .dbg-log .ll{padding:1px 0;}
+            #tab-debug .dbg-log .ll.e{color:#ff4466;}
+            #tab-debug .dbg-log .ll.w{color:#ffd000;}
+            #tab-debug .dbg-log .ll.s{color:#00ff88;}
+            #tab-debug .dbg-log .ll.i{color:#00e5ff;}
+            #tab-debug .dbg-log .ll.m{color:#7a82a0;}
+            #tab-debug .dbg-btn{padding:8px 16px;border-radius:10px;border:1px solid rgba(0,229,255,.3);background:rgba(0,229,255,.1);color:#00e5ff;cursor:pointer;font-size:12px;font-weight:700;margin-right:6px;margin-top:8px;transition:all .2s;font-family:inherit;}
+            #tab-debug .dbg-btn:hover{background:rgba(0,229,255,.2);}
+            #tab-debug .dbg-btn.red{border-color:rgba(255,68,102,.3);background:rgba(255,68,102,.1);color:#ff4466;}
+            #tab-debug .dbg-btn.green{border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.1);color:#00ff88;}
+            #tab-debug .dbg-detail{background:#080b12;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:11px;color:#7a82a0;line-height:1.7;}
+            #tab-debug .dbg-detail code{color:#00e5ff;background:rgba(0,229,255,.08);padding:1px 5px;border-radius:4px;}
+            #tab-debug .dbg-input{background:#131825;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:12px;width:100%;margin-top:6px;outline:none;}
+            #tab-debug .dbg-tag{font-size:10px;background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.2);border-radius:5px;padding:2px 7px;margin-left:8px;}
+          </style>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:13px;color:#7a82a0;">Diagnóstico completo do sistema AIVOX</div>
+            <div>
+              <button class="dbg-btn green" onclick="dbgRunAll()">▶ Rodar Todos</button>
+              <button class="dbg-btn red" onclick="dbgClearAll()">🗑 Limpar</button>
+            </div>
+          </div>
+
+          <!-- Firebase & Auth -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-firebase"></span>Firebase & Auth</div>
+            <div class="dbg-row"><span class="dbg-label">Firebase SDK</span><span class="dbg-val" id="dbg-val-sdk">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Usuário logado</span><span class="dbg-val" id="dbg-val-user">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">UID</span><span class="dbg-val" id="dbg-val-uid">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Token válido</span><span class="dbg-val" id="dbg-val-token">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Firestore (db)</span><span class="dbg-val" id="dbg-val-db">—</span></div>
+            <div class="dbg-log" id="dbg-log-firebase"></div>
+            <button class="dbg-btn" onclick="dbgTestFirebase()">🔄 Testar Firebase</button>
+          </div>
+
+          <!-- Ranking -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-ranking"></span>Ranking / Leaderboard</div>
+            <div class="dbg-row"><span class="dbg-label">WRITE — leaderboard/{uid}</span><span class="dbg-val" id="dbg-val-lb-write">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">READ — leaderboard (orderBy xp)</span><span class="dbg-val" id="dbg-val-lb-read">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Docs encontrados</span><span class="dbg-val" id="dbg-val-lb-count">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Erro detalhado</span><span class="dbg-val err" id="dbg-val-lb-err">—</span></div>
+            <div class="dbg-log" id="dbg-log-ranking"></div>
+            <button class="dbg-btn" onclick="dbgTestRanking()">🔄 Testar Ranking</button>
+          </div>
+
+          <!-- Presença -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-presence"></span>Presença Online</div>
+            <div class="dbg-row"><span class="dbg-label">WRITE — presence/{uid}</span><span class="dbg-val" id="dbg-val-pr-write">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">READ — presence/{uid}</span><span class="dbg-val" id="dbg-val-pr-read">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Campo online</span><span class="dbg-val" id="dbg-val-pr-online">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">lastSeen (ms atrás)</span><span class="dbg-val" id="dbg-val-pr-lastseen">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">isRecent (&lt; 120s)</span><span class="dbg-val" id="dbg-val-pr-recent">—</span></div>
+            <div class="dbg-log" id="dbg-log-presence"></div>
+            <button class="dbg-btn" onclick="dbgTestPresence()">🔄 Testar Presença</button>
+            <input class="dbg-input" id="dbg-input-friend-uid" placeholder="UID do amigo para testar presença (opcional)" />
+          </div>
+
+          <!-- APIs do Backend -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-api"></span>APIs do Backend</div>
+            <div class="dbg-row"><span class="dbg-label">/api/ping</span><span class="dbg-val" id="dbg-val-ping">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/check</span><span class="dbg-val" id="dbg-val-check">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/learn/licoes</span><span class="dbg-val" id="dbg-val-licoes">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">/api/translate-free</span><span class="dbg-val" id="dbg-val-translate">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Azure OpenAI (LLM)</span><span class="dbg-val" id="dbg-val-llm">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Azure Speech (TTS)</span><span class="dbg-val" id="dbg-val-tts">—</span></div>
+            <div class="dbg-log" id="dbg-log-api"></div>
+            <button class="dbg-btn" onclick="dbgTestAPIs()">🔄 Testar APIs</button>
+          </div>
+
+          <!-- Chat de Amigos -->
+          <div class="dbg-section">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-chat"></span>Chat de Amigos <span class="dbg-tag">friend_messages</span></div>
+            <div class="dbg-row"><span class="dbg-label">READ (recebidas)</span><span class="dbg-val" id="dbg-val-chat-rec">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">READ (enviadas)</span><span class="dbg-val" id="dbg-val-chat-sent">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">WRITE</span><span class="dbg-val" id="dbg-val-chat-write">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">DELETE (limpeza)</span><span class="dbg-val" id="dbg-val-chat-delete">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Msgs encontradas</span><span class="dbg-val" id="dbg-val-chat-count">—</span></div>
+            <div class="dbg-log" id="dbg-log-chat"></div>
+            <button class="dbg-btn" onclick="dbgTestChat()">🔄 Testar Chat</button>
+          </div>
+
+          <!-- Migração Azure -->
+          <div class="dbg-section" style="border-color:rgba(168,85,247,.3);">
+            <div class="dbg-title"><span class="dbg-dot warn" id="dbg-dot-mig"></span>Migração Azure — 4 Fases</div>
+            <div class="dbg-detail" style="margin-bottom:12px;">
+              <strong style="color:#00e5ff;">Fase 1A</strong>: Azure STT &nbsp;•&nbsp;
+              <strong style="color:#00e5ff;">Fase 1B</strong>: Azure Translation &nbsp;•&nbsp;
+              <strong style="color:#00e5ff;">Fase 1C</strong>: Azure TTS &nbsp;•&nbsp;
+              <strong style="color:#00e5ff;">Fase 1D</strong>: Azure OpenAI &nbsp;•&nbsp;
+              <strong style="color:#a855f7;">Fase 2</strong>: Tradutor ao Vivo &nbsp;•&nbsp;
+              <strong style="color:#a855f7;">Fase 3</strong>: Chamadas com Tradução
+            </div>
+            <div class="dbg-row"><span class="dbg-label">Fase 1A — Azure STT</span><span class="dbg-val" id="dbg-val-f1a">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Fase 1B — Azure Translation</span><span class="dbg-val" id="dbg-val-f1b">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Fase 1C — Azure TTS</span><span class="dbg-val" id="dbg-val-f1c">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Fase 1D — Azure OpenAI</span><span class="dbg-val" id="dbg-val-f1d">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Fase 2 — Tradutor ao Vivo</span><span class="dbg-val" id="dbg-val-f2">—</span></div>
+            <div class="dbg-row"><span class="dbg-label">Fase 3 — Chamadas + Tradução</span><span class="dbg-val" id="dbg-val-f3">—</span></div>
+            <div class="dbg-log" id="dbg-log-mig"></div>
+            <button class="dbg-btn green" onclick="dbgTestMig()">▶ Verificar Fases</button>
+          </div>
+
+          <div style="height:20px;"></div>
+        </div><!-- /tab-debug -->
+
+        <script>
+        // ═══════════════════════════════════════════════════════════
+        //  ADMIN DEBUG TAB — lógica inline (não polui o escopo global)
+        // ═══════════════════════════════════════════════════════════
+        (function(){
+
+          // Helper: escreve linha no log de um painel
+          function _log(logId, msg, type){
+            const el = document.getElementById(logId);
+            if(!el) return;
+            const line = document.createElement('div');
+            line.className = 'll ' + (type||'m');
+            const ts = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            line.textContent = ts + ' ' + msg;
+            el.appendChild(line);
+            el.scrollTop = el.scrollHeight;
+          }
+
+          // Helper: seta valor num campo de resultado
+          function _val(id, text, cls){
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.textContent = text;
+            el.className = 'dbg-val' + (cls ? ' '+cls : '');
+          }
+
+          function _dot(id, cls){
+            const el = document.getElementById(id);
+            if(el){ el.className = 'dbg-dot ' + cls; }
+          }
+
+          // Retorna o token do usuário atual
+          async function _getToken(){
+            try {
+              const u = firebase?.auth?.()?.currentUser;
+              if(!u) return null;
+              return await u.getIdToken();
+            } catch(e){ return null; }
+          }
+
+          // Retorna URL do backend
+          function _backend(){
+            return (typeof getBackendUrl === 'function') ? getBackendUrl() : '';
+          }
+
+          // ── FIREBASE & AUTH ──────────────────────────────────────
+          window.dbgTestFirebase = async function(){
+            const log = (m,t) => _log('dbg-log-firebase', m, t);
+            log('Verificando Firebase...','i');
+            _dot('dbg-dot-firebase','run');
+
+            const sdkOk = typeof firebase !== 'undefined';
+            _val('dbg-val-sdk', sdkOk ? '✅ Carregado' : '❌ Não encontrado', sdkOk?'ok':'err');
+            log((sdkOk?'✓':'✗') + ' Firebase SDK', sdkOk?'s':'e');
+
+            const user = firebase?.auth?.()?.currentUser;
+            _val('dbg-val-user', user ? (user.email||user.uid) : '❌ Não logado', user?'ok':'err');
+            log((user?'✓':'✗') + ' Usuário: ' + (user?.email||'—'), user?'s':'e');
+
+            _val('dbg-val-uid', user?.uid || '—', user?'info':'err');
+
+            if(user){
+              try {
+                const tok = await user.getIdToken();
+                _val('dbg-val-token', tok ? '✅ OK ('+tok.length+' chars)' : '❌ Vazio', tok?'ok':'err');
+                log('✓ Token obtido ('+(tok?.length||0)+' chars)','s');
+              } catch(e){
+                _val('dbg-val-token','❌ '+e.message,'err');
+                log('✗ Token: '+e.message,'e');
+              }
+            } else {
+              _val('dbg-val-token','— (sem usuário)','warn');
+            }
+
+            try {
+              const db = firebase.firestore();
+              _val('dbg-val-db', db ? '✅ Instância OK' : '❌ Null', db?'ok':'err');
+              log('✓ Firestore instanciado','s');
+              _dot('dbg-dot-firebase', user && db ? 'ok' : 'warn');
+            } catch(e){
+              _val('dbg-val-db','❌ '+e.message,'err');
+              log('✗ Firestore: '+e.message,'e');
+              _dot('dbg-dot-firebase','err');
+            }
+          };
+
+          // ── RANKING ──────────────────────────────────────────────
+          window.dbgTestRanking = async function(){
+            const log = (m,t) => _log('dbg-log-ranking', m, t);
+            log('Testando leaderboard...','i');
+            _dot('dbg-dot-ranking','run');
+
+            const user = firebase?.auth?.()?.currentUser;
+            if(!user){ log('✗ Usuário não logado','e'); _dot('dbg-dot-ranking','err'); return; }
+
+            try {
+              const db  = firebase.firestore();
+              const ref = db.collection('leaderboard').doc(user.uid);
+              await ref.set({ xp: 0, _debug: true, _ts: Date.now() }, { merge: true });
+              _val('dbg-val-lb-write','✅ OK','ok');
+              log('✓ WRITE leaderboard/'+user.uid,'s');
+            } catch(e){
+              _val('dbg-val-lb-write','❌ '+e.message,'err');
+              log('✗ WRITE: '+e.message,'e');
+              _dot('dbg-dot-ranking','err');
+              _val('dbg-val-lb-err', e.message);
+              return;
+            }
+
+            try {
+              const db   = firebase.firestore();
+              const snap = await db.collection('leaderboard').orderBy('xp','desc').limit(10).get();
+              _val('dbg-val-lb-read','✅ OK','ok');
+              _val('dbg-val-lb-count', snap.size + ' docs','info');
+              log('✓ READ leaderboard: '+snap.size+' docs','s');
+              _val('dbg-val-lb-err','—');
+              _dot('dbg-dot-ranking','ok');
+            } catch(e){
+              _val('dbg-val-lb-read','❌ '+e.message,'err');
+              _val('dbg-val-lb-err', e.message);
+              log('✗ READ: '+e.message,'e');
+              _dot('dbg-dot-ranking','err');
+            }
+          };
+
+          // ── PRESENÇA ──────────────────────────────────────────────
+          window.dbgTestPresence = async function(){
+            const log = (m,t) => _log('dbg-log-presence', m, t);
+            log('Testando presença...','i');
+            _dot('dbg-dot-presence','run');
+
+            const user = firebase?.auth?.()?.currentUser;
+            if(!user){ log('✗ Usuário não logado','e'); _dot('dbg-dot-presence','err'); return; }
+
+            const db = firebase.firestore();
+
+            try {
+              await db.collection('presence').doc(user.uid).set({ online: true, lastSeen: Date.now(), _debug: true }, { merge: true });
+              _val('dbg-val-pr-write','✅ OK','ok');
+              log('✓ WRITE presence/'+user.uid,'s');
+            } catch(e){
+              _val('dbg-val-pr-write','❌ '+e.message,'err');
+              log('✗ WRITE: '+e.message,'e');
+              _dot('dbg-dot-presence','err'); return;
+            }
+
+            try {
+              const targetUid = document.getElementById('dbg-input-friend-uid')?.value?.trim() || user.uid;
+              const snap = await db.collection('presence').doc(targetUid).get();
+              if(snap.exists){
+                const d = snap.data();
+                _val('dbg-val-pr-read','✅ Doc existe','ok');
+                _val('dbg-val-pr-online', d.online ? '✅ true' : '⚠️ false', d.online?'ok':'warn');
+                const ago = d.lastSeen ? Math.round((Date.now()-d.lastSeen)/1000)+'s atrás' : '—';
+                _val('dbg-val-pr-lastseen', ago,'info');
+                const recent = d.lastSeen && (Date.now()-d.lastSeen) < 120000;
+                _val('dbg-val-pr-recent', recent?'✅ Sim':'⚠️ Não', recent?'ok':'warn');
+                log('✓ READ presence/'+targetUid+': online='+d.online,'s');
+                _dot('dbg-dot-presence','ok');
+              } else {
+                _val('dbg-val-pr-read','⚠️ Doc não existe','warn');
+                log('⚠ Doc presence/'+targetUid+' não existe','w');
+                _dot('dbg-dot-presence','warn');
+              }
+            } catch(e){
+              _val('dbg-val-pr-read','❌ '+e.message,'err');
+              log('✗ READ: '+e.message,'e');
+              _dot('dbg-dot-presence','err');
+            }
+          };
+
+          // ── APIs BACKEND ──────────────────────────────────────────
+          window.dbgTestAPIs = async function(){
+            const log = (m,t) => _log('dbg-log-api', m, t);
+            const backend = _backend();
+            log('Backend: '+(backend||'(não detectado)'),'i');
+            _dot('dbg-dot-api','run');
+
+            if(!backend){ log('✗ getBackendUrl() não retornou URL','e'); _dot('dbg-dot-api','err'); return; }
+
+            const tok = await _getToken();
+
+            // ping
+            try {
+              const t0 = Date.now();
+              const r  = await fetch(backend+'/api/ping');
+              const ms = Date.now()-t0;
+              _val('dbg-val-ping', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/ping → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-ping','❌ '+e.message,'err'); log('✗ /api/ping: '+e.message,'e'); }
+
+            // check
+            try {
+              const t0 = Date.now();
+              const r  = await fetch(backend+'/api/check');
+              const ms = Date.now()-t0;
+              const d  = await r.json().catch(()=>({}));
+              _val('dbg-val-check', r.ok ? '✅ '+ms+'ms' : '❌ '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/check: openai='+d.openai_key+' anthropic='+d.anthropic_key+' azure='+d.anthropic_key, r.ok?'s':'w');
+            } catch(e){ _val('dbg-val-check','❌ '+e.message,'err'); log('✗ /api/check: '+e.message,'e'); }
+
+            // translate-free
+            try {
+              const t0 = Date.now();
+              const r  = await fetch(backend+'/api/translate-free', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({text:'Hello',from:'en',to:'pt'})
+              });
+              const ms = Date.now()-t0;
+              _val('dbg-val-translate', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+              log((r.ok?'✓':'✗')+' /api/translate-free → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
+            } catch(e){ _val('dbg-val-translate','❌ '+e.message,'err'); log('✗ /api/translate-free: '+e.message,'e'); }
+
+            // licoes (requer auth)
+            if(tok){
+              try {
+                const t0 = Date.now();
+                const r  = await fetch(backend+'/api/learn/licoes', {
+                  method:'POST',
+                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+                  body: JSON.stringify({lang:'inglês'})
+                });
+                const ms = Date.now()-t0;
+                _val('dbg-val-licoes', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/learn/licoes → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-licoes','❌ '+e.message,'err'); log('✗ /api/learn/licoes: '+e.message,'e'); }
+
+              // claude (Azure OpenAI)
+              try {
+                const t0 = Date.now();
+                const r  = await fetch(backend+'/api/claude', {
+                  method:'POST',
+                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+                  body: JSON.stringify({messages:[{role:'user',content:'responda apenas: ok'}], max_tokens:10})
+                });
+                const ms = Date.now()-t0;
+                _val('dbg-val-llm', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/claude (Azure LLM) → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-llm','❌ '+e.message,'err'); log('✗ /api/claude: '+e.message,'e'); }
+
+              // speak (Azure TTS)
+              try {
+                const t0 = Date.now();
+                const r  = await fetch(backend+'/api/speak', {
+                  method:'POST',
+                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+                  body: JSON.stringify({text:'teste',lang:'pt',voiceId:''})
+                });
+                const ms = Date.now()-t0;
+                _val('dbg-val-tts', r.ok ? '✅ '+ms+'ms' : '❌ HTTP '+r.status, r.ok?'ok':'err');
+                log((r.ok?'✓':'✗')+' /api/speak (Azure TTS) → '+r.status+' ('+ms+'ms)', r.ok?'s':'e');
+              } catch(e){ _val('dbg-val-tts','❌ '+e.message,'err'); log('✗ /api/speak: '+e.message,'e'); }
+            } else {
+              ['dbg-val-licoes','dbg-val-llm','dbg-val-tts'].forEach(id => _val(id,'⚠️ sem token','warn'));
+              log('⚠ Testes autenticados pulados (sem token)','w');
+            }
+
+            _dot('dbg-dot-api','ok');
+          };
+
+          // ── CHAT DE AMIGOS ────────────────────────────────────────
+          window.dbgTestChat = async function(){
+            const log = (m,t) => _log('dbg-log-chat', m, t);
+            log('Testando friend_messages...','i');
+            _dot('dbg-dot-chat','run');
+
+            const user = firebase?.auth?.()?.currentUser;
+            if(!user){ log('✗ Usuário não logado','e'); _dot('dbg-dot-chat','err'); return; }
+
+            const db = firebase.firestore();
+            let testId = null;
+
+            // WRITE
+            try {
+              const ref = await db.collection('friend_messages').add({
+                senderId: user.uid, receiverId: user.uid,
+                text: '[DEBUG TEST] '+new Date().toISOString(),
+                createdAt: firebase.firestore.Timestamp.now(), _debug: true
+              });
+              testId = ref.id;
+              _val('dbg-val-chat-write','✅ OK','ok');
+              log('✓ WRITE friend_messages: '+testId,'s');
+            } catch(e){
+              _val('dbg-val-chat-write','❌ '+e.message,'err');
+              log('✗ WRITE: '+e.message,'e');
+              _dot('dbg-dot-chat','err'); return;
+            }
+
+            // READ recebidas
+            try {
+              const snap = await db.collection('friend_messages').where('receiverId','==',user.uid).limit(10).get();
+              _val('dbg-val-chat-rec','✅ '+snap.size+' msgs','ok');
+              log('✓ READ (recebidas): '+snap.size+' docs','s');
+            } catch(e){
+              _val('dbg-val-chat-rec','❌ '+e.message,'err');
+              log('✗ READ recebidas: '+e.message,'e');
+            }
+
+            // READ enviadas
+            try {
+              const snap = await db.collection('friend_messages').where('senderId','==',user.uid).limit(10).get();
+              _val('dbg-val-chat-sent','✅ '+snap.size+' msgs','ok');
+              _val('dbg-val-chat-count', snap.size+' total','info');
+              log('✓ READ (enviadas): '+snap.size+' docs','s');
+            } catch(e){
+              _val('dbg-val-chat-sent','❌ '+e.message,'err');
+              log('✗ READ enviadas: '+e.message,'e');
+            }
+
+            // DELETE
+            if(testId){
+              try {
+                await db.collection('friend_messages').doc(testId).delete();
+                _val('dbg-val-chat-delete','✅ OK','ok');
+                log('✓ DELETE msg de teste','s');
+                _dot('dbg-dot-chat','ok');
+              } catch(e){
+                _val('dbg-val-chat-delete','❌ '+e.message,'err');
+                log('✗ DELETE: '+e.message,'e');
+                _dot('dbg-dot-chat','warn');
+              }
+            }
+          };
+
+          // ── MIGRAÇÃO AZURE ────────────────────────────────────────
+          window.dbgTestMig = async function(){
+            const log = (m,t) => _log('dbg-log-mig', m, t);
+            log('Verificando fases de migração Azure...','i');
+            _dot('dbg-dot-mig','run');
+
+            // Fase 1A — Azure STT
+            const f1a = typeof azureTranscribe === 'function' || typeof window._azureSTT !== 'undefined';
+            _val('dbg-val-f1a', f1a?'✅ Função presente':'⚠️ Não detectado', f1a?'ok':'warn');
+            log((f1a?'✓':'⚠')+' Fase 1A — Azure STT', f1a?'s':'w');
+
+            // Fase 1B — Translation
+            const hasSdk = typeof SpeechSDK !== 'undefined';
+            const f1b = hasSdk && typeof SpeechSDK.TranslationRecognizer !== 'undefined';
+            _val('dbg-val-f1b', f1b?'✅ SpeechSDK OK':'⚠️ SpeechSDK ausente', f1b?'ok':'warn');
+            log((f1b?'✓':'⚠')+' Fase 1B — SpeechSDK.TranslationRecognizer', f1b?'s':'w');
+
+            // Fase 1C — TTS
+            const backend = _backend();
+            if(backend){
+              const tok = await _getToken();
+              if(tok){
+                try {
+                  const r = await fetch(backend+'/api/speak',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({text:'ok',lang:'pt',voiceId:''})});
+                  _val('dbg-val-f1c', r.ok?'✅ HTTP '+r.status:'❌ HTTP '+r.status, r.ok?'ok':'err');
+                  log((r.ok?'✓':'✗')+' Fase 1C — /api/speak: '+r.status, r.ok?'s':'e');
+                } catch(e){ _val('dbg-val-f1c','❌ '+e.message,'err'); log('✗ Fase 1C: '+e.message,'e'); }
+
+                // Fase 1D — OpenAI
+                try {
+                  const r = await fetch(backend+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({messages:[{role:'user',content:'ok'}],max_tokens:5})});
+                  _val('dbg-val-f1d', r.ok?'✅ HTTP '+r.status:'❌ HTTP '+r.status, r.ok?'ok':'err');
+                  log((r.ok?'✓':'✗')+' Fase 1D — /api/claude: '+r.status, r.ok?'s':'e');
+                } catch(e){ _val('dbg-val-f1d','❌ '+e.message,'err'); log('✗ Fase 1D: '+e.message,'e'); }
+              } else {
+                ['dbg-val-f1c','dbg-val-f1d'].forEach(id=>_val(id,'⚠️ sem token','warn'));
+                log('⚠ Fases 1C/1D: sem token','w');
+              }
+            } else {
+              ['dbg-val-f1c','dbg-val-f1d'].forEach(id=>_val(id,'⚠️ sem backend','warn'));
+            }
+
+            // Fase 2 — Tradutor ao Vivo
+            const f2fns = ['liveTransStart','liveTransStop','liveTransToggle'];
+            const f2ok  = f2fns.every(fn=>typeof window[fn]==='function');
+            const f2pg  = !!document.getElementById('page-liveTrans');
+            _val('dbg-val-f2', (f2ok&&f2pg)?'✅ OK':f2ok?'⚠️ sem página':'❌ Funções ausentes', (f2ok&&f2pg)?'ok':f2ok?'warn':'err');
+            log((f2ok?'✓':'✗')+' Fase 2 — funções: '+f2fns.filter(fn=>typeof window[fn]==='function').join(', ')||'nenhuma', f2ok?'s':'e');
+
+            // Fase 3 — Chamadas
+            const f3fns = ['toggleCallTranslation','_callTransStart','_callTransStop'];
+            const f3ok  = f3fns.some(fn=>typeof window[fn]==='function');
+            _val('dbg-val-f3', f3ok?'✅ Funções presentes':'⚠️ Não detectado', f3ok?'ok':'warn');
+            log((f3ok?'✓':'⚠')+' Fase 3 — funções call trans', f3ok?'s':'w');
+
+            _dot('dbg-dot-mig', 'ok');
+          };
+
+          // ── RODAR TUDO ────────────────────────────────────────────
+          window.dbgRunAll = async function(){
+            await dbgTestFirebase();
+            await dbgTestRanking();
+            await dbgTestPresence();
+            await dbgTestAPIs();
+            await dbgTestChat();
+            await dbgTestMig();
+          };
+
+          window.dbgClearAll = function(){
+            ['dbg-log-firebase','dbg-log-ranking','dbg-log-presence','dbg-log-api','dbg-log-chat','dbg-log-mig'].forEach(id=>{
+              const el=document.getElementById(id); if(el) el.innerHTML='';
+            });
+          };
+
+        })();
+        </script>
+
       </div>
       <!-- User detail -->
       <div class="udov" id="udov"><div class="udhdl"></div><div class="udhdr"><button class="dcl" onclick="clsUser()">‹</button><div class="dtitle" id="udtit">Usuário</div><div style="margin-left:auto;" id="udplan"></div></div><div class="udsc scroll-area" id="udsc"></div></div>

@@ -5844,6 +5844,8 @@ function _amiListenPresence() {
   window._ensureAmiSocket = async () => {
     if (window._salaSocket && window._salaSocket.connected) return; // já tem socket de sala
     if (window._amiSocketDedicado && window._amiSocketDedicado.connected) return; // já tem socket ami
+    // Não cria socket ami se o usuário está dentro de uma sala ativa
+    if (typeof _salaCode !== 'undefined' && _salaCode) return;
     const backendUrl = getBackendUrl();
     if (!backendUrl) { setTimeout(window._ensureAmiSocket, 2000); return; }
     const token = await getAuthToken().catch(()=>null);

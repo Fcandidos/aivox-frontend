@@ -5869,7 +5869,7 @@ function _amiListenPresence() {
       }
     });
   };
-  window._ensureAmiSocket();
+  // NÃO chama _ensureAmiSocket aqui — será chamado ao navegar para a página de amigos ou ao iniciar chamada
 
   const _setupAmiSocketListeners = () => {
     const s = window._salaSocket;
@@ -6422,6 +6422,11 @@ const ICE_SERVERS=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.goo
 
 async function startCallTo(uid, name) {
   if (_ami.callUid) { showToast('Você já está em uma chamada','error'); return; }
+  // Garante que o socket está disponível antes de iniciar a chamada
+  if (typeof window._ensureAmiSocket === 'function') window._ensureAmiSocket();
+  if (!window._salaSocket || !window._salaSocket.connected) {
+    showToast('Conectando... tente em instantes','error'); return;
+  }
   try {
     const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
     _ami.localStream=stream; _ami.callUid=uid; _ami.isCaller=true;
@@ -8289,6 +8294,8 @@ function navApp(name){
   if(name==='amigos'){
     if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();}
     else{amiSwitchTab(_amiCurrentTab||'amigos');}
+    // Garante socket para chamadas P2P (apenas quando necessário)
+    if(typeof window._ensureAmiSocket==='function') window._ensureAmiSocket();
   }
   const hideBnav=['active','chat','admin','payment','langsel','sala-ativa'];
   const bnav=document.getElementById('bnav');if(bnav)bnav.style.display=hideBnav.includes(name)?'none':'';

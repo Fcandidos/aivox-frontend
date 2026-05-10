@@ -12687,6 +12687,19 @@ async function _salaProcessAudio(){
     const latMs=Date.now()-t0;
     console.log('[SALA] resposta /api/listen:', JSON.stringify(d), 'status:', r.status, latMs+'ms');
 
+    // Debug intercept — salva resultado para __dbgSala()
+    if(window.__dbgSalaIntercept||true){
+      window.__dbgSalaLastCall={
+        from,to,size:blob.size,status:r.status,
+        original:d.original,translation:d.translation,
+        fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',
+        toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
+      };
+      if(typeof __dbgLog==='function'){
+        __dbgLog('[SALA] from:'+from+' to:'+to+' | orig:'+d.original,'ok');
+      }
+    }
+
     if(!d.original||d.original.trim().length<2){
       _salaResetMic();
       document.getElementById('sala-tr-eu').textContent='Não entendi. Tente novamente.';
@@ -13129,6 +13142,15 @@ async function _salaVADProcessAudio(){
     const r=await fetch(getBackendUrl()+'/api/listen',{method:'POST',headers,body:fd});
     const d=await r.json();
     const latMs=Date.now()-t0;
+    // Debug intercept
+    window.__dbgSalaLastCall={
+      from,to,size:blob.size,status:r.status,
+      original:d.original,translation:d.translation,
+      fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',
+      toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
+      mode:'continuo',
+    };
+    if(typeof __dbgLog==='function') __dbgLog('[VAD] from:'+from+'→to:'+to+' orig:'+(d.original||'?'),'ok');
     if(!d.original||d.original.trim().length<2)return;
     const euTr=document.getElementById('sala-tr-eu');
     if(euTr){euTr.textContent=d.original;euTr.classList.add('translate-flash');setTimeout(()=>euTr.classList.remove('translate-flash'),600);}
@@ -15507,6 +15529,7 @@ function _salaMostrarUIVideo(show){
   </div>
   <div id="__dbg-btns">
     <button onclick="__dbgRun()">▶ Rodar tudo</button>
+    <button onclick="__dbgSala()" style="background:#1a2e1a;border-color:#00ff8844;color:#00ff88;">🎙 Sala</button>
     <button onclick="__dbgLearn()">🎓 Lições</button>
     <button onclick="__dbgOverflowHL()">🔴 Marcar overflow</button>
     <button onclick="__dbgClearHL()">✕ Limpar marcas</button>
@@ -15753,6 +15776,106 @@ function _salaMostrarUIVideo(show){
 
     log('── FIM ──','sep');
   };
+
+  window.__dbgSala=function(){
+    const log=__dbgLog,sep=__dbgSep;
+    document.getElementById('__dbg-log').innerHTML='';
+    sep('🎙 SALA — DIAGNÓSTICO DE IDIOMAS');
+
+    // 1. Variáveis de idioma da sala
+    sep('VARIÁVEIS GLOBAIS');
+    try{
+      const my=window._salaMyLang;
+      const their=window._salaTheirLang;
+      const lfiVal=typeof lfi!=='undefined'?lfi:'?';
+      const ltiVal=typeof lti!=='undefined'?lti:'?';
+      const loFi=typeof LO!=='undefined'&&typeof lfi!=='undefined'?LO[lfi]?.code:'?';
+      const loTi=typeof LO!=='undefined'&&typeof lti!=='undefined'?LO[lti]?.code:'?';
+      log('_salaMyLang: '+(my||'⚠ NULL/UNDEFINED'),my?'ok':'err');
+      log('_salaTheirLang: '+(their||'⚠ NULL/UNDEFINED'),their?'ok':'err');
+      log('LO[lfi] (global from): '+loFi,'info');
+      log('LO[lti] (global to): '+loTi,'info');
+      if(my===loFi) log('⚠ _salaMyLang == LO[lfi] — pode estar usando o global!','warn');
+      else log('✓ _salaMyLang diferente de LO[lfi]','ok');
+    }catch(e){log('Erro lendo variáveis: '+e.message,'err');}
+
+    // 2. Estado do socket
+    sep('SOCKET');
+    try{
+      const sock=window._salaSocket;
+      if(!sock){log('_salaSocket: NULL — não conectado','err');}
+      else{
+        log('socket.id: '+sock.id,'ok');
+        log('socket.connected: '+(sock.connected?'✓ sim':'✗ não'),sock.connected?'ok':'err');
+      }
+      const code=window._salaCode;
+      log('_salaCode: '+(code||'⚠ null'),code?'ok':'err');
+      log('_salaConnected: '+(window._salaConnected?'✓ sim':'✗ não'),window._salaConnected?'ok':'err');
+      log('_salaIsCreator: '+(window._salaIsCreator?'sim':'não'),'info');
+      log('_salaTheirName: '+(window._salaTheirName||'(vazio)'),'info');
+    }catch(e){log('Erro socket: '+e.message,'err');}
+
+    // 3. Modos ativos
+    sep('MODOS ATIVOS');
+    try{
+      log('Modo Contínuo: '+(window._salaContinuousMode?'🟢 ATIVO':'⚫ off'),window._salaContinuousMode?'ok':'info');
+      log('Modo Intérprete (RT): '+(window._rtMode?'🟢 ATIVO':'⚫ off'),window._rtMode?'ok':'info');
+      log('Gravando (PTT): '+(window._salaRecording?'🔴 SIM':'⚫ não'),window._salaRecording?'warn':'info');
+    }catch(e){log('Erro modos: '+e.message,'err');}
+
+    // 4. Pickers de idioma no DOM
+    sep('SELETORES DOM');
+    try{
+      ['sala-my-lang-select','sala-my-lang-select-enter'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el) log(id+': '+el.value,'info');
+        else log(id+': ⚠ não encontrado no DOM','warn');
+      });
+    }catch(e){log('Erro DOM pickers: '+e.message,'err');}
+
+    // 5. Simulação do que seria enviado agora
+    sep('SIMULAÇÃO — O QUE SERIA ENVIADO');
+    try{
+      const my=window._salaMyLang;
+      const their=window._salaTheirLang;
+      const fromSim=(my||'PT-BR').split('-')[0].toLowerCase();
+      const toSim=(their||'EN-US').split('-')[0].toLowerCase();
+      log('from (api/listen): '+fromSim,'info');
+      log('to (api/listen): '+toSim,'info');
+      log('fromLang (socket): '+(my||'PT-BR'),'info');
+      log('toLang (socket): '+(their||'EN-US'),'info');
+      const fromGlobal=(typeof LO!=='undefined'&&typeof lfi!=='undefined')?LO[lfi]?.code?.split('-')[0].toLowerCase():'?';
+      const toGlobal=(typeof LO!=='undefined'&&typeof lti!=='undefined')?LO[lti]?.code?.split('-')[0].toLowerCase():'?';
+      if(fromSim!==fromGlobal) log('⚠ from sala ('+fromSim+') ≠ from global ('+fromGlobal+') — usando sala ✓','ok');
+      else log('from sala == from global ('+fromSim+') — verificar se é correto','warn');
+    }catch(e){log('Erro simulação: '+e.message,'err');}
+
+    // 6. Botão de monkeypatch ao vivo
+    sep('AÇÕES');
+    log('▶ Para interceptar o próximo áudio, cole no console:','info');
+    log('window.__dbgSalaIntercept=true','info');
+    log('Depois fale — o debug mostrará o from/to real.','info');
+
+    // 7. Se intercept ativo, mostra o último resultado
+    if(window.__dbgSalaLastCall){
+      sep('ÚLTIMO ÁUDIO ENVIADO');
+      const c=window.__dbgSalaLastCall;
+      log('from: '+c.from,'info');
+      log('to: '+c.to,'info');
+      log('blob size: '+c.size,'info');
+      log('status: '+c.status,'info');
+      log('original: '+(c.original||'?'),'info');
+      log('translation: '+(c.translation||'?'),'info');
+      log('fromLang socket: '+c.fromLang,'info');
+      log('toLang socket: '+c.toLang,'info');
+    }
+
+    log('── FIM ──','sep');
+  };
+
+  window.__dbgSala=window.__dbgSala; // expõe
+
+  window.__dbgSala;
 
   window.__dbgLearn=function(){
     const log=__dbgLog,sep=__dbgSep;

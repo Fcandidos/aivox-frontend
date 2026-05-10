@@ -6467,11 +6467,12 @@ async function startCallTo(uid, name) {
     _ami.localStream=stream; _ami.callUid=uid; _ami.isCaller=true;
     _ami.pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
     stream.getTracks().forEach(t=>_ami.pc.addTrack(t,stream));
-    _ami.pc.ontrack=e=>{_ami.remoteStream=e.streams[0];const a=document.getElementById('fcall-remote-audio')||_createRemoteAudio();a.srcObject=_ami.remoteStream;};
+    _ami.pc.ontrack=e=>{_ami.remoteStream=e.streams[0];_playRemoteStream(_ami.remoteStream);};
     _ami.pc.onicecandidate=({candidate})=>{if(candidate&&window._salaSocket)window._salaSocket.emit('ami-call-ice',{toUid:uid,candidate});};
     const offer=await _ami.pc.createOffer({offerToReceiveAudio:true});
     await _ami.pc.setLocalDescription(offer);
-    window._salaSocket?.emit('ami-call-offer',{toUid:uid,fromName:window._fbUser?.displayName||'Usuário',offer});
+    const _myCallName = window._fbUser?.name || window._fbUser?.displayName || window._fbUser?.email?.split('@')[0] || 'Usuário';
+    window._salaSocket?.emit('ami-call-offer',{toUid:uid,fromName:_myCallName,offer});
     _amiShowCallOverlay(name,'Chamando...');
     _callTransSetupListeners(); // Fase 4A
   } catch(e) { showToast('Sem acesso ao microfone','error'); }
@@ -6501,7 +6502,7 @@ async function acceptFriendCall() {
     _ami.localStream=stream;
     _ami.pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
     stream.getTracks().forEach(t=>_ami.pc.addTrack(t,stream));
-    _ami.pc.ontrack=e=>{_ami.remoteStream=e.streams[0];const a=document.getElementById('fcall-remote-audio')||_createRemoteAudio();a.srcObject=_ami.remoteStream;};
+    _ami.pc.ontrack=e=>{_ami.remoteStream=e.streams[0];_playRemoteStream(_ami.remoteStream);};
     _ami.pc.onicecandidate=({candidate})=>{if(candidate&&window._salaSocket)window._salaSocket.emit('ami-call-ice',{toUid:fromUid,candidate});};
     _ami.pendingIce.forEach(c=>_ami.pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{}));
     _ami.pendingIce=[];
@@ -6512,10 +6513,20 @@ async function acceptFriendCall() {
     _amiShowCallOverlay(fromName,'Conectando...');
     _callTransSetupListeners(); // Fase 4A
     _ami.pc.onconnectionstatechange=()=>_amiCallStateChange();
+    // Fallback: iceConnectionState também dispara 'connected' em alguns browsers
+    _ami.pc.oniceconnectionstatechange=()=>{
+      if(_ami.pc?.iceConnectionState==='connected'||_ami.pc?.iceConnectionState==='completed') _amiCallStateChange();
+    };
   } catch(e) { showToast('Erro ao atender chamada','error'); hangupFriendCall(); }
 }
 
-async function _amiHandleAnswer(answer) { try{await _ami.pc?.setRemoteDescription(new RTCSessionDescription(answer));}catch(e){} _ami.pc.onconnectionstatechange=()=>_amiCallStateChange(); }
+async function _amiHandleAnswer(answer) {
+  try{await _ami.pc?.setRemoteDescription(new RTCSessionDescription(answer));}catch(e){}
+  _ami.pc.onconnectionstatechange=()=>_amiCallStateChange();
+  _ami.pc.oniceconnectionstatechange=()=>{
+    if(_ami.pc?.iceConnectionState==='connected'||_ami.pc?.iceConnectionState==='completed') _amiCallStateChange();
+  };
+}
 
 async function _amiHandleIce(candidate) {
   if (_ami.pc?.remoteDescription) { try{await _ami.pc.addIceCandidate(new RTCIceCandidate(candidate));}catch(e){} }
@@ -6523,8 +6534,10 @@ async function _amiHandleIce(candidate) {
 }
 
 function _amiCallStateChange() {
-  const state=_ami.pc?.connectionState;
-  if (state==='connected') {
+  const state = _ami.pc?.connectionState;
+  const iceState = _ami.pc?.iceConnectionState;
+  const isConnected = state==='connected' || iceState==='connected' || iceState==='completed';
+  if (isConnected && document.getElementById('fcall-status')?.textContent !== 'Em chamada') {
     document.getElementById('fcall-status').textContent='Em chamada';
     document.getElementById('fcall-timer').style.display='block';
     _ami.callSeconds=0; clearInterval(_ami.callTimer);
@@ -6591,7 +6604,32 @@ function _amiShowCallOverlay(name, status) {
   ov.classList.add('sh');
 }
 
-function _createRemoteAudio() { const a=document.createElement('audio');a.id='fcall-remote-audio';a.autoplay=true;document.body.appendChild(a);return a; }
+function _createRemoteAudio() {
+  const existing = document.getElementById('fcall-remote-audio');
+  if (existing) { existing.srcObject = null; return existing; }
+  const a = document.createElement('audio');
+  a.id = 'fcall-remote-audio';
+  a.autoplay = true;
+  a.playsInline = true;
+  a.volume = 1.0;
+  document.body.appendChild(a);
+  return a;
+}
+
+function _playRemoteStream(stream) {
+  const a = document.getElementById('fcall-remote-audio') || _createRemoteAudio();
+  a.srcObject = stream;
+  a.play().catch(e => {
+    // Fallback: cria novo elemento e tenta novamente
+    console.warn('[CALL] autoplay bloqueado, tentando novamente:', e);
+    const a2 = document.createElement('audio');
+    a2.id = 'fcall-remote-audio-2';
+    a2.autoplay = true; a2.playsInline = true; a2.volume = 1.0;
+    a2.srcObject = stream;
+    document.body.appendChild(a2);
+    a2.play().catch(() => {});
+  });
+}
 
 // ════════════════════════════════════════════════════════════════
 //  FASE 4A — Tradução em chamada P2P com Azure Speech
@@ -8588,11 +8626,29 @@ async function doResetPassword(){
 }
 
 // ====== AUTH TOKEN HELPER ======
+// ── Token cache — evita getIdToken(true) a cada request (~100-300ms por chamada) ──
+let _cachedToken = null;
+let _cachedTokenExpiry = 0;
 async function getAuthToken(){
   const user=auth?.currentUser;
   if(!user)return null;
-  try{return await user.getIdToken(true);}
-  catch(e){return null;}
+  const now=Date.now();
+  // Reutiliza token por até 50 minutos (Firebase tokens duram 1h)
+  if(_cachedToken && now < _cachedTokenExpiry){
+    return _cachedToken;
+  }
+  try{
+    _cachedToken = await user.getIdToken(false); // false = sem forçar refresh
+    _cachedTokenExpiry = now + 50 * 60 * 1000;  // 50 min
+    return _cachedToken;
+  }catch(e){
+    // Se falhar sem refresh, tenta com refresh
+    try{
+      _cachedToken = await user.getIdToken(true);
+      _cachedTokenExpiry = now + 50 * 60 * 1000;
+      return _cachedToken;
+    }catch(e2){ return null; }
+  }
 }
 
 // ====== PROFILE PAGE ======
@@ -9604,10 +9660,16 @@ async function _getTTSCtx(){
 async function _ttsPlayNext(){
   if(_ttsPlaying || _ttsQueue.length === 0) return;
   _ttsPlaying = true;
-  const arrayBuf = _ttsQueue.shift();
+  const item = _ttsQueue.shift();
   try{
-    const ctx = await _getTTSCtx();  // aguarda contexto pronto
-    const decoded = await ctx.decodeAudioData(arrayBuf);
+    const ctx = await _getTTSCtx();
+    // item pode ser ArrayBuffer ou já AudioBuffer (pré-decodificado)
+    const decoded = (item instanceof AudioBuffer) ? item : await ctx.decodeAudioData(item);
+    // Pré-decodifica próximo em paralelo enquanto toca este
+    if(_ttsQueue.length > 0 && !(_ttsQueue[0] instanceof AudioBuffer)){
+      const nxt = _ttsQueue[0];
+      ctx.decodeAudioData(nxt.slice(0)).then(ab=>{ _ttsQueue[0]=ab; }).catch(()=>{});
+    }
     const src = ctx.createBufferSource();
     src.buffer = decoded;
     src.connect(ctx.destination);
@@ -9635,7 +9697,7 @@ async function _speakTranslation(text, lang){
           text,
           lang: langShort,  // ✅ informa idioma correto ao backend para TTS
           voiceId: window._fbUser?.voice_id || 'pNInz6obpgDQGcFmaJgB',
-          model_id: 'eleven_multilingual_v2',
+          model_id: 'eleven_turbo_v2_5',
           voice_settings: {
             stability:         0.35,
             similarity_boost:  0.88,
@@ -9647,8 +9709,14 @@ async function _speakTranslation(text, lang){
       if(!r.ok)return;
       const arrayBuf=await r.arrayBuffer();
       if(!arrayBuf.byteLength)return;
-      // Enfileira — nunca sobrepõe
-      _ttsQueue.push(arrayBuf);
+      // Pré-decodifica já aqui — elimina delay de decode na hora de tocar
+      try{
+        const ctx = await _getTTSCtx();
+        const decoded = await ctx.decodeAudioData(arrayBuf);
+        _ttsQueue.push(decoded); // enfileira já como AudioBuffer
+      }catch(e){
+        _ttsQueue.push(arrayBuf); // fallback: enfileira raw
+      }
       _ttsPlayNext();
     }catch(e){console.warn('speak:',e);}
   })();
@@ -12479,6 +12547,18 @@ const SALA_RTC_CONFIG = {
 function initSalaPage(){
   const u = window._fbUser;
   if(!u) return;
+  // ── Pré-aquece AudioContext para eliminar cold start no primeiro TTS ──
+  if(!_ttsAudioCtx || _ttsAudioCtx.state === 'closed'){
+    try{
+      _ttsAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      // Toca 1ms de silêncio para desbloquear o contexto imediatamente
+      const buf = _ttsAudioCtx.createBuffer(1, _ttsAudioCtx.sampleRate * 0.001, _ttsAudioCtx.sampleRate);
+      const src = _ttsAudioCtx.createBufferSource();
+      src.buffer = buf; src.connect(_ttsAudioCtx.destination); src.start(0);
+    }catch(e){}
+  }
+  // ── Pré-carrega token ──────────────────────────────────────────
+  getAuthToken().catch(()=>{});
   const canCreate = u.role==='admin' || SALA_PLANS.includes(u.plan||'trial'); // admin sempre pode criar sala
   const locked    = document.getElementById('sala-locked-msg');
   const main      = document.getElementById('sala-main');
@@ -13103,6 +13183,9 @@ async function _salaProcessAudio(){
     fd.append('audio',blob,'sala.webm');
     fd.append('from',from);
     fd.append('to',to);
+    // Dica de contexto para o STT — melhora precisão sem custo extra
+    const _sPromptMap={'pt':'Transcrição em português brasileiro.','en':'Transcription in English.','es':'Transcripción en español.','fr':'Transcription en français.','de':'Transkription auf Deutsch.','it':'Trascrizione in italiano.','ja':'日本語の文字起こし。'};
+    if(_sPromptMap[from]) fd.append('prompt',_sPromptMap[from]);
 
     const t0=Date.now();
     console.log('[SALA] enviando áudio para /api/listen — from:'+from+' to:'+to);
@@ -13437,10 +13520,10 @@ let _salaVADSilenceMs   = 0;
 let _salaVADSpeakMs     = 0;
 let _salaVADProcessing  = false;
 
-const SALA_VAD_THRESHOLD   = 6.0;  // RMS mínimo — aumentado para filtrar ruído ambiente
-const SALA_VAD_SILENCE_END = 1500; // ms de silêncio para cortar (aumentado)
-const SALA_VAD_MIN_SPEAK   = 300;  // ms mínimo para enviar
-const SALA_VAD_TICK        = 50;   // intervalo de leitura ms
+const SALA_VAD_THRESHOLD   = 6.0;  // RMS mínimo — filtrar ruído ambiente
+const SALA_VAD_SILENCE_END = 600;  // ms de silêncio para cortar (reduzido para menor latência)
+const SALA_VAD_MIN_SPEAK   = 200;  // ms mínimo para enviar
+const SALA_VAD_TICK        = 30;   // intervalo de leitura ms (mais responsivo)
 
 async function salaToggleContinuous(){
   if(_salaContinuousMode) _salaStopContinuous();
@@ -13532,7 +13615,7 @@ function _salaVADTick(){
       try{_salaVADRecorder=new MediaRecorder(_salaVADStream,{mimeType:mime});}
       catch(e){_salaVADRecorder=new MediaRecorder(_salaVADStream);}
       _salaVADRecorder.ondataavailable=e=>{if(e.data?.size>0)_salaVADChunks.push(e.data);};
-      _salaVADRecorder.start(100);
+      _salaVADRecorder.start(40);
       const wf=document.getElementById('sala-wf-eu');
       const tr=document.getElementById('sala-tr-eu');
       const lbl=document.getElementById('sala-micl');
@@ -13572,7 +13655,7 @@ function _salaVADTick(){
 async function _salaVADProcessAudio(){
   const blob=new Blob(_salaVADChunks,{type:'audio/webm'});
   _salaVADChunks=[];
-  if(blob.size<1500)return; // tamanho mínimo realista
+  if(blob.size<800)return; // tamanho mínimo realista
   const lbl=document.getElementById('sala-micl');
   if(lbl)lbl.textContent='⏳ Traduzindo...';
   // Usa idiomas da sala, não os globais

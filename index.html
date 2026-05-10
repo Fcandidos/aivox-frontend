@@ -13002,7 +13002,7 @@ function _rtStartMicCapture(){
   _rtProcessor.connect(_rtAudioCtx.destination);
 }
 
-function _rtHandleEvent(msg){
+async function _rtHandleEvent(msg){
   switch(msg.type){
     // ── Fase 1B: eventos Azure (mantém lógica interna idêntica) ──
     case 'aivox.transcription':

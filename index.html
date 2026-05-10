@@ -12388,10 +12388,18 @@ async function _salaConectarSocket(code){
     }
     console.log('🔌 Socket conectado, entrando na sala',code);
     const u=window._fbUser;
-    // BUGFIX: restaura idioma do picker (sobrevive a reconexões), fallback para LO[lfi]
-    if(!_salaMyLang) _salaMyLang = _salaMyLangPicked || LO[lfi]?.code || 'PT-BR';
-    _salaMyLangPicked = _salaMyLang; // garante que está sempre salvo
-    console.log('[SALA] connect — _salaMyLang:', _salaMyLang);
+    // BUGFIX: restaura idioma em ordem de prioridade:
+    // 1. _salaMyLangPicked (escolhido explicitamente no picker)
+    // 2. valor atual do select no DOM
+    // 3. LO[lfi] (idioma global)
+    // 4. PT-BR (fallback)
+    if(!_salaMyLang){
+      const selVal = document.getElementById('sala-my-lang-select')?.value
+                  || document.getElementById('sala-my-lang-select-enter')?.value;
+      _salaMyLang = _salaMyLangPicked || selVal || LO[lfi]?.code || 'PT-BR';
+      _salaMyLangPicked = _salaMyLang;
+    }
+    console.log('[SALA] connect — _salaMyLang:', _salaMyLang, '| picked:', _salaMyLangPicked);
     _salaSocket.emit('join-room',{
       code,
       uid:  u?.uid||'anon',
@@ -12500,11 +12508,13 @@ async function _salaConectarSocket(code){
 function _salaOutroConectado(data){
   _salaConnected=true;
   _salaTheirName=data.name||'Participante';
-  _salaTheirLang=data.lang||'EN-US';
+  _salaTheirLang=data.lang||data.language||data.fromLang||'EN-US';
+  console.log('[SALA] outro conectado — data:', JSON.stringify(data), '| _salaTheirLang:', _salaTheirLang);
   // Debug feed
   if(typeof window.__dbgSalaFeedAdd==='function'){
-    window.__dbgSalaFeedAdd('🟢 '+_salaTheirName+' entrou — idioma: '+_salaTheirLang, '#00ff88');
-    window.__dbgSalaFeedAdd('  você: '+(_salaMyLang||'?')+' | ele: '+_salaTheirLang, '#ffd000');
+    window.__dbgSalaFeedAdd('🟢 '+_salaTheirName+' entrou — lang recebido: '+(data.lang||'⚠ undefined!'), data.lang?'#00ff88':'#ff4466');
+    window.__dbgSalaFeedAdd('  data completo: '+JSON.stringify(data), '#4a5170');
+    window.__dbgSalaFeedAdd('  _salaTheirLang definido como: '+_salaTheirLang, '#ffd000');
   }
   const dot=document.getElementById('sala-outro-dot');
   const nome=document.getElementById('sala-outro-nome');
@@ -12548,9 +12558,13 @@ function _salaDesconectar(){
 function entrarNaSalaAtiva(){
   const u=window._fbUser;
   if(!u||!_salaCode)return;
-  // BUGFIX: restaura idioma do picker (sobrevive a reconexões), fallback para LO[lfi]
-  if(!_salaMyLang) _salaMyLang = _salaMyLangPicked || LO[lfi]?.code || 'PT-BR';
-  _salaMyLangPicked = _salaMyLang;
+  // BUGFIX: restaura idioma em ordem de prioridade: picked → DOM select → LO[lfi] → PT-BR
+  if(!_salaMyLang){
+    const selVal = document.getElementById('sala-my-lang-select')?.value
+                || document.getElementById('sala-my-lang-select-enter')?.value;
+    _salaMyLang = _salaMyLangPicked || selVal || LO[lfi]?.code || 'PT-BR';
+    _salaMyLangPicked = _salaMyLang;
+  }
   console.log('[SALA] entrarNaSalaAtiva — _salaMyLang:', _salaMyLang);
   _salaWc=0;
 

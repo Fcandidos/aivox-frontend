@@ -12080,8 +12080,9 @@ const SALA_PLANS = ['pro','business','enterprise'];
 let _salaCode        = null;   // código da sala atual
 let _salaSocket      = null;   // instância Socket.io
 let _salaIsCreator   = false;  // true se foi quem criou
-let _salaMyLang      = 'PT-BR';
+let _salaMyLang      = null;
 let _salaTheirLang   = 'EN-US';
+let _salaMyLangPicked = null; // idioma escolhido no picker — sobrevive a reconexões
 let _salaTheirName   = '';
 let _salaConnected   = false;
 let _salaRecording   = false;
@@ -12162,10 +12163,12 @@ function _salaInitLangPicker(){
     sel.value = currentLang;
   });
   _salaMyLang = currentLang;
+  _salaMyLangPicked = currentLang; // persiste mesmo após reset
 }
 
 function salaSetMyLang(code){
   _salaMyLang = code;
+  _salaMyLangPicked = code; // persiste mesmo após reset
   // Sincroniza os dois selects
   ['sala-my-lang-select','sala-my-lang-select-enter'].forEach(id=>{
     const sel = document.getElementById(id);
@@ -12385,8 +12388,10 @@ async function _salaConectarSocket(code){
     }
     console.log('🔌 Socket conectado, entrando na sala',code);
     const u=window._fbUser;
-    // BUGFIX: não sobrescreve _salaMyLang — o picker já definiu o idioma correto
-    if(!_salaMyLang) _salaMyLang=LO[lfi]?.code||'PT-BR';
+    // BUGFIX: restaura idioma do picker (sobrevive a reconexões), fallback para LO[lfi]
+    if(!_salaMyLang) _salaMyLang = _salaMyLangPicked || LO[lfi]?.code || 'PT-BR';
+    _salaMyLangPicked = _salaMyLang; // garante que está sempre salvo
+    console.log('[SALA] connect — _salaMyLang:', _salaMyLang);
     _salaSocket.emit('join-room',{
       code,
       uid:  u?.uid||'anon',
@@ -12543,8 +12548,10 @@ function _salaDesconectar(){
 function entrarNaSalaAtiva(){
   const u=window._fbUser;
   if(!u||!_salaCode)return;
-  // BUGFIX: não sobrescreve _salaMyLang — respeita o idioma escolhido no picker
-  if(!_salaMyLang) _salaMyLang=LO[lfi]?.code||'PT-BR';
+  // BUGFIX: restaura idioma do picker (sobrevive a reconexões), fallback para LO[lfi]
+  if(!_salaMyLang) _salaMyLang = _salaMyLangPicked || LO[lfi]?.code || 'PT-BR';
+  _salaMyLangPicked = _salaMyLang;
+  console.log('[SALA] entrarNaSalaAtiva — _salaMyLang:', _salaMyLang);
   _salaWc=0;
 
   // Atualiza UI da sala ativa
@@ -15902,7 +15909,9 @@ function _salaMostrarUIVideo(show){
     const thName = window._salaTheirName || '(aguardando)';
 
     if(myLang)    myLang.textContent    = my || '⚠ null';
-    if(myLangSrc) myLangSrc.textContent = my === loFi ? '= global (⚠ cuidado)' : '✓ picker da sala';
+    if(myLangSrc) myLangSrc.textContent = my === loFi
+      ? '= global LO[lfi] (⚠)'
+      : (window._salaMyLangPicked ? '✓ picked:'+window._salaMyLangPicked : '✓ picker da sala');
     if(theirLang) theirLang.textContent = their || '⚠ null';
     if(theirName) theirName.textContent = conn ? ('👤 '+thName) : '⚫ não conectado';
 

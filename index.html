@@ -15254,11 +15254,12 @@ function setLivreNivel(el){
 })();
 
 // ══════════════════════════════════════════════════════════
-//  MÓDULO SHADOWING
+//  MÓDULO SHADOWING — Azure Speech SDK + VAD + Playback
 // ══════════════════════════════════════════════════════════
 (function(){
-  let _sLang='inglês',_sScore=0,_sCurrentPhrase=null,_sHistory=[],_sRecording=false,_sMediaRec=null,_sChunks=[],_sHeard=false;
+  let _sLang='inglês',_sScore=0,_sCurrentPhrase=null,_sHistory=[],_sRecording=false,_sMediaRec=null,_sChunks=[],_sHeard=false,_sAudioBlob=null,_azureKey=null,_azureRegion=null;
   const LANGS=[{key:'inglês',flag:'<span class="flag-emoji">🇺🇸</span>',label:'Inglês'},{key:'espanhol',flag:'<span class="flag-emoji">🇪🇸</span>',label:'Espanhol'},{key:'francês',flag:'<span class="flag-emoji">🇫🇷</span>',label:'Francês'},{key:'alemão',flag:'<span class="flag-emoji">🇩🇪</span>',label:'Alemão'},{key:'italiano',flag:'<span class="flag-emoji">🇮🇹</span>',label:'Italiano'},{key:'japonês',flag:'<span class="flag-emoji">🇯🇵</span>',label:'Japonês'}];
+  const LANG_MAP={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};
   const PHRASES={
     inglês:[{p:'How are you doing today?',t:'Como você está hoje?'},{p:'Nice to meet you, my name is...',t:'Prazer em conhecê-lo, meu nome é...'},{p:'Could you please speak more slowly?',t:'Você poderia falar mais devagar?'},{p:'I would like to order a coffee, please.',t:'Eu gostaria de pedir um café, por favor.'},{p:'What time does the next train leave?',t:'A que horas parte o próximo trem?'},{p:'Thank you so much for your help.',t:'Muito obrigado pela sua ajuda.'},{p:'I have been learning English for two years.',t:'Estou aprendendo inglês há dois anos.'}],
     espanhol:[{p:'¿Cómo estás hoy?',t:'Como você está hoje?'},{p:'Mucho gusto, me llamo...',t:'Prazer, meu nome é...'},{p:'¿Puedes hablar más despacio, por favor?',t:'Você pode falar mais devagar?'},{p:'¿A qué hora sale el próximo tren?',t:'A que horas sai o próximo trem?'}],
@@ -15267,21 +15268,212 @@ function setLivreNivel(el){
     italiano:[{p:'Come sta oggi?',t:'Como vai você hoje?'},{p:'Piacere di conoscerla.',t:'Prazer em conhecê-lo.'},{p:'Potrebbe parlare più lentamente?',t:'Poderia falar mais devagar?'}],
     japonês:[{p:'お元気ですか？',t:'Como vai você? (O-genki desu ka?)'},{p:'はじめまして。',t:'Prazer em conhecê-lo. (Hajimemashite.)'},{p:'もう少しゆっくり話してください。',t:'Por favor, fale mais devagar. (Mou sukoshi yukkuri hanashite kudasai.)'}],
   };
+
+  // ── Busca credenciais Azure do backend ──────────────────
+  async function _getAzureCreds(){
+    if(_azureKey&&_azureRegion)return{key:_azureKey,region:_azureRegion};
+    try{
+      const backendUrl=getBackendUrl();const token=await getAuthToken();
+      const res=await fetch(backendUrl+'/api/azure-speech-token',{headers:{'Authorization':'Bearer '+(token||'')}});
+      if(res.ok){const d=await res.json();_azureKey=d.key||d.subscriptionKey;_azureRegion=d.region||'eastus';return{key:_azureKey,region:_azureRegion};}
+    }catch(e){}
+    // Fallback: lê de variável de ambiente injetada no HTML (window.AZURE_SPEECH_KEY)
+    if(window.AZURE_SPEECH_KEY){_azureKey=window.AZURE_SPEECH_KEY;_azureRegion=window.AZURE_SPEECH_REGION||'eastus';return{key:_azureKey,region:_azureRegion};}
+    return null;
+  }
+
   window._shadowingInit=function(){_buildLangBar();_loadPhrase();};
   function _buildLangBar(){const b=document.getElementById('shadow-lang-bar');if(!b)return;b.innerHTML=LANGS.map(l=>`<div class="learn-lang-btn${l.key===_sLang?' active':''}" onclick="_shadowSetLang('${l.key}',this)">${l.flag} ${l.label}</div>`).join('');}
   window._shadowSetLang=function(lang,el){_sLang=lang;document.querySelectorAll('#shadow-lang-bar .learn-lang-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');_loadPhrase();};
-  function _loadPhrase(){const pool=PHRASES[_sLang]||PHRASES['inglês'];const pick=pool[Math.floor(Math.random()*pool.length)];_sCurrentPhrase=pick;const p=document.getElementById('shadow-phrase'),t=document.getElementById('shadow-phrase-trans');if(p)p.textContent=pick.p;if(t)t.textContent=pick.t;_hideShadowFeedback();_sHeard=false;const step=document.getElementById('shadow-step');if(step)step.textContent='Passo 1: Ouça o áudio nativo acima';const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Ouça primeiro, depois imite';}
-  window.shadowOuvir=function(){if(!_sCurrentPhrase)return;const btn=document.getElementById('shadow-ouvir-btn');const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const u=new SpeechSynthesisUtterance(_sCurrentPhrase.p);u.lang=langMap[_sLang]||'en-US';u.rate=0.8;u.onend=()=>{if(btn){btn.style.opacity='1';btn.disabled=false;}_sHeard=true;const step=document.getElementById('shadow-step');if(step)step.textContent='Passo 2: Agora imite! Toque no microfone e repita a frase.';const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Pronto! Toque para imitar';};if(btn){btn.style.opacity='0.5';btn.disabled=true;}speechSynthesis.cancel();speechSynthesis.speak(u);};
+  function _loadPhrase(){const pool=PHRASES[_sLang]||PHRASES['inglês'];const pick=pool[Math.floor(Math.random()*pool.length)];_sCurrentPhrase=pick;const p=document.getElementById('shadow-phrase'),t=document.getElementById('shadow-phrase-trans');if(p)p.textContent=pick.p;if(t)t.textContent=pick.t;_hideShadowFeedback();_sHeard=false;_sAudioBlob=null;const step=document.getElementById('shadow-step');if(step)step.textContent='Passo 1: Ouça o áudio nativo acima';const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Ouça primeiro, depois imite';}
+
+  window.shadowOuvir=function(){
+    if(!_sCurrentPhrase)return;
+    const btn=document.getElementById('shadow-ouvir-btn');
+    const u=new SpeechSynthesisUtterance(_sCurrentPhrase.p);
+    u.lang=LANG_MAP[_sLang]||'en-US';u.rate=0.8;
+    u.onend=()=>{if(btn){btn.style.opacity='1';btn.disabled=false;}_sHeard=true;
+      const step=document.getElementById('shadow-step');if(step)step.textContent='Passo 2: Toque no microfone — pare de falar e ele analisa sozinho ✨';
+      const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Pronto! Toque 1x para imitar';
+    };
+    if(btn){btn.style.opacity='0.5';btn.disabled=true;}
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+  };
+
   window.shadowNova=function(){speechSynthesis.cancel();_loadPhrase();};
-  window.shadowToggleMic=function(){if(!_sHeard){showToast('⚠️ Ouça o áudio primeiro!','info');return;}if(_sRecording){_stopShadowRec();}else{_startShadowRec();}};
-  async function _startShadowRec(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});_sChunks=[];_sMediaRec=new MediaRecorder(stream);_sMediaRec.ondataavailable=e=>{if(e.data.size>0)_sChunks.push(e.data);};_sMediaRec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());_processShadowRec();};_sMediaRec.start();_sRecording=true;_updateShadowMicUI(true);}catch(e){showToast('⚠️ Microfone não disponível','error');}}
+
+  // ── 1 clique: inicia. Para automaticamente via VAD ──────
+  window.shadowToggleMic=function(){
+    if(!_sHeard){showToast('⚠️ Ouça o áudio primeiro!','info');return;}
+    if(_sRecording){_stopShadowRec();}else{_startShadowRec();}
+  };
+
+  async function _startShadowRec(){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true,sampleRate:16000});
+      _sChunks=[];_sAudioBlob=null;
+      const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+      _sMediaRec=new MediaRecorder(stream,{mimeType});
+      _sMediaRec.ondataavailable=e=>{if(e.data.size>0)_sChunks.push(e.data);};
+      _sMediaRec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());_sAudioBlob=new Blob(_sChunks,{type:mimeType});_processShadowRec();};
+      _sMediaRec.start(100);
+      _sRecording=true;_updateShadowMicUI(true);
+      // VAD: silêncio por 1.8s → para automaticamente
+      _startVAD(stream,()=>{if(_sRecording)_stopShadowRec();});
+    }catch(e){showToast('⚠️ Microfone não disponível','error');}
+  }
+
   function _stopShadowRec(){if(_sMediaRec&&_sMediaRec.state!=='inactive')_sMediaRec.stop();_sRecording=false;_updateShadowMicUI(false);}
-  function _updateShadowMicUI(rec){const btn=document.getElementById('shadow-mic-btn'),wave=document.getElementById('shadow-wave'),status=document.getElementById('shadow-mic-status');if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,#00b360,var(--green))';btn.textContent=rec?'⏹':'🎤';}if(wave)wave.style.display=rec?'flex':'none';if(status)status.textContent=rec?'Gravando... toque para parar':'Analisando...';}
-  async function _processShadowRec(){const status=document.getElementById('shadow-mic-status');if(status)status.textContent='IA comparando com o original...';const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRec){const langMap={inglês:'en-US',espanhol:'es-ES',francês:'fr-FR',alemão:'de-DE',italiano:'it-IT',japonês:'ja-JP'};const rec=new SpeechRec();rec.lang=langMap[_sLang]||'en-US';rec.interimResults=false;rec.onresult=(e)=>{const transcript=e.results[0][0].transcript;_evalShadow(transcript);};rec.onerror=()=>{_evalShadow('');};rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}},4000);}else{_evalShadow('');}}
-  async function _evalShadow(transcript){const phrase=_sCurrentPhrase;if(!phrase)return;const prompt=`Você avalia shadowing (imitação de frase nativa). A frase original era: "${phrase.p}" em ${_sLang}. O estudante disse: "${transcript||'(não captado)'}". Compare as frases, avalie fluência, ritmo e precisão de 0 a 100. Dê feedback motivador em português. Retorne APENAS JSON: {"score":80,"label":"Ótimo ritmo!","desc":"Você capturou bem o padrão.","tips":"Atenção na entonação da segunda parte."}`;
-  try{const backendUrl=getBackendUrl();const token=await getAuthToken();const res=await fetch(backendUrl+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:300})});const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Repita várias vezes para ganhar fluência.'};}_showShadowFeedback(result,transcript);}catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}}
-  function _showShadowFeedback(r,transcript){const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';const fb=document.getElementById('shadow-feedback');if(!fb)return;fb.style.display='block';fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div><div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div></div>${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}<div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:12px;">💡 ${r.tips||''}</div><button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;const pts=Math.round(score/10);_sScore+=pts;_sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';addPts(pts,'shadowOk');const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';}
-  function _hideShadowFeedback(){const fb=document.getElementById('shadow-feedback');if(fb)fb.style.display='none';const wave=document.getElementById('shadow-wave');if(wave)wave.style.display='none';const btn=document.getElementById('shadow-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,#00b360,var(--green))';btn.textContent='🎤';}}
+
+  // ── VAD usando AudioContext + RMS ───────────────────────
+  function _startVAD(stream,onSilence){
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const src=ctx.createMediaStreamSource(stream);
+    const analyser=ctx.createAnalyser();analyser.fftSize=512;
+    src.connect(analyser);
+    const buf=new Uint8Array(analyser.fftSize);
+    let silenceStart=null,talking=false,vadActive=true;
+    const SILENCE_THRESH=8,SILENCE_DELAY=1800,MAX_REC=12000;
+    const t0=Date.now();
+    function check(){
+      if(!vadActive)return;
+      analyser.getByteTimeDomainData(buf);
+      let rms=0;for(let i=0;i<buf.length;i++){const v=(buf[i]-128)/128;rms+=v*v;}
+      rms=Math.sqrt(rms/buf.length)*100;
+      if(rms>SILENCE_THRESH){talking=true;silenceStart=null;}
+      else if(talking){if(!silenceStart)silenceStart=Date.now();else if(Date.now()-silenceStart>SILENCE_DELAY){vadActive=false;ctx.close();onSilence();return;}}
+      if(Date.now()-t0>MAX_REC){vadActive=false;ctx.close();onSilence();return;}
+      requestAnimationFrame(check);
+    }
+    requestAnimationFrame(check);
+  }
+
+  function _updateShadowMicUI(rec){
+    const btn=document.getElementById('shadow-mic-btn'),wave=document.getElementById('shadow-wave'),status=document.getElementById('shadow-mic-status');
+    if(btn){btn.style.background=rec?'linear-gradient(135deg,var(--red),#ff8800)':'linear-gradient(135deg,#00b360,var(--green))';btn.textContent=rec?'🔴':'🎤';}
+    if(wave)wave.style.display=rec?'flex':'none';
+    if(status)status.textContent=rec?'🎤 Gravando... fale e pare, análise automática':'Analisando...';
+  }
+
+  // ── Processa: playback → Azure STT → avalia ─────────────
+  async function _processShadowRec(){
+    const status=document.getElementById('shadow-mic-status');
+    if(status)status.textContent='🔊 Reproduzindo sua voz...';
+    // 1) Playback da gravação antes de avaliar
+    if(_sAudioBlob){
+      await new Promise(resolve=>{
+        const url=URL.createObjectURL(_sAudioBlob);
+        const audio=new Audio(url);
+        audio.onended=()=>{URL.revokeObjectURL(url);resolve();};
+        audio.onerror=()=>resolve();
+        audio.play().catch(()=>resolve());
+      });
+    }
+    if(status)status.textContent='🧠 IA comparando com o original...';
+    // 2) Transcreve via Azure Speech ou fallback
+    const transcript=await _transcribeAzure(_sAudioBlob);
+    _evalShadow(transcript);
+  }
+
+  // ── Azure Speech REST API (rápido, sem SDK) ─────────────
+  async function _transcribeAzure(blob){
+    try{
+      const creds=await _getAzureCreds();
+      if(!creds||!creds.key)throw new Error('no-creds');
+      const lang=LANG_MAP[_sLang]||'en-US';
+      // Converte blob para WAV 16kHz mono via OfflineAudioContext
+      const wavBlob=await _toWav(blob);
+      const arrayBuf=await wavBlob.arrayBuffer();
+      const url=`https://${creds.region}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${lang}&format=simple`;
+      const res=await fetch(url,{method:'POST',headers:{'Ocp-Apim-Subscription-Key':creds.key,'Content-Type':'audio/wav;codecs=audio/pcm;samplerate=16000','Accept':'application/json'},body:arrayBuf});
+      if(!res.ok)throw new Error('azure-err-'+res.status);
+      const data=await res.json();
+      return data.DisplayText||data.NBest?.[0]?.Display||'';
+    }catch(e){
+      // fallback: webkitSpeechRecognition
+      return _transcribeBrowser();
+    }
+  }
+
+  // ── Converte áudio para WAV PCM 16kHz mono ──────────────
+  async function _toWav(blob){
+    try{
+      const arrBuf=await blob.arrayBuffer();
+      const ctx=new OfflineAudioContext(1,1,16000);
+      const decoded=await new AudioContext().decodeAudioData(arrBuf);
+      const offCtx=new OfflineAudioContext(1,Math.ceil(decoded.duration*16000),16000);
+      const src=offCtx.createBufferSource();src.buffer=decoded;src.connect(offCtx.destination);src.start();
+      const rendered=await offCtx.startRendering();
+      const pcm=rendered.getChannelData(0);
+      // Monta WAV header
+      const buf=new ArrayBuffer(44+pcm.length*2);const view=new DataView(buf);
+      const writeStr=(off,str)=>{for(let i=0;i<str.length;i++)view.setUint8(off+i,str.charCodeAt(i));};
+      writeStr(0,'RIFF');view.setUint32(4,36+pcm.length*2,true);writeStr(8,'WAVE');
+      writeStr(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
+      view.setUint32(24,16000,true);view.setUint32(28,32000,true);view.setUint16(32,2,true);view.setUint16(34,16,true);
+      writeStr(36,'data');view.setUint32(40,pcm.length*2,true);
+      let off=44;for(let i=0;i<pcm.length;i++){const s=Math.max(-1,Math.min(1,pcm[i]));view.setInt16(off,s<0?s*0x8000:s*0x7FFF,true);off+=2;}
+      return new Blob([buf],{type:'audio/wav'});
+    }catch(e){return blob;}
+  }
+
+  // ── Fallback: browser Speech Recognition ────────────────
+  function _transcribeBrowser(){
+    return new Promise(resolve=>{
+      const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SpeechRec)return resolve('');
+      const rec=new SpeechRec();rec.lang=LANG_MAP[_sLang]||'en-US';rec.interimResults=false;rec.maxAlternatives=1;
+      rec.onresult=e=>resolve(e.results[0][0].transcript||'');
+      rec.onerror=()=>resolve('');
+      rec.start();setTimeout(()=>{try{rec.stop();}catch(e){}resolve('');},5000);
+    });
+  }
+
+  async function _evalShadow(transcript){
+    const phrase=_sCurrentPhrase;if(!phrase)return;
+    const prompt=`Você avalia shadowing (imitação de frase nativa). A frase original era: "${phrase.p}" em ${_sLang}. O estudante disse: "${transcript||'(não captado)'}". Compare as frases, avalie fluência, ritmo e precisão de 0 a 100. Dê feedback motivador em português. Retorne APENAS JSON: {"score":80,"label":"Ótimo ritmo!","desc":"Você capturou bem o padrão.","tips":"Atenção na entonação da segunda parte."}`;
+    try{
+      const backendUrl=getBackendUrl();const token=await getAuthToken();
+      const res=await fetch(backendUrl+'/api/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:300})});
+      const data=await res.json();const txt=(data.content||[]).map(b=>b.text||'').join('').trim();
+      let result;try{result=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);result=m?JSON.parse(m[0]):{score:65,label:'Bom esforço!',desc:'Continue praticando!',tips:'Repita várias vezes para ganhar fluência.'};}
+      _showShadowFeedback(result,transcript);
+    }catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}
+  }
+
+  function _showShadowFeedback(r,transcript){
+    const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';
+    const fb=document.getElementById('shadow-feedback');if(!fb)return;
+    fb.style.display='block';
+    fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+      <div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div>
+      <div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div>
+    </div>
+    ${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}
+    <div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;">💡 ${r.tips||''}</div>
+    ${_sAudioBlob?`<button onclick="shadowPlayback()" style="width:100%;padding:10px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">🔊 Ouvir minha gravação novamente</button>`:''}
+    <button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;
+    const pts=Math.round(score/10);_sScore+=pts;
+    _sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();
+    const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';
+    addPts(pts,'shadowOk');
+    const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';
+  }
+
+  // Botão replay no feedback
+  window.shadowPlayback=function(){
+    if(!_sAudioBlob)return;
+    const url=URL.createObjectURL(_sAudioBlob);
+    const audio=new Audio(url);audio.onended=()=>URL.revokeObjectURL(url);audio.play().catch(()=>{});
+  };
+
+  function _hideShadowFeedback(){
+    const fb=document.getElementById('shadow-feedback');if(fb)fb.style.display='none';
+    const wave=document.getElementById('shadow-wave');if(wave)wave.style.display='none';
+    const btn=document.getElementById('shadow-mic-btn');if(btn){btn.style.background='linear-gradient(135deg,#00b360,var(--green))';btn.textContent='🎤';}
+    const status=document.getElementById('shadow-mic-status');if(status)status.textContent='Ouça primeiro, depois imite';
+  }
 })();
 
 // ══════════════════════════════════════════════════════════

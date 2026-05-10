@@ -9501,12 +9501,26 @@ let _ttsAudioCtx = null;
 let _ttsQueue    = [];
 let _ttsPlaying  = false;
 
-function _getTTSCtx(){
+// Desbloqueia AudioContext no primeiro toque do usuário (política autoplay do browser)
+(function(){
+  const _unlockTTS = async () => {
+    if(_ttsAudioCtx && _ttsAudioCtx.state === 'suspended'){
+      try{ await _ttsAudioCtx.resume(); }catch(e){}
+    }
+  };
+  ['touchstart','touchend','mousedown','keydown','click'].forEach(ev =>
+    document.addEventListener(ev, _unlockTTS, {once: false, passive: true})
+  );
+})();
+
+async function _getTTSCtx(){
   if(!_ttsAudioCtx || _ttsAudioCtx.state === 'closed'){
     _ttsAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
   }
-  // Resume se suspenso (política autoplay do browser)
-  if(_ttsAudioCtx.state === 'suspended') _ttsAudioCtx.resume().catch(()=>{});
+  // Aguarda resume completo (política autoplay do browser)
+  if(_ttsAudioCtx.state === 'suspended'){
+    try{ await _ttsAudioCtx.resume(); }catch(e){}
+  }
   return _ttsAudioCtx;
 }
 
@@ -9515,7 +9529,7 @@ async function _ttsPlayNext(){
   _ttsPlaying = true;
   const arrayBuf = _ttsQueue.shift();
   try{
-    const ctx = _getTTSCtx();
+    const ctx = await _getTTSCtx();  // aguarda contexto pronto
     const decoded = await ctx.decodeAudioData(arrayBuf);
     const src = ctx.createBufferSource();
     src.buffer = decoded;
@@ -13029,7 +13043,7 @@ function _rtHandleEvent(msg){
         const pcm=new Int16Array(bytes.buffer);
         const f32=new Float32Array(pcm.length);
         for(let i=0;i<pcm.length;i++) f32[i]=pcm[i]/32768;
-        const ctx=_getTTSCtx();
+        const ctx=await _getTTSCtx();  // aguarda AudioContext pronto (fix autoplay)
         const buf=ctx.createBuffer(1,f32.length,24000);
         buf.copyToChannel(f32,0);
         const src=ctx.createBufferSource();

@@ -2586,7 +2586,7 @@ body[data-page="2fa"] .bnav{display:none!important;}
             <span style="font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0;">IDIOMA:</span>
             <div id="shadow-lang-bar" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
           </div>
-          <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;">
+          <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));">
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <div style="font-size:12px;font-weight:700;color:var(--muted);font-family:var(--mono);">MODO SOMBRA — IMITE O NATIVO</div>
               <div id="shadow-score-badge" style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--green);background:var(--gdim);padding:3px 10px;border-radius:20px;border:1px solid rgba(0,255,136,.2);">0 pts</div>
@@ -16744,24 +16744,59 @@ function setLivreNivel(el){
     }catch(e){_showShadowFeedback({score:65,label:'Erro',desc:'Tente novamente.',tips:'Verifique sua conexão.'},transcript);}
   }
 
+  function _highlightDiff(original, said){
+    // Compara palavra a palavra e retorna HTML com marcação de erro/acerto
+    const norm=s=>(s||'').toLowerCase().replace(/[.,!?;:'"]/g,'').trim();
+    const origWords=(original||'').split(/\s+/);
+    const saidWords=(said||'').split(/\s+/);
+    // Monta mapa de palavras ditas (normalizadas)
+    const saidSet=new Set(saidWords.map(norm));
+    return origWords.map(w=>{
+      const wn=norm(w);
+      if(!wn)return w;
+      const ok=saidSet.has(wn);
+      return ok
+        ? `<span style="background:rgba(0,255,136,.22);color:var(--green);border-radius:4px;padding:1px 4px;font-weight:700;">${w}</span>`
+        : `<span style="background:rgba(255,68,102,.22);color:var(--red);border-radius:4px;padding:1px 4px;font-weight:700;text-decoration:underline wavy var(--red);">${w}</span>`;
+    }).join(' ');
+  }
+
   function _showShadowFeedback(r,transcript){
+    const phrase=_sCurrentPhrase;
     const score=Math.max(0,Math.min(100,r.score||0));const color=score>=80?'var(--green)':score>=55?'var(--yellow)':'var(--red)';
     const fb=document.getElementById('shadow-feedback');if(!fb)return;
     fb.style.display='block';
+
+    // Gera HTML com highlight comparando original vs o que foi dito
+    const originalText=phrase?phrase.p:'';
+    const highlightedOriginal=transcript?_highlightDiff(originalText,transcript):`<span style="color:var(--muted)">${originalText}</span>`;
+
     fb.innerHTML=`<div style="font-size:11px;font-weight:700;font-family:var(--mono);color:var(--muted);letter-spacing:2px;margin-bottom:10px;">AVALIAÇÃO DO SHADOWING</div>
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
       <div style="width:60px;height:60px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:${color};flex-shrink:0;">${score}</div>
       <div><div style="font-size:15px;font-weight:800;color:${color};margin-bottom:4px;">${r.label||''}</div><div style="font-size:12px;color:var(--muted);">${r.desc||''}</div></div>
     </div>
-    ${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}
+    <div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:8px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:5px;letter-spacing:1px;">📋 FRASE ORIGINAL</div>
+      <div style="line-height:1.7;font-size:13px;">${highlightedOriginal}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:5px;"><span style="background:rgba(0,255,136,.22);color:var(--green);border-radius:3px;padding:1px 5px;">verde</span> = acerto &nbsp; <span style="background:rgba(255,68,102,.22);color:var(--red);border-radius:3px;padding:1px 5px;">vermelho</span> = erro/faltou</div>
+    </div>
+    ${transcript?`<div style="font-size:12px;background:var(--surface);border-radius:10px;padding:10px;margin-bottom:8px;color:var(--muted);">🎤 Você disse: <em>"${transcript}"</em></div>`:''}
     <div style="font-size:13px;color:var(--text);background:var(--surface);border-radius:10px;padding:10px;margin-bottom:10px;">💡 ${r.tips||''}</div>
     ${_sAudioBlob?`<button onclick="shadowPlayback()" style="width:100%;padding:10px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">🔊 Ouvir minha gravação novamente</button>`:''}
-    <button onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;
+    <button id="shadow-next-btn" onclick="shadowNova()" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#00b360,var(--green));border:none;color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;">▶ Próxima frase</button>`;
     const pts=Math.round(score/10);_sScore+=pts;
-    _sHistory.unshift({phrase:phrase.p.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();
+    _sHistory.unshift({phrase:originalText.substring(0,30),score,pts,lang:_sLang});if(_sHistory.length>20)_sHistory.pop();
     const badge=document.getElementById('shadow-score-badge');if(badge)badge.textContent=_sScore+' pts';
     addPts(pts,'shadowOk');
     const step=document.getElementById('shadow-step');if(step)step.textContent='Resultado acima 👆 Toque em "Próxima frase" para continuar';
+    // Auto-scroll para mostrar o feedback e o botão "Próxima frase"
+    setTimeout(()=>{
+      fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+      // Também rola o container pai
+      const container=fb.closest('[style*="overflow-y"]')||fb.parentElement;
+      if(container){container.scrollTop=container.scrollHeight;}
+    },100);
   }
 
   // Botão replay no feedback

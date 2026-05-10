@@ -557,8 +557,23 @@ body.light-mode .sala-lang-select{background-image:url("data:image/svg+xml,%3Csv
 .learn-lang-strip{display:flex;align-items:center;gap:7px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
 .learn-lang-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;}
 .learn-lang-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
-/* ── Bandeiras como imagem (compatível Windows/Linux/Mac) ── */
-.flag-img{display:none!important;}.flag-emoji{font-size:16px;display:inline-block;vertical-align:middle;margin-right:4px;line-height:1;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif;font-style:normal;}.lfl .flag-emoji{font-size:28px;margin:0;line-height:1;}.si-from-flag .flag-emoji,.si-to-flag .flag-emoji{font-size:24px;margin:0;}#aff .flag-emoji,#atf .flag-emoji{font-size:20px;margin:0;}.flag-emoji.flag-lg{font-size:24px;margin:0;}
+/* ── Bandeiras via Twemoji (compatível Windows/Linux/Mac/Chrome) ── */
+.flag-img{display:none!important;}
+.flag-emoji{font-size:16px;display:inline-block;vertical-align:middle;margin-right:4px;line-height:1;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif;font-style:normal;}
+.lfl .flag-emoji{font-size:28px;margin:0;line-height:1;}
+.si-from-flag .flag-emoji,.si-to-flag .flag-emoji{font-size:24px;margin:0;}
+#aff .flag-emoji,#atf .flag-emoji{font-size:20px;margin:0;}
+.flag-emoji.flag-lg{font-size:24px;margin:0;}
+/* Imagens geradas pelo Twemoji */
+.flag-emoji img.emoji, img.twemoji-flag {
+  height:1.1em !important; width:1.1em !important;
+  display:inline-block !important; vertical-align:middle !important;
+  margin:0 !important; border:none !important;
+  pointer-events:none; user-select:none;
+}
+.lfl .flag-emoji img.emoji { height:1.2em !important; width:1.2em !important; }
+.si-from-flag .flag-emoji img.emoji, .si-to-flag .flag-emoji img.emoji { height:1.3em !important; width:1.3em !important; }
+#aff .flag-emoji img.emoji, #atf .flag-emoji img.emoji { height:1.2em !important; width:1.2em !important; }
 /* FIX: garante que o avatar do grupo chat exibe emojis de bandeira corretamente no desktop (Windows/Chrome) */
 #grp-chat-avatar{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif !important;line-height:1;overflow:hidden;}
 #grp-chat-avatar img{display:block;border-radius:4px;object-fit:cover;}
@@ -1758,6 +1773,8 @@ body[data-page="2fa"] .bnav{display:none!important;}
 .lt-history-item { font-size:13px; color:var(--text); padding:8px 0; border-bottom:1px solid var(--border); line-height:1.4; }
 .lt-history-item:last-child { border-bottom:none; }
 </style>
+<!-- Twemoji: renderiza emojis de bandeira como imagens no Windows/Chrome desktop -->
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -5893,9 +5910,11 @@ function _amiListenPresence() {
       // Entra em sala virtual ami para o backend não rejeitar
       const u = window._fbUser;
       if (u?.uid) {
-        amiSock.emit('join-room', { code: 'ami-' + u.uid, uid: u.uid, name: u.displayName || u.name || 'Usuário', lang: 'PT-BR' });
-        amiSock.emit('ami-online', { uid: u.uid, name: u.displayName || u.name || 'Usuário' });
+        amiSock.emit('join-room', { code: 'ami-' + u.uid, uid: u.uid, name: u.name || u.displayName || 'Usuário', lang: 'PT-BR' });
+        amiSock.emit('ami-online', { uid: u.uid, name: u.name || u.displayName || 'Usuário' });
       }
+      // Re-registra listeners de chamada no novo socket
+      if (typeof window._setupAmiSocketListeners === 'function') window._setupAmiSocketListeners();
     });
     amiSock.on('disconnect', () => {
       if (window._amiSocketDedicado === amiSock) {
@@ -5909,6 +5928,10 @@ function _amiListenPresence() {
   const _setupAmiSocketListeners = () => {
     const s = window._salaSocket;
     if (!s) { setTimeout(_setupAmiSocketListeners, 1000); return; }
+    // Remove listeners anteriores para evitar duplicatas ao reconectar
+    s.off('ami-friend-online'); s.off('ami-friend-offline'); s.off('ami-msg');
+    s.off('ami-typing'); s.off('ami-call-offer'); s.off('ami-call-answer');
+    s.off('ami-call-ice'); s.off('ami-call-reject'); s.off('ami-call-hangup');
     s.on('ami-friend-online', ({ uid, name }) => {
       if (!_ami.friends.find(f => f.uid === uid)) return;
       const wasOffline = !_ami.online[uid];
@@ -5918,10 +5941,8 @@ function _amiListenPresence() {
     });
     s.on('ami-friend-offline', ({ uid }) => { delete _ami.online[uid]; _amiRenderFriends(); _amiUpdateOnlineCount(); });
     s.on('ami-msg', ({ fromUid, fromName, text, audioUrl, audioData, ts }) => {
-      // Resolve o nome real do amigo a partir da lista local
       const friendEntry = _ami.friends.find(f => f.uid === fromUid);
       const resolvedName = (friendEntry && (friendEntry.name || friendEntry.displayName)) || fromName || 'Amigo';
-      // audioData é fallback base64 quando Firebase Storage não está disponível
       const finalAudioUrl = audioUrl || audioData || null;
       _amiReceiveMsg(fromUid, resolvedName, text, finalAudioUrl, ts);
     });
@@ -5936,7 +5957,10 @@ function _amiListenPresence() {
     s.on('ami-call-ice',    ({ candidate }) => _amiHandleIce(candidate));
     s.on('ami-call-reject', () => _amiCallRejected());
     s.on('ami-call-hangup', () => hangupFriendCall());
+    // Reconecta: re-registra listeners ao voltar do disconnect
+    s.on('connect', () => { _setupAmiSocketListeners(); });
   };
+  window._setupAmiSocketListeners = _setupAmiSocketListeners;
   _setupAmiSocketListeners();
 }
 
@@ -8333,8 +8357,10 @@ function enterApp(data){
       if(url)fetch(url+'/api/ping').catch(()=>{});
     },9*60*1000);
   }
-  // ── MÓDULO AMIGOS ──
+  // Inicializa socket de chamadas P2P SEMPRE ao fazer login — não espera o usuário abrir Amigos
   setTimeout(()=>{ if(typeof initAmigoModule==='function'&&!window._amiModuleInited){window._amiModuleInited=true;initAmigoModule();} }, 1000);
+  // Socket dedicado para receber chamadas mesmo sem entrar na aba Amigos
+  setTimeout(()=>{ if(typeof window._ensureAmiSocket==='function') window._ensureAmiSocket(); }, 1500);
   // ── AZURE CONFIG — busca chaves do backend após login (nunca expostas no HTML) ──
   setTimeout(()=>{ if(typeof window._fetchAzureConfig==='function') window._fetchAzureConfig(); }, 1500);
 }
@@ -13452,11 +13478,13 @@ async function _rtHandleEvent(msg){
       const original=document.getElementById('sala-tr-eu')?.textContent||'';
       _salaAddBubble(original,translation,'mine',_salaMyLang||LO[lfi]?.code||'PT-BR',_salaTheirLang||LO[lti]?.code||'EN-US','~RT');
       _salaUpdateLastTranslation('Você → '+(_salaTheirName||'Participante'),translation);
-      if(_salaSocket&&_salaCode){
-        _salaSocket.emit('translation',{code:_salaCode,original,translation,
+      // Usa código da sala ativa; se não tiver, usa sala ami pessoal como canal
+      const _rtCode = _salaCode || (window._fbUser?.uid ? 'ami-'+window._fbUser.uid : null);
+      if(_salaSocket && _rtCode){
+        _salaSocket.emit('translation',{code:_rtCode,original,translation,
           fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
           speakerName:window._fbUser?.name||'Você',speakerUid:window._fbUser?.uid});
-        _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:false});
+        _salaSocket.emit('speaking',{code:_rtCode,name:window._fbUser?.name||'Você',active:false});
       }
       const el=document.getElementById('sala-tr-eu'); if(el) el.textContent='';
       break;
@@ -16813,5 +16841,47 @@ function _salaMostrarUIVideo(show){
 </script>
 <!-- ====== FIM DEBUG PANEL ====== -->
 
+<script>
+// ── Twemoji: converte emojis de bandeira em imagens (fix Windows/Chrome) ──
+(function(){
+  function _twParse(root){
+    if(typeof twemoji==='undefined')return;
+    twemoji.parse(root||document.body,{
+      folder:'svg', ext:'.svg',
+      base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',
+      className:'emoji',
+      // Só converte bandeiras (regional indicators U+1F1E6–U+1F1FF) e alguns emojis de UI
+      callback:function(icon,options){
+        // Aceita apenas flag sequences (2 chars regional) e emojis comuns
+        return ''.concat(options.base,options.size,'/',icon,options.ext);
+      }
+    });
+  }
+  // Roda após carregamento inicial
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>_twParse(),100));
+  } else {
+    setTimeout(()=>_twParse(),100);
+  }
+  // Observa mudanças no DOM para re-parsear conteúdo dinâmico (seletores de idioma, etc.)
+  const _twObs=new MutationObserver(function(mutations){
+    mutations.forEach(function(m){
+      m.addedNodes.forEach(function(node){
+        if(node.nodeType===1){
+          // Só re-parseia se o nó adicionado contém flag-emoji
+          if(node.classList?.contains('flag-emoji')||node.querySelector?.('.flag-emoji')){
+            setTimeout(()=>_twParse(node),0);
+          }
+        }
+      });
+    });
+  });
+  document.addEventListener('DOMContentLoaded',function(){
+    _twObs.observe(document.body,{childList:true,subtree:true});
+  });
+  // Expõe para uso manual em conteúdo gerado dinamicamente
+  window._twParse=_twParse;
+})();
+</script>
 </body>
 </html>

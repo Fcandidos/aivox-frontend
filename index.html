@@ -9529,9 +9529,11 @@ async function _ttsPlayNext(){
   }
 }
 
-async function _speakTranslation(text){
+async function _speakTranslation(text, lang){
   const backendUrl=getBackendUrl();
   if(!backendUrl)return;
+  // Normaliza lang para formato curto (ex: 'EN-US' → 'en', 'PT-BR' → 'pt')
+  const langShort = lang ? lang.split('-')[0].toLowerCase() : null;
   (async()=>{
     try{
       const token=await getAuthToken();
@@ -9540,6 +9542,7 @@ async function _speakTranslation(text){
         headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
         body:JSON.stringify({
           text,
+          lang: langShort,  // ✅ informa idioma correto ao backend para TTS
           voiceId: window._fbUser?.voice_id || 'pNInz6obpgDQGcFmaJgB',
           model_id: 'eleven_multilingual_v2',
           voice_settings: {
@@ -12721,6 +12724,15 @@ async function _salaProcessAudio(){
 
   // Usa idiomas da sala (não os idiomas globais da sessão ativa)
   // _salaMyLang = meu idioma (origem) | _salaTheirLang = idioma do outro (destino)
+  // PROTEÇÃO: se _salaTheirLang ainda não chegou (outro não conectou), usa fallback inteligente
+  if(!_salaTheirLang){
+    // Se eu falo PT, assume que outro fala EN (e vice-versa)
+    const myBase=(_salaMyLang||'PT-BR').split('-')[0].toUpperCase();
+    _salaTheirLang = myBase==='PT' ? 'EN-US' : myBase==='EN' ? 'PT-BR' : 'EN-US';
+    console.warn('[SALA] _salaTheirLang estava null — definido como fallback:', _salaTheirLang);
+    if(typeof window.__dbgSalaFeedAdd==='function')
+      window.__dbgSalaFeedAdd('⚠ _salaTheirLang era null! Fallback: '+_salaTheirLang, '#ff8c00');
+  }
   const from = (_salaMyLang || LO[lfi]?.code || 'PT-BR').split('-')[0].toLowerCase();
   const to   = (_salaTheirLang || LO[lti]?.code || 'EN-US').split('-')[0].toLowerCase();
   console.log('[SALA] from:', _salaMyLang, '→ to:', _salaTheirLang);
@@ -12819,6 +12831,16 @@ function _salaReceberTraducao(data){
     window.__dbgSalaFeedAdd('📥 RECEBIDO de '+(data.speakerName||'outro')+' ['+data.fromLang+'→'+data.toLang+']', '#7c3aed');
     window.__dbgSalaFeedAdd('  orig: '+data.original, '#e8eaf2');
     window.__dbgSalaFeedAdd('  trad: '+data.translation, '#00e5ff');
+    window.__dbgSalaFeedAdd('  🔊 TTS lang: '+(data.toLang||'⚠ indefinido'), data.toLang?'#00ff88':'#ff4466');
+    // Valida: toLang deve ser = _salaMyLang (a tradução deve estar no meu idioma)
+    const meuLang = window._salaMyLang;
+    const toBase = (data.toLang||'').split('-')[0].toUpperCase();
+    const myBase = (meuLang||'').split('-')[0].toUpperCase();
+    if(meuLang && toBase && toBase !== myBase){
+      window.__dbgSalaFeedAdd('  ⚠ ATENÇÃO: toLang('+toBase+') ≠ meuLang('+myBase+') — tradução no idioma errado!', '#ff4466');
+    } else if(meuLang && toBase === myBase){
+      window.__dbgSalaFeedAdd('  ✓ Direção correta: tradução em '+toBase+' = meu idioma', '#00ff88');
+    }
   }
 
   // Atualiza painel do outro — mostra a TRADUÇÃO (no idioma do receptor), não o original
@@ -12835,8 +12857,8 @@ function _salaReceberTraducao(data){
   // Atualiza painel "última tradução" (visível durante vídeo chamada)
   _salaUpdateLastTranslation((data.speakerName||'Participante')+' → você', data.translation);
 
-  // Toca o áudio recebido (voz do outro)
-  if(data.translation)_speakTranslation(data.translation);
+  // Toca o áudio recebido (voz do outro) — usa toLang pois é o idioma da TRADUÇÃO (o que eu entendo)
+  if(data.translation)_speakTranslation(data.translation, data.toLang);
 }
 
 function _salaUpdateLastTranslation(label, text){
@@ -13195,6 +13217,12 @@ async function _salaVADProcessAudio(){
   const lbl=document.getElementById('sala-micl');
   if(lbl)lbl.textContent='⏳ Traduzindo...';
   // Usa idiomas da sala, não os globais
+  // PROTEÇÃO: se _salaTheirLang ainda não chegou, usa fallback inteligente
+  if(!_salaTheirLang){
+    const myBase=(_salaMyLang||'PT-BR').split('-')[0].toUpperCase();
+    _salaTheirLang = myBase==='PT' ? 'EN-US' : myBase==='EN' ? 'PT-BR' : 'EN-US';
+    console.warn('[SALA-VAD] _salaTheirLang era null — fallback:', _salaTheirLang);
+  }
   const from = (_salaMyLang || LO[lfi]?.code || 'PT-BR').split('-')[0].toLowerCase();
   const to   = (_salaTheirLang || LO[lti]?.code || 'EN-US').split('-')[0].toLowerCase();
   try{
@@ -15944,8 +15972,6 @@ function _salaMostrarUIVideo(show){
 
     const my    = window._salaMyLang;
     const their = window._salaTheirLang;
-    const loFi  = (typeof LO!=='undefined'&&typeof lfi!=='undefined') ? LO[lfi]?.code : '?';
-    const loTi  = (typeof LO!=='undefined'&&typeof lti!=='undefined') ? LO[lti]?.code : '?';
     const conn  = window._salaConnected;
     const thName = window._salaTheirName || '(aguardando)';
 
@@ -15956,6 +15982,32 @@ function _salaMostrarUIVideo(show){
     }
     if(theirLang) theirLang.textContent = their || '⚠ null';
     if(theirName) theirName.textContent = conn ? ('👤 '+thName) : '⚫ não conectado';
+
+    // ── Fluxo bidirecional visual ──────────────────────────
+    let flowEl = document.getElementById('__dbg-flow-diag');
+    if(!flowEl){
+      flowEl = document.createElement('div');
+      flowEl.id = '__dbg-flow-diag';
+      flowEl.style.cssText = 'margin:6px 0;padding:6px;background:rgba(0,0,0,.4);border-radius:6px;border:1px solid rgba(255,255,255,.08);';
+      const lastAudio = document.getElementById('__dbg-last-audio');
+      if(lastAudio && lastAudio.parentNode) lastAudio.parentNode.insertBefore(flowEl, lastAudio);
+    }
+    const myBase   = (my||'').split('-')[0].toUpperCase();
+    const thBase   = (their||'').split('-')[0].toUpperCase();
+    const flowOk   = my && their && my !== their && conn;
+    const arrow    = flowOk ? '<span style="color:#00ff88">✓</span>' : '<span style="color:#ff4466">✗</span>';
+    flowEl.innerHTML =
+      '<div style="font-size:9px;font-weight:700;color:#4a5170;letter-spacing:1px;margin-bottom:4px;">FLUXO DE TRADUÇÃO</div>'
+      +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">'
+      +'<span style="font-size:9px;background:rgba(0,229,255,.15);color:#00e5ff;padding:2px 5px;border-radius:4px;font-weight:700;">EU ('+( my||'null')+')</span>'
+      +'<span style="font-size:9px;color:#e8eaf2;">→ fala '+myBase+' → traduz para '+thBase+' →</span>'
+      +'<span style="font-size:9px;background:rgba(124,58,237,.2);color:#a78bfa;padding:2px 5px;border-radius:4px;font-weight:700;">'+(conn?thName:'???')+'</span>'
+      +' '+arrow+'</div>'
+      +'<div style="display:flex;align-items:center;gap:4px;">'
+      +'<span style="font-size:9px;background:rgba(124,58,237,.2);color:#a78bfa;padding:2px 5px;border-radius:4px;font-weight:700;">'+(conn?thName:'???')+'</span>'
+      +'<span style="font-size:9px;color:#e8eaf2;">→ fala '+thBase+' → traduz para '+myBase+' →</span>'
+      +'<span style="font-size:9px;background:rgba(0,229,255,.15);color:#00e5ff;padding:2px 5px;border-radius:4px;font-weight:700;">EU</span>'
+      +' '+arrow+'</div>';
 
     // Aviso de conflito
     if(warn){
@@ -15977,18 +16029,24 @@ function _salaMostrarUIVideo(show){
     if(lastAudio && window.__dbgSalaLastCall){
       const c = window.__dbgSalaLastCall;
       const ok = c.original && c.original.length > 1;
+      const transOk = c.translation && c.translation.length > 1;
+      // Detecta se a tradução está no idioma correto (heurística simples: tem texto e é diferente do original)
+      const transCorreto = transOk && c.translation !== c.original;
       lastAudio.innerHTML =
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:4px;">'
-        +'<div style="font-size:9px;color:#4a5170;">from→to</div>'
+        '<div style="font-size:9px;font-weight:700;color:#4a5170;letter-spacing:1px;margin-bottom:4px;">ÚLTIMO ÁUDIO PROCESSADO</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:4px;">'
+        +'<div style="font-size:9px;color:#4a5170;">from→to (api)</div>'
         +'<div style="font-size:9px;color:#e8eaf2;font-weight:700;">'+c.from+' → '+c.to+'</div>'
+        +'<div style="font-size:9px;color:#4a5170;">socket fromLang→toLang</div>'
+        +'<div style="font-size:9px;color:#ffd000;">'+c.fromLang+' → '+c.toLang+'</div>'
         +'<div style="font-size:9px;color:#4a5170;">HTTP status</div>'
         +'<div style="font-size:9px;color:'+(c.status===200?'#00ff88':'#ff4466')+';">'+c.status+'</div>'
         +'<div style="font-size:9px;color:#4a5170;">original</div>'
         +'<div style="font-size:9px;color:#e8eaf2;word-break:break-all;">'+(c.original||'⚠ vazio')+'</div>'
         +'<div style="font-size:9px;color:#4a5170;">tradução</div>'
-        +'<div style="font-size:9px;color:'+(ok?'#00e5ff':'#ff4466')+';word-break:break-all;">'+(c.translation||'⚠ vazio')+'</div>'
-        +'<div style="font-size:9px;color:#4a5170;">socket from/to</div>'
-        +'<div style="font-size:9px;color:#ffd000;">'+c.fromLang+' → '+c.toLang+'</div>'
+        +'<div style="font-size:9px;color:'+(transCorreto?'#00e5ff':'#ff4466')+';word-break:break-all;">'+(c.translation||'⚠ vazio')+'</div>'
+        +'<div style="font-size:9px;color:#4a5170;">tradução ok?</div>'
+        +'<div style="font-size:9px;color:'+(transCorreto?'#00ff88':'#ff4466')+';">'+(transCorreto?'✓ SIM — idioma diferente':'✗ NÃO — igual ao original ou vazio!')+'</div>'
         +'</div>';
     }
   }

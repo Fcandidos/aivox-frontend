@@ -12496,6 +12496,11 @@ function _salaOutroConectado(data){
   _salaConnected=true;
   _salaTheirName=data.name||'Participante';
   _salaTheirLang=data.lang||'EN-US';
+  // Debug feed
+  if(typeof window.__dbgSalaFeedAdd==='function'){
+    window.__dbgSalaFeedAdd('🟢 '+_salaTheirName+' entrou — idioma: '+_salaTheirLang, '#00ff88');
+    window.__dbgSalaFeedAdd('  você: '+(_salaMyLang||'?')+' | ele: '+_salaTheirLang, '#ffd000');
+  }
   const dot=document.getElementById('sala-outro-dot');
   const nome=document.getElementById('sala-outro-nome');
   const lang=document.getElementById('sala-outro-lang');
@@ -12695,8 +12700,15 @@ async function _salaProcessAudio(){
         fromLang:_salaMyLang||LO[lfi]?.code||'PT-BR',
         toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
       };
-      if(typeof __dbgLog==='function'){
-        __dbgLog('[SALA] from:'+from+' to:'+to+' | orig:'+d.original,'ok');
+      if(typeof window.__dbgSalaFeedAdd==='function'){
+        const ok = d.original && d.original.length>1;
+        window.__dbgSalaFeedAdd('🎙 VOCÊ falou ['+from+'→'+to+']', '#ffd000');
+        if(ok){
+          window.__dbgSalaFeedAdd('  orig: '+d.original, '#e8eaf2');
+          window.__dbgSalaFeedAdd('  trad: '+d.translation, '#00e5ff');
+        } else {
+          window.__dbgSalaFeedAdd('  ⚠ sem transcrição (áudio curto ou silêncio)', '#ff4466');
+        }
       }
     }
 
@@ -12754,6 +12766,13 @@ async function _salaProcessAudio(){
 }
 
 function _salaReceberTraducao(data){
+  // Debug feed — mostra o que chegou do outro participante
+  if(typeof window.__dbgSalaFeedAdd==='function'){
+    window.__dbgSalaFeedAdd('📥 RECEBIDO de '+(data.speakerName||'outro')+' ['+data.fromLang+'→'+data.toLang+']', '#7c3aed');
+    window.__dbgSalaFeedAdd('  orig: '+data.original, '#e8eaf2');
+    window.__dbgSalaFeedAdd('  trad: '+data.translation, '#00e5ff');
+  }
+
   // Atualiza painel do outro — mostra a TRADUÇÃO (no idioma do receptor), não o original
   const outroTr=document.getElementById('sala-tr-outro');
   if(outroTr){
@@ -13150,7 +13169,16 @@ async function _salaVADProcessAudio(){
       toLang:_salaTheirLang||LO[lti]?.code||'EN-US',
       mode:'continuo',
     };
-    if(typeof __dbgLog==='function') __dbgLog('[VAD] from:'+from+'→to:'+to+' orig:'+(d.original||'?'),'ok');
+    if(typeof window.__dbgSalaFeedAdd==='function'){
+      const ok = d.original && d.original.length>1;
+      window.__dbgSalaFeedAdd('🔴 VAD ['+from+'→'+to+']', '#ffd000');
+      if(ok){
+        window.__dbgSalaFeedAdd('  orig: '+d.original, '#e8eaf2');
+        window.__dbgSalaFeedAdd('  trad: '+d.translation, '#00e5ff');
+      } else {
+        window.__dbgSalaFeedAdd('  ⚠ sem transcrição', '#ff4466');
+      }
+    }
     if(!d.original||d.original.trim().length<2)return;
     const euTr=document.getElementById('sala-tr-eu');
     if(euTr){euTr.textContent=d.original;euTr.classList.add('translate-flash');setTimeout(()=>euTr.classList.remove('translate-flash'),600);}
@@ -15528,14 +15556,52 @@ function _salaMostrarUIVideo(show){
     <button onclick="__dbgToggle()" style="background:none;border:none;color:#ff4466;font-size:14px;cursor:pointer;">✕</button>
   </div>
   <div id="__dbg-btns">
-    <button onclick="__dbgRun()">▶ Rodar tudo</button>
-    <button onclick="__dbgSala()" style="background:#1a2e1a;border-color:#00ff8844;color:#00ff88;">🎙 Sala</button>
+    <button onclick="__dbgSetMode('geral')">▶ Geral</button>
+    <button onclick="__dbgSetMode('sala')" style="background:#1a2e1a;border-color:#00ff8844;color:#00ff88;">🎙 Sala AO VIVO</button>
     <button onclick="__dbgLearn()">🎓 Lições</button>
-    <button onclick="__dbgOverflowHL()">🔴 Marcar overflow</button>
-    <button onclick="__dbgClearHL()">✕ Limpar marcas</button>
-    <button onclick="document.getElementById('__dbg-log').innerHTML=''">🗑 Limpar log</button>
+    <button onclick="__dbgOverflowHL()">🔴 Overflow</button>
+    <button onclick="__dbgClearHL()">✕ Marcas</button>
+    <button onclick="__dbgClearLog()">🗑 Limpar</button>
   </div>
-  <div id="__dbg-log"></div>
+  <!-- Monitor ao vivo da sala -->
+  <div id="__dbg-sala-live" style="display:none;flex-direction:column;flex:1;min-height:0;">
+    <!-- Status bar -->
+    <div style="padding:6px 10px;background:#0a1a0a;border-bottom:1px solid #00ff8822;flex-shrink:0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#00ff88;font-size:9px;font-weight:700;">MONITOR SALA — AO VIVO</span>
+        <span id="__dbg-sala-tick" style="color:#4a5170;font-size:9px;">⏸</span>
+      </div>
+      <!-- Idiomas em tempo real -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <div style="background:#111;border:1px solid #00ff8833;border-radius:5px;padding:4px 6px;">
+          <div style="color:#4a5170;font-size:8px;">VOCÊ envia</div>
+          <div id="__dbg-my-lang" style="color:#00ff88;font-size:13px;font-weight:700;font-family:'Space Mono',monospace;">—</div>
+          <div id="__dbg-my-lang-src" style="color:#4a5170;font-size:8px;margin-top:1px;">aguardando...</div>
+        </div>
+        <div style="background:#111;border:1px solid #00e5ff33;border-radius:5px;padding:4px 6px;">
+          <div style="color:#4a5170;font-size:8px;">CARLOS recebe</div>
+          <div id="__dbg-their-lang" style="color:#00e5ff;font-size:13px;font-weight:700;font-family:'Space Mono',monospace;">—</div>
+          <div id="__dbg-their-name" style="color:#4a5170;font-size:8px;margin-top:1px;">aguardando...</div>
+        </div>
+      </div>
+      <!-- Aviso de conflito -->
+      <div id="__dbg-lang-warn" style="display:none;margin-top:4px;background:#ff446622;border:1px solid #ff4466;border-radius:4px;padding:3px 6px;color:#ff4466;font-size:9px;"></div>
+    </div>
+    <!-- Feed ao vivo de eventos -->
+    <div style="padding:4px 10px;background:#080810;border-bottom:1px solid #ffffff0a;flex-shrink:0;">
+      <span style="color:#4a5170;font-size:8px;">ÚLTIMO ÁUDIO ENVIADO</span>
+    </div>
+    <div id="__dbg-last-audio" style="padding:6px 10px;background:#080810;border-bottom:1px solid #ffffff0a;flex-shrink:0;min-height:54px;">
+      <div style="color:#4a5170;font-size:9px;font-style:italic;">nenhum áudio enviado ainda — fale para ver</div>
+    </div>
+    <!-- Feed de eventos (log rolável) -->
+    <div style="padding:4px 10px;background:#080810;border-bottom:1px solid #ffffff0a;flex-shrink:0;">
+      <span style="color:#4a5170;font-size:8px;">EVENTOS EM TEMPO REAL</span>
+    </div>
+    <div id="__dbg-sala-feed" style="flex:1;overflow-y:auto;padding:6px 10px;display:flex;flex-direction:column;gap:2px;"></div>
+  </div>
+  <!-- Log original -->
+  <div id="__dbg-log" style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:1px;"></div>
   <div id="__dbg-resizer"></div>
 </div>
 
@@ -15777,105 +15843,125 @@ function _salaMostrarUIVideo(show){
     log('── FIM ──','sep');
   };
 
-  window.__dbgSala=function(){
-    const log=__dbgLog,sep=__dbgSep;
+  // ── Modo atual do painel ──────────────────────────────────────
+  let __dbgMode = 'geral';
+  let __dbgSalaLiveTimer = null;
+
+  window.__dbgClearLog = function(){
     document.getElementById('__dbg-log').innerHTML='';
-    sep('🎙 SALA — DIAGNÓSTICO DE IDIOMAS');
-
-    // 1. Variáveis de idioma da sala
-    sep('VARIÁVEIS GLOBAIS');
-    try{
-      const my=window._salaMyLang;
-      const their=window._salaTheirLang;
-      const lfiVal=typeof lfi!=='undefined'?lfi:'?';
-      const ltiVal=typeof lti!=='undefined'?lti:'?';
-      const loFi=typeof LO!=='undefined'&&typeof lfi!=='undefined'?LO[lfi]?.code:'?';
-      const loTi=typeof LO!=='undefined'&&typeof lti!=='undefined'?LO[lti]?.code:'?';
-      log('_salaMyLang: '+(my||'⚠ NULL/UNDEFINED'),my?'ok':'err');
-      log('_salaTheirLang: '+(their||'⚠ NULL/UNDEFINED'),their?'ok':'err');
-      log('LO[lfi] (global from): '+loFi,'info');
-      log('LO[lti] (global to): '+loTi,'info');
-      if(my===loFi) log('⚠ _salaMyLang == LO[lfi] — pode estar usando o global!','warn');
-      else log('✓ _salaMyLang diferente de LO[lfi]','ok');
-    }catch(e){log('Erro lendo variáveis: '+e.message,'err');}
-
-    // 2. Estado do socket
-    sep('SOCKET');
-    try{
-      const sock=window._salaSocket;
-      if(!sock){log('_salaSocket: NULL — não conectado','err');}
-      else{
-        log('socket.id: '+sock.id,'ok');
-        log('socket.connected: '+(sock.connected?'✓ sim':'✗ não'),sock.connected?'ok':'err');
-      }
-      const code=window._salaCode;
-      log('_salaCode: '+(code||'⚠ null'),code?'ok':'err');
-      log('_salaConnected: '+(window._salaConnected?'✓ sim':'✗ não'),window._salaConnected?'ok':'err');
-      log('_salaIsCreator: '+(window._salaIsCreator?'sim':'não'),'info');
-      log('_salaTheirName: '+(window._salaTheirName||'(vazio)'),'info');
-    }catch(e){log('Erro socket: '+e.message,'err');}
-
-    // 3. Modos ativos
-    sep('MODOS ATIVOS');
-    try{
-      log('Modo Contínuo: '+(window._salaContinuousMode?'🟢 ATIVO':'⚫ off'),window._salaContinuousMode?'ok':'info');
-      log('Modo Intérprete (RT): '+(window._rtMode?'🟢 ATIVO':'⚫ off'),window._rtMode?'ok':'info');
-      log('Gravando (PTT): '+(window._salaRecording?'🔴 SIM':'⚫ não'),window._salaRecording?'warn':'info');
-    }catch(e){log('Erro modos: '+e.message,'err');}
-
-    // 4. Pickers de idioma no DOM
-    sep('SELETORES DOM');
-    try{
-      ['sala-my-lang-select','sala-my-lang-select-enter'].forEach(id=>{
-        const el=document.getElementById(id);
-        if(el) log(id+': '+el.value,'info');
-        else log(id+': ⚠ não encontrado no DOM','warn');
-      });
-    }catch(e){log('Erro DOM pickers: '+e.message,'err');}
-
-    // 5. Simulação do que seria enviado agora
-    sep('SIMULAÇÃO — O QUE SERIA ENVIADO');
-    try{
-      const my=window._salaMyLang;
-      const their=window._salaTheirLang;
-      const fromSim=(my||'PT-BR').split('-')[0].toLowerCase();
-      const toSim=(their||'EN-US').split('-')[0].toLowerCase();
-      log('from (api/listen): '+fromSim,'info');
-      log('to (api/listen): '+toSim,'info');
-      log('fromLang (socket): '+(my||'PT-BR'),'info');
-      log('toLang (socket): '+(their||'EN-US'),'info');
-      const fromGlobal=(typeof LO!=='undefined'&&typeof lfi!=='undefined')?LO[lfi]?.code?.split('-')[0].toLowerCase():'?';
-      const toGlobal=(typeof LO!=='undefined'&&typeof lti!=='undefined')?LO[lti]?.code?.split('-')[0].toLowerCase():'?';
-      if(fromSim!==fromGlobal) log('⚠ from sala ('+fromSim+') ≠ from global ('+fromGlobal+') — usando sala ✓','ok');
-      else log('from sala == from global ('+fromSim+') — verificar se é correto','warn');
-    }catch(e){log('Erro simulação: '+e.message,'err');}
-
-    // 6. Botão de monkeypatch ao vivo
-    sep('AÇÕES');
-    log('▶ Para interceptar o próximo áudio, cole no console:','info');
-    log('window.__dbgSalaIntercept=true','info');
-    log('Depois fale — o debug mostrará o from/to real.','info');
-
-    // 7. Se intercept ativo, mostra o último resultado
-    if(window.__dbgSalaLastCall){
-      sep('ÚLTIMO ÁUDIO ENVIADO');
-      const c=window.__dbgSalaLastCall;
-      log('from: '+c.from,'info');
-      log('to: '+c.to,'info');
-      log('blob size: '+c.size,'info');
-      log('status: '+c.status,'info');
-      log('original: '+(c.original||'?'),'info');
-      log('translation: '+(c.translation||'?'),'info');
-      log('fromLang socket: '+c.fromLang,'info');
-      log('toLang socket: '+c.toLang,'info');
-    }
-
-    log('── FIM ──','sep');
+    document.getElementById('__dbg-sala-feed').innerHTML='';
   };
 
-  window.__dbgSala=window.__dbgSala; // expõe
+  window.__dbgSetMode = function(mode){
+    __dbgMode = mode;
+    const livePanel = document.getElementById('__dbg-sala-live');
+    const logPanel  = document.getElementById('__dbg-log');
+    if(mode === 'sala'){
+      livePanel.style.display = 'flex';
+      logPanel.style.display  = 'none';
+      __dbgSalaStartLive();
+    } else {
+      livePanel.style.display = 'none';
+      logPanel.style.display  = 'flex';
+      __dbgSalaStopLive();
+      if(mode === 'geral') __dbgRun();
+    }
+  };
 
-  window.__dbgSala;
+  // ── Feed de eventos ao vivo ───────────────────────────────────
+  window.__dbgSalaFeedAdd = function(msg, color){
+    const feed = document.getElementById('__dbg-sala-feed');
+    if(!feed) return;
+    const ts = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const el = document.createElement('div');
+    el.style.cssText = 'font-size:9px;padding:3px 0;border-bottom:1px solid #ffffff08;display:flex;gap:6px;flex-shrink:0;';
+    el.innerHTML = '<span style="color:#4a5170;flex-shrink:0;">'+ts+'</span>'
+                 + '<span style="color:'+(color||'#e8eaf2')+';word-break:break-all;">'+msg+'</span>';
+    feed.appendChild(el);
+    feed.scrollTop = feed.scrollHeight;
+    // Máximo 80 linhas
+    while(feed.children.length > 80) feed.removeChild(feed.firstChild);
+  };
+
+  // ── Atualiza painel de status ─────────────────────────────────
+  function __dbgSalaRefresh(){
+    const tick = document.getElementById('__dbg-sala-tick');
+    const myLang = document.getElementById('__dbg-my-lang');
+    const myLangSrc = document.getElementById('__dbg-my-lang-src');
+    const theirLang = document.getElementById('__dbg-their-lang');
+    const theirName = document.getElementById('__dbg-their-name');
+    const warn = document.getElementById('__dbg-lang-warn');
+
+    if(tick) tick.textContent = '● ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    const my    = window._salaMyLang;
+    const their = window._salaTheirLang;
+    const loFi  = (typeof LO!=='undefined'&&typeof lfi!=='undefined') ? LO[lfi]?.code : '?';
+    const loTi  = (typeof LO!=='undefined'&&typeof lti!=='undefined') ? LO[lti]?.code : '?';
+    const conn  = window._salaConnected;
+    const thName = window._salaTheirName || '(aguardando)';
+
+    if(myLang)    myLang.textContent    = my || '⚠ null';
+    if(myLangSrc) myLangSrc.textContent = my === loFi ? '= global (⚠ cuidado)' : '✓ picker da sala';
+    if(theirLang) theirLang.textContent = their || '⚠ null';
+    if(theirName) theirName.textContent = conn ? ('👤 '+thName) : '⚫ não conectado';
+
+    // Aviso de conflito
+    if(warn){
+      const problems = [];
+      if(!my)           problems.push('_salaMyLang é null!');
+      if(!their)        problems.push('_salaTheirLang é null!');
+      if(my === their)  problems.push('from == to ('+my+') — sem tradução!');
+      if(!conn)         problems.push('Outro participante não conectado');
+      if(problems.length){
+        warn.style.display = 'block';
+        warn.textContent   = '⚠ ' + problems.join(' | ');
+      } else {
+        warn.style.display = 'none';
+      }
+    }
+
+    // Painel último áudio
+    const lastAudio = document.getElementById('__dbg-last-audio');
+    if(lastAudio && window.__dbgSalaLastCall){
+      const c = window.__dbgSalaLastCall;
+      const ok = c.original && c.original.length > 1;
+      lastAudio.innerHTML =
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:4px;">'
+        +'<div style="font-size:9px;color:#4a5170;">from→to</div>'
+        +'<div style="font-size:9px;color:#e8eaf2;font-weight:700;">'+c.from+' → '+c.to+'</div>'
+        +'<div style="font-size:9px;color:#4a5170;">HTTP status</div>'
+        +'<div style="font-size:9px;color:'+(c.status===200?'#00ff88':'#ff4466')+';">'+c.status+'</div>'
+        +'<div style="font-size:9px;color:#4a5170;">original</div>'
+        +'<div style="font-size:9px;color:#e8eaf2;word-break:break-all;">'+(c.original||'⚠ vazio')+'</div>'
+        +'<div style="font-size:9px;color:#4a5170;">tradução</div>'
+        +'<div style="font-size:9px;color:'+(ok?'#00e5ff':'#ff4466')+';word-break:break-all;">'+(c.translation||'⚠ vazio')+'</div>'
+        +'<div style="font-size:9px;color:#4a5170;">socket from/to</div>'
+        +'<div style="font-size:9px;color:#ffd000;">'+c.fromLang+' → '+c.toLang+'</div>'
+        +'</div>';
+    }
+  }
+
+  function __dbgSalaStartLive(){
+    if(__dbgSalaLiveTimer) clearInterval(__dbgSalaLiveTimer);
+    __dbgSalaRefresh();
+    __dbgSalaLiveTimer = setInterval(__dbgSalaRefresh, 800);
+  }
+
+  function __dbgSalaStopLive(){
+    if(__dbgSalaLiveTimer){ clearInterval(__dbgSalaLiveTimer); __dbgSalaLiveTimer = null; }
+    const tick = document.getElementById('__dbg-sala-tick');
+    if(tick) tick.textContent = '⏸';
+  }
+
+  // Hookeia eventos da sala para aparecerem no feed
+  window.__dbgSalaHook = true;
+
+  window.__dbgSala=function(){
+    __dbgSetMode('sala');
+  };
+
+  window.__dbgSala=window.__dbgSala;
 
   window.__dbgLearn=function(){
     const log=__dbgLog,sep=__dbgSep;

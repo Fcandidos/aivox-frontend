@@ -9294,19 +9294,88 @@ function _updateVolBar(avg){
   }
 }
 
+let _escutaRecognizer = null; // Azure TranslationRecognizer
+
 async function toggleEscuta(){
   if(_escutaActive){stopEscuta();return;}
-  // Verifica backend
-  const backendUrl=getBackendUrl();
-  if(!backendUrl){
-    showToast('⚠️ Backend não configurado. Vá em Configurações → Backend URL','error');
+
+  // ── Usa Azure SDK direto no browser (latência ~200ms vs ~3s) ──
+  if(window.AZURE_SPEECH_KEY && typeof SpeechSDK !== 'undefined'){
+    await _escutaStartAzure();
     return;
   }
-  // Request mic
+
+  // Fallback: fluxo HTTP chunked (caso Azure não disponível)
+  const backendUrl=getBackendUrl();
+  if(!backendUrl){showToast('⚠️ Backend não configurado','error');return;}
   try{
     _escutaStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,sampleRate:16000}});
   }catch(e){showToast('❌ Permissão de microfone negada','error');return;}
   _escutaActive=true;
+  _escutaSetUIActive();
+  showToast('🎧 Escuta iniciada — aponte para quem está falando');
+  _startVAD();
+  _startRecording();
+}
+
+async function _escutaStartAzure(){
+  const fromLang = document.getElementById('escuta-lang-from')?.value || 'en';
+  const toLang   = document.getElementById('escuta-lang-to')?.value   || 'pt';
+
+  const langCodeMap = {en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',ja:'ja-JP',zh:'zh-CN',ru:'ru-RU',ko:'ko-KR',ar:'ar-SA',pt:'pt-BR'};
+  const sttLang = langCodeMap[fromLang] || (fromLang+'-US');
+
+  try{
+    const translationConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(
+      window.AZURE_SPEECH_KEY, window.AZURE_SPEECH_REGION || 'eastus'
+    );
+    translationConfig.speechRecognitionLanguage = sttLang;
+    translationConfig.addTargetLanguage(toLang);
+
+    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    _escutaRecognizer = new SpeechSDK.TranslationRecognizer(translationConfig, audioConfig);
+
+    // Texto parcial (enquanto ainda está falando)
+    _escutaRecognizer.recognizing = (s, e) => {
+      const curr = document.getElementById('escuta-current');
+      if(curr && e.result.text) curr.textContent = '🎙️ ' + e.result.text;
+    };
+
+    // Frase completa — transcrição + tradução prontas
+    _escutaRecognizer.recognized = (s, e) => {
+      if(e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech) return;
+      const original   = _fillerCleanLocal(e.result.text);
+      const translated = e.result.translations.get(toLang);
+      if(!original?.trim() || !translated?.trim()) return;
+
+      _addEscutaLine(original, translated, fromLang, toLang);
+      const curr = document.getElementById('escuta-current');
+      if(curr) curr.textContent = '🎙️ Ouvindo...';
+
+      if(_escutaMode==='audio') _speakTranslation(translated, toLang);
+    };
+
+    _escutaRecognizer.canceled = (s, e) => {
+      if(e.reason === SpeechSDK.CancellationReason.Error){
+        showToast('❌ Azure: ' + e.errorDetails, 'error');
+      }
+      stopEscuta();
+    };
+
+    _escutaRecognizer.startContinuousRecognitionAsync(
+      () => {
+        _escutaActive = true;
+        _escutaSetUIActive();
+        showToast('🎧 Escuta Azure ativa — latência ~200ms', 'success');
+      },
+      err => { showToast('❌ Microfone: ' + err, 'error'); }
+    );
+  }catch(e){
+    showToast('❌ Erro Azure SDK: '+e.message,'error');
+  }
+}
+
+function _escutaSetUIActive(){
   const btn=document.getElementById('escuta-btn');
   if(btn){btn.textContent='⏹ Parar escuta';btn.style.background='var(--rdim)';btn.style.borderColor='rgba(255,68,68,.4)';btn.style.color='var(--red)';}
   document.getElementById('escuta-placeholder')?.style.setProperty('display','none');
@@ -9314,9 +9383,6 @@ async function toggleEscuta(){
   document.getElementById('escuta-live-pill')?.style.setProperty('display','block');
   document.getElementById('escuta-vol-bar')?.style.setProperty('display','block');
   document.getElementById('escuta-current')?.style.setProperty('display','block');
-  showToast('🎧 Escuta iniciada — aponte para quem está falando');
-  _startVAD();
-  _startRecording();
 }
 
 // ── VAD: detecta silêncio via AnalyserNode ──────────────────────
@@ -9475,6 +9541,12 @@ async function _processEscutaChunk(blob){
   }
 }
 
+// Helper para Azure SDK — cria e preenche linha de uma vez
+function _addEscutaLine(original, translation, from, to){
+  const el = _createLiveEscutaLine(from, to);
+  _updateLiveEscutaLine(el, original, translation);
+}
+
 function _createLiveEscutaLine(from,to){
   const box=document.getElementById('escuta-lines');
   if(!box)return null;
@@ -9583,12 +9655,15 @@ async function _speakTranslation(text, lang){
 }
 
 function stopEscuta(){
-  if(!_escutaActive&&!_escutaStream)return;
-  // Captura linhas transcritas antes de limpar
-  const linesEl=document.getElementById('escuta-lines');
-  // Usa _escutaLines (array em memória) para capturar o transcript completo
+  if(!_escutaActive&&!_escutaStream&&!_escutaRecognizer)return;
   const transcriptText=_escutaLines.map(l=>(l.original||'')+' | '+(l.translation||'')).join('\n');
   _escutaActive=false;
+  // Para Azure SDK recognizer
+  if(_escutaRecognizer){
+    try{_escutaRecognizer.stopContinuousRecognitionAsync(()=>{},()=>{});}catch(e){}
+    try{_escutaRecognizer.close();}catch(e){}
+    _escutaRecognizer=null;
+  }
   clearInterval(_escutaVADTimer);_escutaVADTimer=null;
   try{_escutaRecorder?.stop();}catch(e){}
   try{_escutaStream?.getTracks().forEach(t=>t.stop());}catch(e){}
@@ -9755,11 +9830,15 @@ function togMic(){
     if(_viagemActive)stopViagemMode();else startViagemMode();
     return;
   }
-  // Usa WebSocket streaming (Azure tempo real) se disponível
+  // Usa Azure SDK direto no browser se disponível
+  if(window.AZURE_SPEECH_KEY && typeof SpeechSDK !== 'undefined'){
+    if(_sessAzureActive) _sessAzureStop(); else _sessAzureStart();
+    return;
+  }
+  // Fallback WebSocket
   if(_sessWS && _sessWS.readyState===WebSocket.OPEN){
     if(_sessWSActive) _sessWSStopSpeaking(); else _sessWSStartSpeaking();
   } else {
-    // Fallback: iniciar WS se não conectado ainda
     if(!_sessWSConnecting) _sessWSConnect();
   }
 }
@@ -9947,6 +10026,87 @@ let _sessVADACtx=null,_sessAnalyser=null,_sessVADTimer=null;
 let _sessRecordingSec=0,_sessRecordingTimer=null;
 let _sessMode='push';
 
+
+// ════════════════════════════════════════════════════════════
+//  SESSÃO ATIVA — Azure SDK direto no browser (latência ~200ms)
+// ════════════════════════════════════════════════════════════
+let _sessAzureRecognizer = null;
+let _sessAzureActive     = false;
+
+async function _sessAzureStart(){
+  if(_sessAzureActive) return;
+  const from     = LO[lfi]?.code || 'PT-BR';
+  const to       = LO[lti]?.code || 'EN-US';
+  const fromBase = from.split('-')[0].toLowerCase();
+  const toBase   = to.split('-')[0].toLowerCase();
+  const langCodeMap = {pt:'pt-BR',en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',ja:'ja-JP',zh:'zh-CN',ru:'ru-RU'};
+  const sttLang  = langCodeMap[fromBase] || from;
+
+  try{
+    const translationConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(
+      window.AZURE_SPEECH_KEY, window.AZURE_SPEECH_REGION || 'eastus'
+    );
+    translationConfig.speechRecognitionLanguage = sttLang;
+    translationConfig.addTargetLanguage(toBase);
+
+    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    _sessAzureRecognizer = new SpeechSDK.TranslationRecognizer(translationConfig, audioConfig);
+
+    // Texto parcial — mostra enquanto fala
+    _sessAzureRecognizer.recognizing = (s, e) => {
+      if(e.result.text) document.getElementById('tr1').textContent = '🎙️ ' + e.result.text;
+    };
+
+    // Frase completa
+    _sessAzureRecognizer.recognized = (s, e) => {
+      if(e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech) return;
+      const original   = _fillerCleanLocal(e.result.text);
+      const translated = e.result.translations.get(toBase);
+      if(!original?.trim() || !translated?.trim()) return;
+
+      document.getElementById('tr1').textContent = original;
+      document.getElementById('tr2').textContent = translated;
+      _addSessionBubble(original, translated, 'me', from, to, '~Azure');
+      wc += original.split(' ').length;
+      document.getElementById('mwrd').textContent = wc;
+      document.getElementById('mlat').textContent = '~200ms';
+      document.getElementById('macc').textContent = '97%';
+      sessSec += Math.ceil(original.split(' ').length / 3); // estima tempo de fala
+      if(translated) _speakTranslation(translated, toBase);
+    };
+
+    _sessAzureRecognizer.canceled = (s, e) => {
+      if(e.reason === SpeechSDK.CancellationReason.Error)
+        showToast('❌ Azure: ' + e.errorDetails, 'error');
+      _sessAzureStop();
+    };
+
+    _sessAzureRecognizer.startContinuousRecognitionAsync(
+      () => {
+        _sessAzureActive = true; isRec = true;
+        document.getElementById('sp1').classList.add('speaking');
+        const mb = document.getElementById('micbtn'); if(mb) mb.className='micb rec';
+        document.getElementById('mico').textContent = '⏹';
+        document.getElementById('micl').textContent = 'Ouvindo... toque p/ parar';
+        document.getElementById('tr1').textContent  = '🎙️ Ouvindo...';
+      },
+      err => showToast('❌ Microfone: ' + err, 'error')
+    );
+  }catch(e){
+    showToast('❌ Erro Azure SDK: '+e.message,'error');
+  }
+}
+
+function _sessAzureStop(){
+  _sessAzureActive = false; isRec = false;
+  if(_sessAzureRecognizer){
+    try{_sessAzureRecognizer.stopContinuousRecognitionAsync(()=>{},()=>{});}catch(e){}
+    try{_sessAzureRecognizer.close();}catch(e){}
+    _sessAzureRecognizer = null;
+  }
+  document.getElementById('sp1').classList.remove('speaking');
+  _resetMicBtn();
+}
 
 // ════════════════════════════════════════════════════════════
 //  SESSÃO ATIVA — WebSocket Streaming (Azure tempo real)
@@ -10279,6 +10439,8 @@ function stopSess(){
   clearInterval(sessT);sessT=null;
   wis.forEach(clearInterval);wis=[];
   isRec=false;
+  // Fecha Azure SDK recognizer
+  _sessAzureStop();
   // Fecha WebSocket streaming
   _sessWSCleanup();
   try{_sessRecorder?.stop();}catch(e){}

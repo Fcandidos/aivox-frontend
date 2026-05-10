@@ -12181,6 +12181,15 @@ function salaSetMyLang(code){
 async function criarSala(){
   const btn = document.getElementById('sala-criar-btn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Criando...';}
+
+  // BUGFIX: captura o idioma do picker ANTES de esconder a div sala-antes-criar
+  const selEl = document.getElementById('sala-my-lang-select');
+  if(selEl && selEl.value){
+    _salaMyLang = selEl.value;
+    _salaMyLangPicked = selEl.value;
+    console.log('[SALA] criarSala — idioma capturado do picker:', _salaMyLang);
+  }
+
   try{
     const token = await getAuthToken();
     const r = await fetch(getBackendUrl()+'/api/rooms/create',{
@@ -12346,6 +12355,15 @@ async function _salaSafeJson(response){
 async function validarEntrarSala(){
   const code=(document.getElementById('sala-code-input')?.value||'').trim().toUpperCase();
   if(code.length!==6){showToast('Digite o código completo de 6 caracteres','error');return;}
+
+  // BUGFIX: captura o idioma do picker de entrada ANTES de conectar
+  const selEl = document.getElementById('sala-my-lang-select-enter');
+  if(selEl && selEl.value){
+    _salaMyLang = selEl.value;
+    _salaMyLangPicked = selEl.value;
+    console.log('[SALA] validarEntrarSala — idioma capturado do picker:', _salaMyLang);
+  }
+
   _salaCode=code;
   _salaIsCreator=false;
   await _salaConectarSocket(code);

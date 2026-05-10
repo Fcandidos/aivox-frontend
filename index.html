@@ -16842,45 +16842,51 @@ function _salaMostrarUIVideo(show){
 <!-- ====== FIM DEBUG PANEL ====== -->
 
 <script>
-// ── Twemoji: converte emojis de bandeira em imagens (fix Windows/Chrome) ──
+// ── Twemoji: converte APENAS .flag-emoji em imagens (fix Windows/Chrome) ──
+// NÃO parseia o body todo — evita transformar ✈️ 🎧 e outros ícones em imagens
 (function(){
-  function _twParse(root){
-    if(typeof twemoji==='undefined')return;
-    twemoji.parse(root||document.body,{
-      folder:'svg', ext:'.svg',
-      base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',
-      className:'emoji',
-      // Só converte bandeiras (regional indicators U+1F1E6–U+1F1FF) e alguns emojis de UI
-      callback:function(icon,options){
-        // Aceita apenas flag sequences (2 chars regional) e emojis comuns
-        return ''.concat(options.base,options.size,'/',icon,options.ext);
-      }
+  const TW_BASE='https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/';
+
+  function _twParseFlags(root){
+    if(typeof twemoji==='undefined') return;
+    const targets=(root||document).querySelectorAll('.flag-emoji:not([data-tw])');
+    targets.forEach(function(el){
+      el.setAttribute('data-tw','1');
+      // Parseia APENAS este elemento isolado — não o body todo
+      twemoji.parse(el,{
+        folder:'svg', ext:'.svg',
+        base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',
+        className:'emoji'
+      });
     });
   }
-  // Roda após carregamento inicial
+
+  // Roda após carregamento
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>_twParse(),100));
+    document.addEventListener('DOMContentLoaded',function(){ setTimeout(_twParseFlags,150); });
   } else {
-    setTimeout(()=>_twParse(),100);
+    setTimeout(_twParseFlags,150);
   }
-  // Observa mudanças no DOM para re-parsear conteúdo dinâmico (seletores de idioma, etc.)
+
+  // MutationObserver: re-parseia apenas novos .flag-emoji adicionados dinamicamente
   const _twObs=new MutationObserver(function(mutations){
+    let needsParse=false;
     mutations.forEach(function(m){
       m.addedNodes.forEach(function(node){
-        if(node.nodeType===1){
-          // Só re-parseia se o nó adicionado contém flag-emoji
-          if(node.classList?.contains('flag-emoji')||node.querySelector?.('.flag-emoji')){
-            setTimeout(()=>_twParse(node),0);
-          }
+        if(node.nodeType!==1) return;
+        if(node.classList?.contains('flag-emoji') || node.querySelector?.('.flag-emoji')){
+          needsParse=true;
         }
       });
     });
+    if(needsParse) setTimeout(_twParseFlags,0);
   });
+
   document.addEventListener('DOMContentLoaded',function(){
     _twObs.observe(document.body,{childList:true,subtree:true});
   });
-  // Expõe para uso manual em conteúdo gerado dinamicamente
-  window._twParse=_twParse;
+
+  window._twParseFlags=_twParseFlags;
 })();
 </script>
 </body>

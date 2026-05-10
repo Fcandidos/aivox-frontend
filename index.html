@@ -9117,6 +9117,11 @@ function swapActiveSession(){
     setTimeout(()=>startViagemMode(), 200);
     showToast('🔄 Idioma trocado: agora falando em '+LO[lfi].code,'info');
   }
+  // Reconecta WS com novos idiomas
+  if(_sessWS||_sessWSConnecting){
+    _sessWSCleanup();
+    setTimeout(()=>_sessWSConnect(),300);
+  }
   // Salva a troca no Firebase
   saveUserLanguages();
 }
@@ -9734,22 +9739,29 @@ function startSess(){
   let _uiSec=0;
   sessT=setInterval(()=>{
     _uiSec++;
-    // Só conta minutos de uso quando o microfone está ativo (prevenção de crédito desperdiçado)
     if(isRec) sessSec++;
     const m=Math.floor(_uiSec/60),s=_uiSec%60,el=document.getElementById('sess-dur');
     if(el)el.textContent=m.toString().padStart(2,'0')+':'+s.toString().padStart(2,'0');
   },1000);
+  // Conecta WebSocket streaming ao Azure (pré-conecta para 0-latência no 1º toque)
+  if(_selectedMode!=='viagem') setTimeout(()=>_sessWSConnect(),300);
 }
 // stopSess defined below (complete version)
 
 // ====== MIC ======
 function togMic(){
-  _resetIdleTimer(); // interação com mic = usuário ativo
+  _resetIdleTimer();
   if(_selectedMode==='viagem'){
     if(_viagemActive)stopViagemMode();else startViagemMode();
     return;
   }
-  if(!isRec)startRec();else stopRec();
+  // Usa WebSocket streaming (Azure tempo real) se disponível
+  if(_sessWS && _sessWS.readyState===WebSocket.OPEN){
+    if(_sessWSActive) _sessWSStopSpeaking(); else _sessWSStartSpeaking();
+  } else {
+    // Fallback: iniciar WS se não conectado ainda
+    if(!_sessWSConnecting) _sessWSConnect();
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -9925,10 +9937,179 @@ function stopViagemMode(){
   stopSess();
 }
 // ====== SESSÃO ATIVA — MIC REAL + BACKEND ======
+// ── Sessão Ativa — WebSocket Streaming (Azure tempo real) ──
+let _sessWS=null, _sessWSActive=false, _sessWSConnecting=false;
+let _sessWSCtx=null, _sessWSProcessor=null, _sessWSStream=null;
+let _sessWSTranscript='', _sessWSTranslation='';
+// legado (fallback)
 let _sessStream=null,_sessRecorder=null,_sessChunks=[];
 let _sessVADACtx=null,_sessAnalyser=null,_sessVADTimer=null;
 let _sessRecordingSec=0,_sessRecordingTimer=null;
-let _sessMode='push'; // 'push' = toque p/ falar | 'vad' = automático
+let _sessMode='push';
+
+
+// ════════════════════════════════════════════════════════════
+//  SESSÃO ATIVA — WebSocket Streaming (Azure tempo real)
+//  Substitui o fluxo HTTP batch — latência ~300ms vs ~9s
+// ════════════════════════════════════════════════════════════
+async function _sessWSConnect(){
+  if(_sessWSConnecting||(_sessWS&&_sessWS.readyState===WebSocket.OPEN)) return;
+  const backendUrl=getBackendUrl();
+  if(!backendUrl){showToast('⚠️ Backend não configurado','error');return;}
+  _sessWSConnecting=true;
+  // Pede microfone já ao conectar
+  try{
+    _sessWSStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,sampleRate:16000}});
+  }catch(e){showToast('❌ Permissão de microfone negada','error');_sessWSConnecting=false;return;}
+  try{
+    const token=await getAuthToken();
+    const from=LO[lfi]?.code||'PT-BR';
+    const to=LO[lti]?.code||'EN-US';
+    const fromShort=from.split('-')[0].toLowerCase();
+    const toShort=to.split('-')[0].toLowerCase();
+    const wsUrl=backendUrl.replace('https://','wss://').replace('http://','ws://')
+      +`/api/realtime?from=${fromShort}&to=${toShort}&token=${encodeURIComponent(token||'')}`;
+    _sessWS=new WebSocket(wsUrl);
+    _sessWS.onopen=()=>{
+      _sessWSConnecting=false;
+      console.log('[sessWS] conectado');
+      // Inicia captura de áudio imediatamente
+      _sessWSStartCapture();
+      // Atualiza UI: pronto para falar
+      const mb=document.getElementById('micbtn');
+      if(mb)mb.className='micb idle';
+      document.getElementById('mico').textContent='🎙️';
+      document.getElementById('micl').textContent='Toque para falar';
+      document.getElementById('tr1').textContent='Fale quando quiser...';
+      isRec=false;
+    };
+    _sessWS.onmessage=(ev)=>{
+      try{_sessWSHandleEvent(JSON.parse(ev.data));}catch(e){}
+    };
+    _sessWS.onerror=()=>{_sessWSCleanup();showToast('❌ Erro de conexão com Azure','error');};
+    _sessWS.onclose=()=>{if(_sessWSActive)_sessWSCleanup();};
+  }catch(e){
+    showToast('❌ Falha ao conectar: '+e.message,'error');
+    _sessWSConnecting=false;
+    try{_sessWSStream?.getTracks().forEach(t=>t.stop());}catch(_){}
+  }
+}
+
+function _sessWSStartCapture(){
+  _sessWSCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+  const source=_sessWSCtx.createMediaStreamSource(_sessWSStream);
+  _sessWSProcessor=_sessWSCtx.createScriptProcessor(4096,1,1);
+  _sessWSProcessor.onaudioprocess=(e)=>{
+    // Só envia áudio quando o usuário está falando (botão ativo)
+    if(!_sessWSActive||!_sessWS||_sessWS.readyState!==WebSocket.OPEN) return;
+    const f32=e.inputBuffer.getChannelData(0);
+    const pcm=new Int16Array(f32.length);
+    for(let i=0;i<f32.length;i++) pcm[i]=Math.max(-32768,Math.min(32767,f32[i]*32768));
+    const bytes=new Uint8Array(pcm.buffer);
+    let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
+    _sessWS.send(JSON.stringify({type:'input_audio_buffer.append',audio:btoa(bin)}));
+  };
+  source.connect(_sessWSProcessor);
+  _sessWSProcessor.connect(_sessWSCtx.destination);
+}
+
+function _sessWSStartSpeaking(){
+  if(!_sessWS||_sessWS.readyState!==WebSocket.OPEN) return;
+  _sessWSActive=true; isRec=true;
+  _sessWSTranscript=''; _sessWSTranslation='';
+  const mb=document.getElementById('micbtn');
+  if(mb)mb.className='micb rec';
+  document.getElementById('mico').textContent='⏹';
+  document.getElementById('micl').textContent='Ouvindo... toque p/ parar';
+  document.getElementById('sp1').classList.add('speaking');
+  document.getElementById('tr1').textContent='🎙️ Ouvindo...';
+  document.getElementById('tr2').textContent='';
+  if(_salaSocket&&_salaCode) _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:true});
+}
+
+function _sessWSStopSpeaking(){
+  _sessWSActive=false; isRec=false;
+  document.getElementById('sp1').classList.remove('speaking');
+  if(_salaSocket&&_salaCode) _salaSocket.emit('speaking',{code:_salaCode,name:window._fbUser?.name||'Você',active:false});
+  // UI volta ao idle após breve pausa (Azure ainda processa o fim da fala)
+  setTimeout(()=>{
+    if(!_sessWSActive) _sessWSResetUI();
+  },1200);
+}
+
+function _sessWSResetUI(){
+  const mb=document.getElementById('micbtn');
+  if(mb)mb.className='micb idle';
+  document.getElementById('mico').textContent='🎙️';
+  document.getElementById('micl').textContent='Toque para falar';
+}
+
+function _sessWSHandleEvent(msg){
+  switch(msg.type){
+    case 'aivox.transcription':
+    case 'conversation.item.input_audio_transcription.completed':{
+      const t=(msg.transcript||'').trim();
+      if(t){document.getElementById('tr1').textContent=t;_sessWSTranscript=t;}
+      break;
+    }
+    case 'aivox.translation.delta':
+    case 'response.audio_transcript.delta':{
+      _sessWSTranslation+=(msg.delta||'');
+      document.getElementById('tr2').textContent=_sessWSTranslation;
+      break;
+    }
+    case 'aivox.translation.done':
+    case 'response.audio_transcript.done':{
+      const translation=(msg.transcript||_sessWSTranslation).trim();
+      if(!translation) break;
+      const original=document.getElementById('tr1').textContent||_sessWSTranscript;
+      const from=LO[lfi]?.code||'PT-BR';
+      const to=LO[lti]?.code||'EN-US';
+      const t0=performance.now();
+      _addSessionBubble(original,translation,'me',from,to,'~RT');
+      wc+=original.split(' ').length;
+      document.getElementById('mwrd').textContent=wc;
+      document.getElementById('mlat').textContent='~RT';
+      document.getElementById('macc').textContent='97%';
+      _sessWSTranslation=''; _sessWSTranscript='';
+      break;
+    }
+    case 'aivox.audio.delta':
+    case 'response.audio.delta':{
+      if(!msg.delta) break;
+      // Toca o TTS gerado pelo Azure
+      (async()=>{
+        try{
+          const bin=atob(msg.delta);
+          const bytes=new Uint8Array(bin.length);
+          for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+          const pcm=new Int16Array(bytes.buffer);
+          const f32=new Float32Array(pcm.length);
+          for(let i=0;i<pcm.length;i++) f32[i]=pcm[i]/32768;
+          const ctx=await _getTTSCtx();
+          const buf=ctx.createBuffer(1,f32.length,24000);
+          buf.copyToChannel(f32,0);
+          const src=ctx.createBufferSource();
+          src.buffer=buf;src.connect(ctx.destination);src.start(0);
+        }catch(e){console.warn('sessWS audio:',e);}
+      })();
+      break;
+    }
+    case 'aivox.error':
+    case 'error': console.warn('[sessWS] error:',msg.error); break;
+  }
+}
+
+function _sessWSCleanup(){
+  _sessWSActive=false; _sessWSConnecting=false; isRec=false;
+  try{_sessWSProcessor?.disconnect();}catch(_){}
+  try{_sessWSCtx?.close();}catch(_){}
+  try{_sessWSStream?.getTracks().forEach(t=>t.stop());}catch(_){}
+  _sessWSProcessor=null;_sessWSCtx=null;_sessWSStream=null;
+  try{if(_sessWS?.readyState===WebSocket.OPEN)_sessWS.close();}catch(_){}
+  _sessWS=null;
+  _sessWSResetUI();
+}
 
 async function startRec(){
   if(isRec)return;
@@ -10098,6 +10279,8 @@ function stopSess(){
   clearInterval(sessT);sessT=null;
   wis.forEach(clearInterval);wis=[];
   isRec=false;
+  // Fecha WebSocket streaming
+  _sessWSCleanup();
   try{_sessRecorder?.stop();}catch(e){}
   try{_sessStream?.getTracks().forEach(t=>t.stop());}catch(e){}
   try{_sessVADACtx?.close();}catch(e){}

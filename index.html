@@ -12080,7 +12080,7 @@ const SALA_PLANS = ['pro','business','enterprise'];
 let _salaCode        = null;   // código da sala atual
 let _salaSocket      = null;   // instância Socket.io
 let _salaIsCreator   = false;  // true se foi quem criou
-let _salaMyLang      = null;
+let _salaMyLang      = 'PT-BR';
 let _salaTheirLang   = 'EN-US';
 let _salaMyLangPicked = null; // idioma escolhido no picker — sobrevive a reconexões
 let _salaTheirName   = '';
@@ -12154,16 +12154,24 @@ function _salaInitLangPicker(){
     {code:'DE',name:'Alemão 🇩🇪'},{code:'IT',name:'Italiano 🇮🇹'},
     {code:'JA',name:'Japonês 🇯🇵'},{code:'ZH',name:'Mandarim 🇨🇳'},
   ];
-  // Idioma atual do usuário (da sessão ativa) como padrão
-  const currentLang = _salaMyLang || LO[lfi]?.code || 'PT-BR';
+  // Prioridade: picked anterior → LO[lfi] → 'PT-BR' fixo
+  // NÃO usa _salaMyLang pois pode estar null de um reset anterior
+  let currentLang = _salaMyLangPicked;
+  if(!currentLang){
+    try{ currentLang = LO[lfi]?.code; }catch(e){}
+  }
+  if(!currentLang) currentLang = 'PT-BR';
+
   ['sala-my-lang-select','sala-my-lang-select-enter'].forEach(id=>{
     const sel = document.getElementById(id);
     if(!sel) return;
     sel.innerHTML = langs.map(l=>`<option value="${l.code}"${l.code===currentLang?' selected':''}>${l.name||l.code}</option>`).join('');
     sel.value = currentLang;
   });
+  // Salva nas duas variáveis
   _salaMyLang = currentLang;
-  _salaMyLangPicked = currentLang; // persiste mesmo após reset
+  _salaMyLangPicked = currentLang;
+  console.log('[SALA] picker iniciado — idioma:', currentLang);
 }
 
 function salaSetMyLang(code){
@@ -12562,8 +12570,9 @@ function _salaDesconectar(){
   // Recria socket dedicado ami após desconectar da sala
   setTimeout(()=>{ if(typeof window._ensureAmiSocket==='function') window._ensureAmiSocket(); },500);
   _salaCode=null;_salaConnected=false;
-  // BUGFIX: reseta _salaMyLang para null para que o picker funcione corretamente na próxima sessão
-  _salaMyLang=null; _salaTheirLang='EN-US';
+  // NÃO reseta _salaMyLang aqui — o idioma do picker deve persistir para reconexões
+  // _salaMyLangPicked garante que o valor sobrevive entre sessões
+  _salaTheirLang='EN-US';
   _salaStopRec();
   if(_salaContinuousMode)_salaStopContinuous();
   if(typeof _rtMode!=="undefined"&&_rtMode)_rtStopRealtime();
@@ -15941,9 +15950,10 @@ function _salaMostrarUIVideo(show){
     const thName = window._salaTheirName || '(aguardando)';
 
     if(myLang)    myLang.textContent    = my || '⚠ null';
-    if(myLangSrc) myLangSrc.textContent = my === loFi
-      ? '= global LO[lfi] (⚠)'
-      : (window._salaMyLangPicked ? '✓ picked:'+window._salaMyLangPicked : '✓ picker da sala');
+    if(myLangSrc){
+      if(!my) myLangSrc.textContent = '⚠ null — initSalaPage não rodou?';
+      else myLangSrc.textContent = window._salaMyLangPicked ? '✓ picked:'+window._salaMyLangPicked : '✓ picker da sala';
+    }
     if(theirLang) theirLang.textContent = their || '⚠ null';
     if(theirName) theirName.textContent = conn ? ('👤 '+thName) : '⚫ não conectado';
 
